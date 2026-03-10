@@ -53,7 +53,10 @@ export default function WelcomeScreen() {
         </View>
 
         {/* Get Started Button */}
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/role-select")}
+        >
           <LinearGradient
             colors={["#1A1A1A", "#2D2D2D"]}
             style={styles.buttonGradient}
