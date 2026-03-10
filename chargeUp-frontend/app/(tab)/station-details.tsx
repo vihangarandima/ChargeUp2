@@ -42,7 +42,7 @@ export default function StationDetails() {
               // Pass the name again to the final Charger Info page
               onPress={() =>
                 router.push({
-                  pathname: "/(tab)/charger-info",
+                  pathname: "/charger-booking",
                   params: { stationName: stationName },
                 })
               }
