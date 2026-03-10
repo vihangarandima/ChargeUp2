@@ -15,7 +15,7 @@ export default function WelcomeScreen() {
 
   const handleGetStarted = () => {
     // 🚀 Sends the user straight to the Login/Register flow!
-    router.push("/(auth)/login"); 
+    router.push("/(auth)/login");
   };
 
   return (
@@ -23,7 +23,9 @@ export default function WelcomeScreen() {
     <ImageBackground
       // I put a placeholder EV image here so it works immediately when you paste it.
       // Later, you can swap this to: require('../../assets/images/your-bg-image.jpg')
-      source={{ uri: "https://images.unsplash.com/photo-1605152276897-4f618f831968?q=80&w=1000&auto=format&fit=crop" }}
+      source={{
+        uri: "https://images.unsplash.com/photo-1605152276897-4f618f831968?q=80&w=1000&auto=format&fit=crop",
+      }}
       style={styles.background}
       resizeMode="cover"
     >
@@ -69,7 +71,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     // This creates a dark, semi-transparent tint over the image
-    backgroundColor: "rgba(11, 29, 33, 0.7)", 
+    backgroundColor: "rgba(11, 29, 33, 0.7)",
   },
   safeArea: {
     flex: 1,
