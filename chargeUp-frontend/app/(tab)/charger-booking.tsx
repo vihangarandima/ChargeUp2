@@ -91,7 +91,7 @@ export default function ChargerInfo() {
           style={styles.bookButton}
           onPress={() => {
             router.push({
-              pathname: "/bookig-confirmation",
+              pathname: "/(tab)/booking-confirm",
               params: { 
                 stationName: stationName,
                 // Passing the formatted string to the next page

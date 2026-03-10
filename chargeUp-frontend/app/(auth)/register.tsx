@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import {
   View,
@@ -5,12 +6,12 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -22,25 +23,33 @@ export default function RegisterScreen() {
 
   // 2. The function that talks to your backend
   const handleRegister = async () => {
+    // 1. Check if they left the boxes empty
     if (!name || !email || !password) {
       Alert.alert("Missing Info", "Please fill in all fields to sign up.");
       return;
     }
 
-    // ⚠️ CRITICAL: Replace '192.168.1.55' with YOUR computer's actual IPv4 address!
-    // (Backend fetch code temporarily removed for Version 1 UI prototype)
+    // 2. Fake a successful signup instantly!
+    Alert.alert("Welcome!", "Account created successfully.");
 
-    // Prototype Mode: Fake a successful server response!
-    Alert.alert("Prototype Mode", "Account creation simulated! 🚀");
-
-    // Success! The database saved the user.
-    // NOW we push them to the next screen!
-    router.push("/(auth)/vehicle-details");
-    
-    // Database rejected it (maybe email already exists)
-    // (Handled by backend later)
+    // 3. 🚦 THE TRAFFIC COP LOGIC 🚦
+    try {
+      // Ask the phone's memory what role they picked earlier
+      const role = await AsyncStorage.getItem("userRole");
+      console.log("🚦 THE ROLE IN MEMORY IS:", role); // 👈 ADD THIS LINE
+      // Direct traffic based on the answer!
+      if (role === "host") {
+        router.replace("/host-charger-details");
+      } else {
+        // If they are a client/driver, send them here
+        router.replace("/vehicle-details");
+      }
+    } catch (error) {
+      console.error("Memory error:", error);
+      // If the phone forgets, default to the client page
+      router.replace("/vehicle-details");
+    }
   };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
