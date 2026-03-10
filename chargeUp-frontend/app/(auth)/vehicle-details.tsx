@@ -110,7 +110,7 @@ export default function VehicleDetailsScreen() {
           {/* Continue Button */}
           <Pressable
             style={styles.continueBtn}
-            onPress={() => router.replace("/(tabs)")}
+            onPress={() => router.replace("/(auth)/welcome")}
           >
             <Text style={styles.continueText}>continue</Text>
           </Pressable>
