@@ -68,7 +68,7 @@ export default function MapScreen() {
               // Redirects to details and passes the name
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/station-details",
+                  pathname: "/(tab)/station-details",
                   params: { stationName: station.name },
                 })
               }
