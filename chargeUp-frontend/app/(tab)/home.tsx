@@ -56,7 +56,7 @@ export default function Dashboard() {
 
       {/* 3. Quick Search Bar */}
       <TouchableOpacity 
-        style={styles.searchBar} 
+        style={styles.searchBar} onPress={() => router.push("/(tab)/map-station-finder")}
         
       >
         <Text style={styles.searchText}>Quick Search for Chargers</Text>

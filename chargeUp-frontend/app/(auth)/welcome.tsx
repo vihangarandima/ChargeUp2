@@ -15,7 +15,7 @@ export default function WelcomeScreen() {
 
   const handleGetStarted = () => {
     // 🚀 Sends the user straight to the Login/Register flow!
-    router.push("/(auth)/login");
+    router.push("/(tab)/home");
   };
 
   return (
