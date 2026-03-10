@@ -25,7 +25,7 @@ export default function BookingConfirmation() {
 
   const handleNavigate = () => {
     router.push({
-      pathname: "/map",
+      pathname: "/(tab)/map",
       params: {
         mode: 'route',
         destLat: String(latitude),
