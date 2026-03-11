@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,49 +7,33 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
-  TouchableOpacity, // ✅ Added this so your button doesn't crash!
+  TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// ✅ Added the new Expo Auth tools!
-
-// This tells the app to listen for when the mini-browser closes
+// 1. Import the Gradient component
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function LoginScreen() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // --- GOOGLE LOGIN PREP ---
-  // We will configure this in the very next step!
-  // 👈 Replace this with your new Android Client ID!
-
   const handleLogin = async () => {
-    // 1. Check if they left the boxes empty
     if (!email || !password) {
       Alert.alert("Missing Info", "Please enter both email and password.");
       return;
     }
 
-    // 2. Pop up the "Hello again" message
-    Alert.alert("Welcome Back!", "Hello again! 👋");
-
-    // 3. 🚦 THE TRAFFIC COP LOGIC 🚦
     try {
-      // Ask the phone's memory what role they are
       const role = await AsyncStorage.getItem("userRole");
-
-      // Direct traffic based on the answer!
       if (role === "client") {
-        router.replace("/home"); // Sends clients to the upcoming page
+        router.replace("/home");
       } else if (role === "host") {
-        router.replace("/(tab)/map-station-finder"); // Sends hosts to the welcome page
+        router.replace("/(tab)/map-station-finder");
       } else {
-        // Fallback just in case memory is empty
         router.replace("/(tab)/charger-booking");
       }
     } catch (error) {
@@ -58,102 +42,95 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    console.log("Waking up Google...");
-    // This pops up the Google screen!
-    Alert.alert("Google Login", "Prototype Mode: Simulating Google popup...");
-  };
-
-  //   Added the Apple function back so it doesn't crash
-  const handleAppleLogin = () => {
-    Alert.alert("Apple Login", "Coming soon!");
-  };
-
-  // 🎧 Listen for the Google login response
-  // 1. Grab the secret token Google gives us
-  // 2. Package it up for Firebase
-  // 3. Hand it to the Firebase Bouncer!
-  // It worked!
-  // NOTE: We will add the router push here later to send them to the dashboard!
+  const handleGoogleLogin = () => Alert.alert("Google Login", "Prototype Mode...");
+  const handleAppleLogin = () => Alert.alert("Apple Login", "Coming soon!");
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.inner}>
-        <Text style={styles.brandTitle}>ChargeUp</Text>
+    // 2. Use LinearGradient as the background wrapper
+    <LinearGradient
+      // Your exact colors from the screenshot
+      colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
+      // Your exact percentage stops converted to 0-1 scale
+      locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.inner}>
+          <Text style={styles.brandTitle}>ChargeUp</Text>
 
-        <View style={styles.brandCenter}>
-          <Ionicons name="flash" size={80} color="white" />
-          <Text style={styles.brandTagline}>Find, book and pay</Text>
-        </View>
+          <View style={styles.brandCenter}>
+            <Ionicons name="flash" size={80} color="white" />
+            <Text style={styles.brandTagline}>Find, book and pay</Text>
+          </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Email address"
-            placeholderTextColor="#999"
-            style={styles.underlineInput}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <View style={styles.passwordRow}>
+          <View style={styles.inputContainer}>
             <TextInput
-              placeholder="Password"
+              placeholder="Email address"
               placeholderTextColor="#999"
-              secureTextEntry={!showPassword}
-              style={[styles.underlineInput, { flex: 1 }]}
-              value={password}
-              onChangeText={setPassword}
+              style={styles.underlineInput}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
             />
-            <Pressable onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons
-                name={showPassword ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color="white"
+            <View style={styles.passwordRow}>
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#999"
+                secureTextEntry={!showPassword}
+                style={[styles.underlineInput, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
               />
+              <Pressable onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color="white"
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          <Pressable style={styles.pillButton} onPress={handleLogin}>
+            <Text style={styles.pillButtonText}>Login</Text>
+          </Pressable>
+
+          <Text style={styles.orText}>or</Text>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.line} />
+            <Text style={styles.loginWithText}>Login with</Text>
+            <View style={styles.line} />
+          </View>
+
+          <View style={styles.socialRow}>
+            <Pressable onPress={handleAppleLogin}>
+              <FontAwesome name="apple" size={40} color="white" />
+            </Pressable>
+
+            <TouchableOpacity onPress={handleGoogleLogin}>
+              <Text style={{ color: "white", fontSize: 16 }}>
+                Login with Google
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.signupRow}>
+            <Text style={styles.noAccountText}>Don't have an Account? </Text>
+            <Pressable onPress={() => router.push("/(auth)/register")}>
+              <Text style={styles.signupLink}>Signup</Text>
             </Pressable>
           </View>
         </View>
-
-        <Pressable style={styles.pillButton} onPress={handleLogin}>
-          <Text style={styles.pillButtonText}>Login</Text>
-        </Pressable>
-
-        <Text style={styles.orText}>or</Text>
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.loginWithText}>Login with</Text>
-          <View style={styles.line} />
-        </View>
-
-        {/* ✅ Fixed the double container here! */}
-        <View style={styles.socialRow}>
-          <Pressable onPress={handleAppleLogin}>
-            <FontAwesome name="apple" size={40} color="white" />
-          </Pressable>
-
-          <TouchableOpacity onPress={handleGoogleLogin}>
-            <Text style={{ color: "white", fontSize: 16 }}>
-              Login with Google
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.signupRow}>
-          <Text style={styles.noAccountText}>Don't have an Account? </Text>
-          <Pressable onPress={() => router.push("/(auth)/register")}>
-            <Text style={styles.signupLink}>Signup</Text>
-          </Pressable>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
-// Your styles remained untouched!
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0B1D21" },
+  // Removed the solid background color here
+  container: { flex: 1 },
   inner: { paddingHorizontal: 30, flex: 1, alignItems: "center" },
   brandTitle: {
     color: "white",

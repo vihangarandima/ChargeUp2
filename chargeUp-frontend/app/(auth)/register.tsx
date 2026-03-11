@@ -12,140 +12,144 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+// 1. Import the Gradient component
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function RegisterScreen() {
   const router = useRouter();
 
-  // 1. Here are the missing "memory boxes"!
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 2. The function that talks to your backend
   const handleRegister = async () => {
-    // 1. Check if they left the boxes empty
     if (!name || !email || !password) {
       Alert.alert("Missing Info", "Please fill in all fields to sign up.");
       return;
     }
 
-    // 2. Fake a successful signup instantly!
     Alert.alert("Welcome!", "Account created successfully.");
 
-    // 3. 🚦 THE TRAFFIC COP LOGIC 🚦
     try {
-      // Ask the phone's memory what role they picked earlier
       const role = await AsyncStorage.getItem("userRole");
-      console.log("🚦 THE ROLE IN MEMORY IS:", role); // 👈 ADD THIS LINE
-      // Direct traffic based on the answer!
+      console.log("🚦 THE ROLE IN MEMORY IS:", role);
+
       if (role === "host") {
         router.replace("/host-charger-details");
       } else {
-        // If they are a client/driver, send them here
         router.replace("/vehicle-details");
       }
     } catch (error) {
       console.error("Memory error:", error);
-      // If the phone forgets, default to the client page
       router.replace("/vehicle-details");
     }
   };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    // 2. Wrap the whole screen in the LinearGradient
+    <LinearGradient
+      colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
+      locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
 
-      <View style={styles.content}>
-        {/* Brand Header */}
-        <Text style={styles.headerTitle}>ChargeUp</Text>
+        <View style={styles.content}>
+          {/* Brand Header */}
+          <Text style={styles.headerTitle}>ChargeUp</Text>
 
-        {/* Hero Branding */}
-        <View style={styles.brandHero}>
-          <Ionicons name="flash" size={80} color="white" />
-          <Text style={styles.tagline}>Find, book and pay</Text>
-        </View>
-
-        {/* Signup Form */}
-        <View style={styles.form}>
-          <TextInput
-            placeholder="Full Name"
-            placeholderTextColor="#889"
-            style={styles.inputUnderline} // Added this so it matches your other boxes!
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            placeholder="Email address"
-            placeholderTextColor="#889"
-            style={styles.inputUnderline}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          <View style={styles.passwordWrapper}>
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#889"
-              secureTextEntry
-              style={[styles.inputUnderline, { flex: 1 }]}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <Ionicons
-              name="eye-off-outline"
-              size={20}
-              color="white"
-              style={styles.eyeIcon}
-            />
+          {/* Hero Branding */}
+          <View style={styles.brandHero}>
+            <Ionicons name="flash" size={80} color="white" />
+            <Text style={styles.tagline}>Find, book and pay</Text>
           </View>
-        </View>
 
-        {/* Main Action Button */}
-        <Pressable
-          style={styles.signupBtn}
-          onPress={handleRegister} // Changed this to run our server check first!
-        >
-          <Text style={styles.signupBtnText}>Signup</Text>
-        </Pressable>
+          {/* Signup Form */}
+          <View style={styles.form}>
+            <TextInput
+              placeholder="Full Name"
+              placeholderTextColor="#889"
+              style={styles.inputUnderline}
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              placeholder="Email address"
+              placeholderTextColor="#889"
+              style={styles.inputUnderline}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
 
-        <Text style={styles.orText}>or</Text>
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#889"
+                secureTextEntry
+                style={[styles.inputUnderline, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <Ionicons
+                name="eye-off-outline"
+                size={20}
+                color="white"
+                style={styles.eyeIcon}
+              />
+            </View>
+          </View>
 
-        {/* Social Options */}
-        <View style={styles.socialDivider}>
-          <View style={styles.line} />
-          <Text style={styles.socialLabel}>Signup with</Text>
-          <View style={styles.line} />
-        </View>
-
-        <View style={styles.socialRow}>
-          <FontAwesome name="apple" size={45} color="white" />
-          <FontAwesome name="google" size={42} color="#EA4335" />
-        </View>
-
-        {/* Footer Toggle */}
-        <View style={styles.footerRow}>
-          <Text style={styles.footerText}>Already have an Account? </Text>
-          <Pressable onPress={() => router.push("/(auth)/login")}>
-            <Text style={styles.loginLink}>Login</Text>
+          {/* Main Action Button */}
+          <Pressable
+            style={styles.signupBtn}
+            onPress={handleRegister}
+          >
+            <Text style={styles.signupBtnText}>Signup</Text>
           </Pressable>
-        </View>
 
-        {/* Legal Disclaimer */}
-        <Text style={styles.legalNotice}>
-          By continuing, you agree to our{" "}
-          <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
-          <Text style={styles.legalLink}>Privacy Policy</Text>.
-        </Text>
-      </View>
-    </SafeAreaView>
+          <Text style={styles.orText}>or</Text>
+
+          {/* Social Options */}
+          <View style={styles.socialDivider}>
+            <View style={styles.line} />
+            <Text style={styles.socialLabel}>Signup with</Text>
+            <View style={styles.line} />
+          </View>
+
+          <View style={styles.socialRow}>
+            <FontAwesome name="apple" size={45} color="white" />
+            <FontAwesome name="google" size={42} color="#EA4335" />
+          </View>
+
+          {/* Footer Toggle */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>Already have an Account? </Text>
+            <Pressable onPress={() => router.push("/(auth)/login")}>
+              <Text style={styles.loginLink}>Login</Text>
+            </Pressable>
+          </View>
+
+          {/* Legal Disclaimer */}
+          <Text style={styles.legalNotice}>
+            By continuing, you agree to our{" "}
+            <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
+            <Text style={styles.legalLink}>Privacy Policy</Text>.
+          </Text>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0D1F23",
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
