@@ -9,34 +9,24 @@ export default function PaymentPage() {
   
   // --- DATABASE LOGIC ---
   const { amount, sessionId } = useLocalSearchParams(); 
-  const API_BASE_URL = 'http://192.168.8.158:5000/api/sessions'; 
   
   const [isProcessing, setIsProcessing] = useState(false);
-  const displayAmount = amount ? parseFloat(amount as string).toFixed(2) : "0.00";
+  const displayAmount = amount ? parseFloat(amount as string).toFixed(2) : "1000.00";
 
   const handleSimulatedPayment = async () => {
     setIsProcessing(true); 
-    try {
-      const response = await fetch(`${API_BASE_URL}/complete/${sessionId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ finalAmount: displayAmount })
-      });
-
-      if (response.ok) {
-        setIsProcessing(false);
-        Alert.alert(
-          "Payment Successful", 
-          `Transaction of Rs. ${displayAmount} was completed!`
-        );
-        router.replace('/(client)/(tabs)');
-      } else {
-        throw new Error("Failed to update session status");
-      }
-    } catch (error) {
+    
+    
+    setTimeout(() => {
       setIsProcessing(false);
-      Alert.alert("Error", "Could not reach the server to finalize payment.");
-    }
+      
+      
+      router.push({
+        pathname: '/payment-success',
+        params: { amount: displayAmount }
+      });
+      
+    }, 1500);
   };
 
   return (
@@ -46,7 +36,7 @@ export default function PaymentPage() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           
-          {/* 1. Top Brand Header - Bigger & Lowered */}
+          {/* 1. Top Brand Header */}
           <View style={styles.brandHeader}>
             <Text style={styles.brandTitle}>ChargeUp</Text>
           </View>
@@ -133,7 +123,7 @@ const styles = StyleSheet.create({
   content: { 
     flex: 1, 
     paddingHorizontal: 25, 
-    paddingTop: 30 // Aligns with your Scan and Booking pages
+    paddingTop: 30 
   },
   
   // Brand Header
