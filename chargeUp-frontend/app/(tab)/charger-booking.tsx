@@ -26,6 +26,9 @@ export default function ChargerInfo() {
     setTimePickerVisibility(false);
   };
 
+  const formattedTime = selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formattedDate = selectedDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -65,15 +68,24 @@ export default function ChargerInfo() {
 
           <View style={styles.dateTimeRow}>
             <TouchableOpacity style={[styles.dateTimeBtn, { marginRight: 10 }]} onPress={() => setTimePickerVisibility(true)}>
-              <Text style={styles.dateTimeBtnText}>{selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+              <Text style={styles.dateTimeBtnText}>{formattedTime}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.dateTimeBtn} onPress={() => setDatePickerVisibility(true)}>
-              <Text style={styles.dateTimeBtnText}>{selectedDate.toLocaleDateString()}</Text>
+              <Text style={styles.dateTimeBtnText}>{formattedDate}</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.bookButton} onPress={() => {
-            router.push({ pathname: "/bookig-confirmation", params: { stationName, bookingTime: selectedDate.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) } });
+            router.push({
+              pathname: "/bookig-confirmation",
+              params: {
+                stationName,
+                bookingTime: `${formattedDate}, ${formattedTime}`,
+                connectorType: connectorType || 'Type 2 (Mennekes / IEC 62196-2)',
+                lat: lat as string,
+                lng: lng as string,
+              }
+            });
           }}>
             <Text style={styles.bookButtonText}>Book</Text>
           </TouchableOpacity>
