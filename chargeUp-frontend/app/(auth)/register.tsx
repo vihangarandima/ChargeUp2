@@ -8,25 +8,33 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+<<<<<<< Updated upstream
+=======
+import { SafeAreaView } from "react-native-safe-area-context";
+// Import LinearGradient for the background pattern
+import { LinearGradient } from "expo-linear-gradient";
+
+const { width } = Dimensions.get("window");
+>>>>>>> Stashed changes
 
 export default function RegisterScreen() {
   const router = useRouter();
 
-  // 1. Here are the missing "memory boxes"!
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 2. The function that talks to your backend
   const handleRegister = async () => {
     if (!name || !email || !password) {
       Alert.alert("Missing Info", "Please fill in all fields to sign up.");
       return;
     }
 
+<<<<<<< Updated upstream
     // ⚠️ CRITICAL: Replace '192.168.1.55' with YOUR computer's actual IPv4 address!
     // (Backend fetch code temporarily removed for Version 1 UI prototype)
 
@@ -39,134 +47,160 @@ export default function RegisterScreen() {
     
     // Database rejected it (maybe email already exists)
     // (Handled by backend later)
+=======
+    Alert.alert("Welcome!", "Account created successfully.");
+
+    try {
+      const role = await AsyncStorage.getItem("userRole");
+      if (role === "host") {
+        router.replace("/host-charger-details");
+      } else {
+        router.replace("/vehicle-details");
+      }
+    } catch (error) {
+      console.error("Memory error:", error);
+      router.replace("/vehicle-details");
+    }
+>>>>>>> Stashed changes
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <View style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      <View style={styles.content}>
-        {/* Brand Header */}
-        <Text style={styles.headerTitle}>ChargeUp</Text>
+      {/* 1. Added LinearGradient with exact hex codes and stops from your screenshots */}
+      <LinearGradient
+        colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
+        locations={[0.13, 0.35, 0.55, 0.74, 1.0]} // Stops from the UI tool
+        style={StyleSheet.absoluteFillObject}
+      />
 
-        {/* Hero Branding */}
-        <View style={styles.brandHero}>
-          <Ionicons name="flash" size={80} color="white" />
-          <Text style={styles.tagline}>Find, book and pay</Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.headerTitle}>ChargeUp</Text>
 
-        {/* Signup Form */}
-        <View style={styles.form}>
-          <TextInput
-            placeholder="Full Name"
-            placeholderTextColor="#889"
-            style={styles.inputUnderline} // Added this so it matches your other boxes!
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            placeholder="Email address"
-            placeholderTextColor="#889"
-            style={styles.inputUnderline}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          <View style={styles.passwordWrapper}>
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#889"
-              secureTextEntry
-              style={[styles.inputUnderline, { flex: 1 }]}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <Ionicons
-              name="eye-off-outline"
-              size={20}
-              color="white"
-              style={styles.eyeIcon}
-            />
+          <View style={styles.brandHero}>
+            <Ionicons name="car-sport" size={80} color="white" />
+            <View style={styles.lightningBadge}>
+               <Ionicons name="flash" size={24} color="#101922" />
+            </View>
+            <Text style={styles.tagline}>Find, book and pay</Text>
           </View>
-        </View>
 
-        {/* Main Action Button */}
-        <Pressable
-          style={styles.signupBtn}
-          onPress={handleRegister} // Changed this to run our server check first!
-        >
-          <Text style={styles.signupBtnText}>Signup</Text>
-        </Pressable>
+          <View style={styles.form}>
+            <TextInput
+              placeholder="Full Name"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              style={styles.inputUnderline}
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              placeholder="Email address"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              style={styles.inputUnderline}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
 
-        <Text style={styles.orText}>or</Text>
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                secureTextEntry
+                style={[styles.inputUnderline, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <Ionicons
+                name="eye-off-outline"
+                size={20}
+                color="white"
+                style={styles.eyeIcon}
+              />
+            </View>
+          </View>
 
-        {/* Social Options */}
-        <View style={styles.socialDivider}>
-          <View style={styles.line} />
-          <Text style={styles.socialLabel}>Signup with</Text>
-          <View style={styles.line} />
-        </View>
-
-        <View style={styles.socialRow}>
-          <FontAwesome name="apple" size={45} color="white" />
-          <FontAwesome name="google" size={42} color="#EA4335" />
-        </View>
-
-        {/* Footer Toggle */}
-        <View style={styles.footerRow}>
-          <Text style={styles.footerText}>Already have an Account? </Text>
-          <Pressable onPress={() => router.push("/(auth)/login")}>
-            <Text style={styles.loginLink}>Login</Text>
+          <Pressable
+            style={styles.signupBtn}
+            onPress={handleRegister}
+          >
+            <Text style={styles.signupBtnText}>Signup</Text>
           </Pressable>
-        </View>
 
-        {/* Legal Disclaimer */}
-        <Text style={styles.legalNotice}>
-          By continuing, you agree to our{" "}
-          <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
-          <Text style={styles.legalLink}>Privacy Policy</Text>.
-        </Text>
-      </View>
-    </SafeAreaView>
+          <Text style={styles.orText}>or</Text>
+
+          <View style={styles.socialDivider}>
+            <View style={styles.line} />
+            <Text style={styles.socialLabel}>Signup with</Text>
+            <View style={styles.line} />
+          </View>
+
+          <View style={styles.socialRow}>
+            <FontAwesome name="apple" size={40} color="white" />
+            <FontAwesome name="google" size={38} color="#EA4335" />
+          </View>
+
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>Already have an Account? </Text>
+            <Pressable onPress={() => router.push("/(auth)/login")}>
+              <Text style={styles.loginLink}>Login</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.legalNotice}>
+            By continuing, you agree to our{" "}
+            <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
+            <Text style={styles.legalLink}>Privacy Policy</Text>.
+          </Text>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0D1F23",
   },
   content: {
     flex: 1,
     paddingHorizontal: 30,
-    paddingTop: 40,
     alignItems: "center",
   },
   headerTitle: {
     alignSelf: "flex-start",
     color: "white",
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 30,
+    marginTop: 10,
   },
   brandHero: {
     alignItems: "center",
-    marginBottom: 50,
+    marginTop: 30,
+    marginBottom: 40,
+  },
+  lightningBadge: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 2,
+    top: 45, // Positioned over the car icon
   },
   tagline: {
     color: "white",
-    fontSize: 16,
-    marginTop: 10,
+    fontSize: 18,
+    marginTop: 15,
   },
   form: {
     width: "100%",
-    marginBottom: 40,
+    marginBottom: 30,
   },
   inputUnderline: {
     borderBottomWidth: 1,
-    borderBottomColor: "white",
+    borderBottomColor: "rgba(255,255,255,0.8)",
     color: "white",
     paddingVertical: 10,
     fontSize: 16,
@@ -185,23 +219,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "white",
     borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 50,
+    height: 48,
+    width: width * 0.45, // Slimmer pill shape matching design
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 15,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   signupBtnText: {
     color: "white",
     fontSize: 18,
+    fontWeight: "500",
   },
   orText: {
     color: "white",
-    marginBottom: 15,
+    marginBottom: 10,
   },
   socialDivider: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 30,
+    marginBottom: 25,
   },
   line: {
     flex: 1,
@@ -215,9 +253,9 @@ const styles = StyleSheet.create({
   },
   socialRow: {
     flexDirection: "row",
-    gap: 40,
+    gap: 45,
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 35,
   },
   footerRow: {
     flexDirection: "row",
@@ -225,20 +263,21 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: "white",
-    fontSize: 14,
+    fontSize: 15,
   },
   loginLink: {
-    color: "#7BB1BA",
-    fontSize: 14,
+    color: "#4DA6FF", // Blue link color
+    fontSize: 15,
     fontWeight: "bold",
   },
   legalNotice: {
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.8)",
     fontSize: 11,
     textAlign: "center",
     lineHeight: 18,
   },
   legalLink: {
+    color: '#76C7C0', // Teal link color
     textDecorationLine: "underline",
   },
 });
