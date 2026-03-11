@@ -64,6 +64,17 @@ export default function TabLayout() {
           ),
         }}
       />
+
+
+      {/* Replace 'booking-page' with the actual name of your file (without the .tsx) */}
+      <Tabs.Screen
+        name="booking-confirm" 
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
     </Tabs>
+
+    
   );
 }
