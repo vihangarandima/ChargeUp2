@@ -55,9 +55,9 @@ export default function Dashboard() {
       </View>
 
       {/* 3. Quick Search Bar */}
-      <TouchableOpacity 
-        style={styles.searchBar} onPress={() => router.push("/(tab)/map-station-finder")}
-        
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={() => router.push("/map-station-finder")}
       >
         <Text style={styles.searchText}>Quick Search for Chargers</Text>
       </TouchableOpacity>
@@ -65,13 +65,19 @@ export default function Dashboard() {
       {/* 4. Nearby Stations Section */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Nearby Stations</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/map-station-finder")}>
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
       </View>
       
       {/* Station Card 1 */}
-      <View style={styles.stationCard}>
+      <TouchableOpacity
+        style={styles.stationCard}
+        onPress={() => router.push({
+          pathname: "/station-details",
+          params: { stationName: 'Charge Point Station', lat: '6.9067', lng: '79.8707' }
+        })}
+      >
         <View style={styles.stationInfo}>
           <View>
             <Text style={styles.stationName}>Charge Point Station</Text>
@@ -88,7 +94,7 @@ export default function Dashboard() {
             <Text style={styles.statusText}>Available</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
