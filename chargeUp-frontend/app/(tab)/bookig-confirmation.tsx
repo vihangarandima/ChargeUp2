@@ -11,8 +11,22 @@ export default function BookingConfirmation() {
   const latitude = lat ? parseFloat(lat as string) : 6.9147;
   const longitude = lng ? parseFloat(lng as string) : 79.8543;
 
+  const destinationCoords = { latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 };
+
   const timePart = bookingTime?.toString().split(',')[1]?.trim() || "4:00 pm";
   const datePart = bookingTime?.toString().split(',')[0]?.trim() || "12/05/2026";
+
+  const handleNavigate = () => {
+    router.push({
+      pathname: "/map-station-finder",
+      params: {
+        mode: 'route',
+        destLat: String(latitude),
+        destLng: String(longitude),
+        stationName: stationName as string,
+      }
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -43,22 +57,26 @@ export default function BookingConfirmation() {
         </View>
 
         <Text style={styles.directionHeader}>Direction</Text>
-        <View style={styles.mapWrapper}>
+        <TouchableOpacity style={styles.mapWrapper} activeOpacity={0.9} onPress={handleNavigate}>
           <MapView
             style={styles.map}
-            initialRegion={{ latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 }}
+            initialRegion={destinationCoords}
             scrollEnabled={false}
             zoomEnabled={false}
             pitchEnabled={false}
             rotateEnabled={false}
           >
-            <Marker coordinate={{ latitude, longitude }}>
+            <Marker coordinate={destinationCoords}>
               <View style={styles.markerContainer}>
                 <Ionicons name="location" size={32} color="#E74C3C" />
               </View>
             </Marker>
           </MapView>
-        </View>
+          <View style={styles.mapOverlay}>
+            <Ionicons name="navigate-circle" size={18} color="#0B1D21" />
+            <Text style={styles.overlayText}>Tap to Navigate</Text>
+          </View>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.doneButton} onPress={() => router.replace('/')}>
           <Text style={styles.doneButtonText}>Done</Text>
@@ -88,6 +106,8 @@ const styles = StyleSheet.create({
   mapWrapper: { height: 200, width: '100%', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.2)' },
   map: { flex: 1 },
   markerContainer: { shadowColor: "#E74C3C", shadowOpacity: 0.5, shadowRadius: 8 },
+  mapOverlay: { position: 'absolute', bottom: 12, right: 12, backgroundColor: '#00D1FF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  overlayText: { color: '#0B1D21', fontSize: 12, fontWeight: 'bold', marginLeft: 4 },
   doneButton: { backgroundColor: '#00D1FF', padding: 18, borderRadius: 18, marginTop: 30, alignItems: 'center' },
   doneButtonText: { color: '#0B1D21', fontSize: 18, fontWeight: 'bold' },
 });
