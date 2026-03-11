@@ -44,6 +44,19 @@ export default function ChargerInfo() {
 
         <Text style={styles.pageTitle}>Charger info</Text>
 
+        {/* Charger Image */}
+        <View style={styles.imageContainer}>
+          <View style={styles.chargerImagePlaceholder}>
+            <Ionicons name="flash" size={60} color="#00D1FF" />
+            <View style={styles.chargerBody}>
+              <View style={styles.chargerScreen}>
+                <Ionicons name="battery-charging" size={30} color="#00D1FF" />
+              </View>
+              <View style={styles.chargerCable} />
+            </View>
+          </View>
+        </View>
+
         <View style={styles.glassCard}>
           <Text style={styles.cardSectionTitle}>Charger Type</Text>
           <View style={styles.infoRow}><Text style={styles.infoText}>Fast Charger - Single Port</Text></View>
@@ -82,6 +95,11 @@ const styles = StyleSheet.create({
   notifBadge: { position: 'absolute', top: -2, right: -2, backgroundColor: '#444', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: '#0B1D21' },
   notifBadgeText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
   pageTitle: { color: 'white', fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
+  imageContainer: { alignItems: 'center', marginBottom: 25, height: 180, justifyContent: 'center' },
+  chargerImagePlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  chargerBody: { alignItems: 'center', marginTop: 5 },
+  chargerScreen: { backgroundColor: 'rgba(0, 209, 255, 0.1)', width: 80, height: 60, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.3)' },
+  chargerCable: { width: 3, height: 30, backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 5 },
   glassCard: { backgroundColor: 'rgba(28, 46, 51, 0.7)', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.2)' },
   cardSectionTitle: { color: 'white', fontSize: 18, fontWeight: '600', marginBottom: 18 },
   infoRow: { backgroundColor: 'rgba(0, 209, 255, 0.08)', padding: 14, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.15)' },
