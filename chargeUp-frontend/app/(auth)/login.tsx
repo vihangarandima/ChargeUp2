@@ -47,7 +47,7 @@ export default function LoginScreen() {
       if (role === "client") {
         router.replace("/home"); // Sends clients to the upcoming page
       } else if (role === "host") {
-        router.replace("/(tab)/host-details"); // Sends hosts to the welcome page
+        router.replace("/(tab)/map-station-finder"); // Sends hosts to the welcome page
       } else {
         // Fallback just in case memory is empty
         router.replace("/(tab)/charger-booking");
