@@ -95,6 +95,32 @@ export default function Dashboard() {
           </View>
         </View>
       </TouchableOpacity>
+
+      {/* Station Card 2 */}
+      <TouchableOpacity
+        style={styles.stationCard}
+        onPress={() => router.push({
+          pathname: "/station-details",
+          params: { stationName: 'EVOCK Colombo 07', lat: '6.9067', lng: '79.8707' }
+        })}
+      >
+        <View style={styles.stationInfo}>
+          <View>
+            <Text style={styles.stationName}>EVOCK Colombo 07</Text>
+            <View style={styles.stationDetails}>
+              <Ionicons name="location" size={14} color="#00D1FF" />
+              <Text style={styles.detailText}> 3.5 km away</Text>
+              <Ionicons name="time-outline" size={14} color="#00D1FF" style={{marginLeft: 10}} />
+              <Text style={styles.detailText}> 12 mins</Text>
+            </View>
+            <Text style={styles.ratingText}>⭐ 4.6 (42 reviews)</Text>
+          </View>
+          <View style={styles.statusBadge}>
+            <View style={styles.dot} />
+            <Text style={styles.statusText}>Available</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
