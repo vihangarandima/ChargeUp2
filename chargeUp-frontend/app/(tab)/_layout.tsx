@@ -72,6 +72,56 @@ export default function TabLayout() {
           href: null, // This is the magic word that hides the button!
         }}
       />
+
+      <Tabs.Screen
+        name="booking-confirm"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
+      <Tabs.Screen
+        name="charger-booking"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
+      <Tabs.Screen
+        name="charging-session"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
+      <Tabs.Screen
+        name="payment-success"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
+      <Tabs.Screen
+        name="payment"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
+      <Tabs.Screen
+        name="scan-qr"
+        options={{
+          href: null, // This is the magic word that hides the button!
+        }}
+      />
+
     </Tabs>
   );
 }
