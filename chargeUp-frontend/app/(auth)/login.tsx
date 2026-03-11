@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ✅ Added the new Expo Auth tools!
 
@@ -30,20 +29,33 @@ export default function LoginScreen() {
   // 👈 Replace this with your new Android Client ID!
 
   const handleLogin = async () => {
+    // 1. Check if they left the boxes empty
     if (!email || !password) {
       Alert.alert("Missing Info", "Please enter both email and password.");
       return;
     }
 
-    // UI Prototype Mode: Bypassing the backend logic completely
-    Alert.alert("Prototype Mode", "Login simulated successfully!");
+    // 2. Pop up the "Hello again" message
+    Alert.alert("Welcome Back!", "Hello again! 👋");
 
-    // 🚀 THE FIX: Corrected your navigation routes here!
-    // Assuming host-details is in your app folder
-    // Sending directly to your tabs folder
-    
-    // Defaulting to tabs for the prototype - change to "/charger-information" if needed!
-    router.replace("/(tabs)" as any); 
+    // 3. 🚦 THE TRAFFIC COP LOGIC 🚦
+    try {
+      // Ask the phone's memory what role they are
+      const role = await AsyncStorage.getItem("userRole");
+
+      // Direct traffic based on the answer!
+      if (role === "client") {
+        router.replace("/home"); // Sends clients to the upcoming page
+      } else if (role === "host") {
+        router.replace("/(tab)/host-details"); // Sends hosts to the welcome page
+      } else {
+        // Fallback just in case memory is empty
+        router.replace("/(tab)/charger-booking");
+      }
+    } catch (error) {
+      console.error("Memory error:", error);
+      router.replace("/welcome");
+    }
   };
 
   const handleGoogleLogin = async () => {
