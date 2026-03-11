@@ -1,127 +1,105 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-export default function BookingConfirmation() {
+export default function ChargerBooking() {
   const router = useRouter();
-  const { stationName, bookingTime, connectorType, lat, lng } = useLocalSearchParams();
+  const { stationName } = useLocalSearchParams();
 
-  const dateObj = bookingTime ? new Date(bookingTime as string) : new Date();
-  
-  const timePart = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-  const datePart = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  // State for Date and Time Pickers
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
-  const latitude = lat ? parseFloat(lat as string) : 6.9147;
-  const longitude = lng ? parseFloat(lng as string) : 79.8543;
-
-  const destinationCoords = {
-    latitude,
-    longitude,
-    latitudeDelta: 0.005,
-    longitudeDelta: 0.005,
+  const handleConfirmDate = (date: Date) => {
+    const updatedDate = new Date(selectedDate);
+    updatedDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    setSelectedDate(updatedDate);
+    setDatePickerVisibility(false);
   };
 
-  const handleNavigate = () => {
-    router.push({
-      pathname: "/map",
-      params: {
-        mode: 'route',
-        destLat: String(latitude),
-        destLng: String(longitude),
-        stationName: stationName as string,
-      }
-    });
+  const handleConfirmTime = (time: Date) => {
+    const updatedDate = new Date(selectedDate);
+    updatedDate.setHours(time.getHours(), time.getMinutes());
+    setSelectedDate(updatedDate);
+    setTimePickerVisibility(false);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        {/* 1. Brand Header - Adjusted margin to be slightly lower */}
-        <View style={styles.brandHeader}>
+        
+        {/* Header Section */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
           <Text style={styles.brandTitle}>ChargeUp</Text>
         </View>
 
-        {/* 2. Control Header Row */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={26} color="white" />
-          </TouchableOpacity>
-          <View style={styles.notificationContainer}>
-            <Ionicons name="notifications-outline" size={22} color="white" />
-            <View style={styles.notifBadge}>
-              <Text style={styles.notifBadgeText}>4</Text>
-            </View>
-          </View>
-        </View>
+        <Text style={styles.stationTitle}>{stationName || "Charger Booking"}</Text>
+        <Text style={styles.subTitle}>Select your preferred slot</Text>
 
-        {/* 3. Title Section */}
-        <Text style={styles.headerTitle}>Booking Confirmed</Text>
-
-        {/* 4. Details Card */}
-        <View style={styles.glassCard}>
-          <Text style={styles.cardSectionTitle}>{stationName || "Charging Station"}</Text>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoText}>Fast Charger - Single Port</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoText}>{connectorType || 'Type 2 (Mennekes)'}</Text>
-          </View>
-
-          <View style={styles.dateTimeRow}>
-            <View style={[styles.dateTimeBox, { marginRight: 10 }]}>
-              <Text style={styles.dateTimeText}>{timePart}</Text>
-            </View>
-            <View style={styles.dateTimeBox}>
-              <Text style={styles.dateTimeText}>{datePart}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 5. Map Section */}
-        <Text style={styles.directionHeader}>Direction</Text>
-        <TouchableOpacity style={styles.mapWrapper} activeOpacity={0.9} onPress={handleNavigate}>
-          <MapView
-            style={styles.map}
-            initialRegion={destinationCoords}
-            scrollEnabled={false}
-            zoomEnabled={false}
+        {/* Date and Time Selection Card */}
+        <View style={styles.cardContainer}>
+          <Text style={styles.label}>Select Date</Text>
+          <TouchableOpacity 
+            style={styles.selectorButton} 
+            onPress={() => setDatePickerVisibility(true)}
           >
-            <Marker coordinate={destinationCoords}>
-              <View style={styles.markerContainer}>
-                <Ionicons name="location" size={32} color="#E74C3C" />
-              </View>
-            </Marker>
-          </MapView>
-          <View style={styles.mapOverlay}>
-            <Ionicons name="navigate-circle" size={18} color="#0B1D21" />
-            <Text style={styles.overlayText}>Tap to Navigate</Text>
-          </View>
+            <Ionicons name="calendar-outline" size={20} color="#00D1FF" style={{ marginRight: 10 }} />
+            <Text style={styles.selectorText}>{selectedDate.toLocaleDateString()}</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.label}>Select Time</Text>
+          <TouchableOpacity 
+            style={styles.selectorButton} 
+            onPress={() => setTimePickerVisibility(true)}
+          >
+            <Ionicons name="time-outline" size={20} color="#00D1FF" style={{ marginRight: 10 }} />
+            <Text style={styles.selectorText}>
+              {selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Date/Time Picker Modals */}
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirmDate}
+          onCancel={() => setDatePickerVisibility(false)}
+          isDarkModeEnabled={true}
+        />
+
+        <DateTimePickerModal
+          isVisible={isTimePickerVisible}
+          mode="time"
+          onConfirm={handleConfirmTime}
+          onCancel={() => setTimePickerVisibility(false)}
+          isDarkModeEnabled={true}
+        />
+
+        {/* Action Button: Redirects to booking-confirm.tsx */}
+        <TouchableOpacity 
+          style={styles.bookButton}
+          onPress={() => {
+            // Formatting the date string so the confirmation page can split it by ','
+            const formattedTime = `${selectedDate.toLocaleDateString()},${selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            
+            router.push({
+              pathname: "/booking-confirm", // UPDATED: Redirects to booking-confirm.tsx
+              params: { 
+                stationName: stationName || "Charging Station",
+                bookingTime: formattedTime, // Sends: "12/05/2026,04:00 PM"
+              }
+            });
+          }}
+        >
+          <Text style={styles.bookButtonText}>Book Now</Text>
         </TouchableOpacity>
-
-        {/* 6. Action Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.actionButton, { marginRight: 12 }]} 
-            onPress={() => router.push('/scan-qr')}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="qr-code" size={18} color="#0B1D21" style={{ marginRight: 8 }} />
-              <Text style={styles.actionButtonText}>Scan QR</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.actionButton} 
-            onPress={() => router.replace('/')}
-          >
-            <Text style={styles.actionButtonText}>Done</Text>
-          </TouchableOpacity>
-        </View>
 
       </ScrollView>
     </SafeAreaView>
@@ -132,125 +110,49 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#0B1D21',
-    // Ensures space for the system status bar
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
   },
-  scrollContent: { 
-    padding: 24, 
-    paddingTop: 20, // Increased slightly to lower the brand name
-    paddingBottom: 40 
-  },
-  brandHeader: { 
-    marginBottom: 10, // Space between brand and back button
-  },
-  brandTitle: { 
-    color: 'white', 
-    fontSize: 28, 
-    fontWeight: 'bold' 
-  },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 15,
-  },
-  headerTitle: { 
-    color: 'white', 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    marginBottom: 20 
-  },
-  notificationContainer: { 
-    position: 'relative', 
-    backgroundColor: 'rgba(255,255,255,0.05)', 
-    padding: 8, 
-    borderRadius: 12 
-  },
-  notifBadge: { 
-    position: 'absolute', 
-    top: -2, 
-    right: -2, 
-    backgroundColor: '#444', 
-    width: 18, 
-    height: 18, 
-    borderRadius: 9, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 1.5, 
-    borderColor: '#0B1D21' 
-  },
-  notifBadgeText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-  glassCard: { 
-    backgroundColor: 'rgba(28, 46, 51, 0.7)', 
+  scrollContent: { padding: 25, paddingBottom: 40 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  brandTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginLeft: 15 },
+  backButton: { padding: 5 },
+  stationTitle: { color: 'white', fontSize: 28, fontWeight: 'bold' },
+  subTitle: { color: '#888', fontSize: 16, marginTop: 5, marginBottom: 30 },
+  cardContainer: { 
+    backgroundColor: '#1C2E33', 
+    padding: 20, 
     borderRadius: 24, 
-    padding: 22, 
     borderWidth: 1, 
-    borderColor: 'rgba(0, 209, 255, 0.15)' 
+    borderColor: 'rgba(0, 209, 255, 0.1)' 
   },
-  cardSectionTitle: { color: 'white', fontSize: 18, fontWeight: '600', marginBottom: 18 },
-  infoRow: { 
-    backgroundColor: 'rgba(0, 209, 255, 0.08)', 
-    padding: 14, 
-    borderRadius: 12, 
+  label: { 
+    color: '#00D1FF', 
+    fontSize: 12, 
+    fontWeight: 'bold', 
     marginBottom: 10, 
-    borderWidth: 1, 
-    borderColor: 'rgba(0, 209, 255, 0.15)' 
+    textTransform: 'uppercase' 
   },
-  infoText: { color: '#BDC3C7', fontSize: 14 },
-  dateTimeRow: { flexDirection: 'row', marginTop: 8 },
-  dateTimeBox: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0, 209, 255, 0.08)', 
-    padding: 14, 
-    borderRadius: 12, 
+  selectorButton: { 
+    flexDirection: 'row', 
     alignItems: 'center', 
+    backgroundColor: 'rgba(255,255,255,0.05)', 
+    padding: 18, 
+    borderRadius: 15, 
+    marginBottom: 20, 
     borderWidth: 1, 
-    borderColor: 'rgba(0, 209, 255, 0.15)' 
+    borderColor: 'rgba(255,255,255,0.1)' 
   },
-  dateTimeText: { color: '#BDC3C7', fontSize: 14 },
-  directionHeader: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 30, marginBottom: 15 },
-  mapWrapper: { 
-    height: 200, 
-    width: '100%', 
+  selectorText: { color: 'white', fontSize: 16 },
+  bookButton: { 
+    backgroundColor: '#00D1FF', 
+    padding: 20, 
     borderRadius: 20, 
-    overflow: 'hidden', 
-    borderWidth: 1, 
-    borderColor: 'rgba(0, 209, 255, 0.2)' 
-  },
-  map: { flex: 1 },
-  markerContainer: { shadowColor: "#E74C3C", shadowOpacity: 0.5, shadowRadius: 8 },
-  mapOverlay: { 
-    position: 'absolute', 
-    bottom: 12, 
-    right: 12, 
-    backgroundColor: '#00D1FF', 
-    flexDirection: 'row', 
+    marginTop: 40, 
     alignItems: 'center', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 20 
+    shadowColor: "#00D1FF", 
+    shadowOpacity: 0.4, 
+    shadowRadius: 10, 
+    elevation: 5 
   },
-  overlayText: { color: '#0B1D21', fontSize: 12, fontWeight: 'bold', marginLeft: 4 },
-  buttonContainer: { 
-    flexDirection: 'row', 
-    marginTop: 30, 
-    justifyContent: 'space-between' 
-  },
-  actionButton: { 
-    flex: 1, 
-    backgroundColor: '#00D1FF', 
-    paddingVertical: 18, 
-    borderRadius: 18, 
-    alignItems: 'center', 
-    justifyContent: 'center',
-    shadowColor: "#00D1FF",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4
-  },
-  actionButtonText: { 
-    color: '#0B1D21', 
-    fontSize: 16, 
-    fontWeight: 'bold' 
-  },
+  bookButtonText: { color: '#0B1D21', fontSize: 18, fontWeight: 'bold' },
 });
