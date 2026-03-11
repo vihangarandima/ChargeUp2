@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function BookingConfirmation() {
@@ -41,6 +42,24 @@ export default function BookingConfirmation() {
           </View>
         </View>
 
+        <Text style={styles.directionHeader}>Direction</Text>
+        <View style={styles.mapWrapper}>
+          <MapView
+            style={styles.map}
+            initialRegion={{ latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            pitchEnabled={false}
+            rotateEnabled={false}
+          >
+            <Marker coordinate={{ latitude, longitude }}>
+              <View style={styles.markerContainer}>
+                <Ionicons name="location" size={32} color="#E74C3C" />
+              </View>
+            </Marker>
+          </MapView>
+        </View>
+
         <TouchableOpacity style={styles.doneButton} onPress={() => router.replace('/')}>
           <Text style={styles.doneButtonText}>Done</Text>
         </TouchableOpacity>
@@ -65,6 +84,10 @@ const styles = StyleSheet.create({
   dateTimeRow: { flexDirection: 'row', marginTop: 8 },
   dateTimeBox: { flex: 1, backgroundColor: 'rgba(0, 209, 255, 0.08)', padding: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.15)' },
   dateTimeText: { color: '#BDC3C7', fontSize: 14 },
+  directionHeader: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 30, marginBottom: 15 },
+  mapWrapper: { height: 200, width: '100%', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.2)' },
+  map: { flex: 1 },
+  markerContainer: { shadowColor: "#E74C3C", shadowOpacity: 0.5, shadowRadius: 8 },
   doneButton: { backgroundColor: '#00D1FF', padding: 18, borderRadius: 18, marginTop: 30, alignItems: 'center' },
   doneButtonText: { color: '#0B1D21', fontSize: 18, fontWeight: 'bold' },
 });
