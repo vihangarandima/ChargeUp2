@@ -53,12 +53,10 @@ export default function StationDetails() {
               <TouchableOpacity
                 key={item.id}
                 style={styles.card}
-                onPress={() =>
-                  router.push({
-                    pathname: "/charger-booking",
-                    params: { stationName: stationName },
-                  })
-                }
+                onPress={() => router.push({
+                  pathname: "/charger-booking",
+                  params: { stationName, connectorType: item.type, lat: String(latitude), lng: String(longitude) }
+                })}
               >
                 <Text style={styles.cardType}>{item.type}</Text>
                 <View style={styles.footer}>
