@@ -13,7 +13,7 @@ import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 // 1. Import the Gradient component
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -27,28 +27,59 @@ export default function RegisterScreen() {
       Alert.alert("Missing Info", "Please fill in all fields to sign up.");
       return;
     }
-
-    Alert.alert("Welcome!", "Account created successfully.");
-
     try {
-      const role = await AsyncStorage.getItem("userRole");
+      // 2. Ask memory what role they picked on the very first screen
+      // If it forgets, we default them to a "client" just in case.
+      const role = (await AsyncStorage.getItem("userRole")) || "client";
       console.log("🚦 THE ROLE IN MEMORY IS:", role);
 
-      if (role === "host") {
-        router.replace("/host-charger-details");
+      // 3. Send the new user's info to your Node.js backend
+      // (Again, make sure this IP matches your current Wi-Fi IP!)
+      const response = await fetch(
+        "http://10.236.64.178:5000/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role }),
+        },
+      );
+
+      const data = await response.json();
+
+      // 4. If the backend says "User created successfully!"
+      if (response.ok) {
+        // Save the VIP token so they are logged in automatically
+        if (data.token) {
+          await AsyncStorage.setItem("userToken", data.token);
+        }
+
+        Alert.alert("Welcome!", "Account created successfully.");
+
+        if (role === "host") {
+          router.replace("/host-charger-details");
+        } else {
+          router.replace("/vehicle-details");
+        }
       } else {
-        router.replace("/vehicle-details");
+        // If the email is already taken or password is too short
+        Alert.alert(
+          "Signup Failed",
+          data.message || "Could not create account.",
+        );
       }
     } catch (error) {
-      console.error("Memory error:", error);
-      router.replace("/vehicle-details");
+      console.error("Network error:", error);
+      Alert.alert(
+        "Connection Error",
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
+      );
     }
   };
 
   return (
     // 2. Wrap the whole screen in the LinearGradient
     <LinearGradient
-      colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
+      colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
       locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
       style={styles.container}
     >
@@ -103,10 +134,7 @@ export default function RegisterScreen() {
           </View>
 
           {/* Main Action Button */}
-          <Pressable
-            style={styles.signupBtn}
-            onPress={handleRegister}
-          >
+          <Pressable style={styles.signupBtn} onPress={handleRegister}>
             <Text style={styles.signupBtnText}>Signup</Text>
           </Pressable>
 
