@@ -1,27 +1,27 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; 
+import { Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,               // Hides the top header
-        tabBarShowLabel: false,           // Hides the text labels (Icon only)
-        tabBarActiveTintColor: "white",   // White icon when selected
+        headerShown: false, // Hides the top header
+        tabBarShowLabel: false, // Hides the text labels (Icon only)
+        tabBarActiveTintColor: "white", // White icon when selected
         tabBarInactiveTintColor: "#83B4BB", // Faded color when not selected
         tabBarStyle: {
-          backgroundColor: "#213A45",     // Dark blue/grey background
-          borderTopLeftRadius: 25,        // Rounded top left
-          borderTopRightRadius: 25,       // Rounded top right
-          borderTopWidth: 1,              // The white line on top
-          borderTopColor: "white",        // Color of the top line
-          borderLeftWidth: 1,             // Connects the border to the curves
+          backgroundColor: "#213A45", // Dark blue/grey background
+          borderTopLeftRadius: 25, // Rounded top left
+          borderTopRightRadius: 25, // Rounded top right
+          borderTopWidth: 1, // The white line on top
+          borderTopColor: "white", // Color of the top line
+          borderLeftWidth: 1, // Connects the border to the curves
           borderLeftColor: "white",
           borderRightWidth: 1,
           borderRightColor: "white",
-          height: 70,                     // Height of the bar
-          position: "absolute",           // Required to show rounded corners properly
-          bottom: -1,                     // Pulls it down slightly to hide bottom edges
+          height: 70, // Height of the bar
+          position: "absolute", // Required to show rounded corners properly
+          bottom: -1, // Pulls it down slightly to hide bottom edges
         },
       }}
     >
@@ -65,16 +65,13 @@ export default function TabLayout() {
         }}
       />
 
-
       {/* Replace 'booking-page' with the actual name of your file (without the .tsx) */}
       <Tabs.Screen
-        name="booking-confirm" 
+        name="booking-confirmation"
         options={{
           href: null, // This is the magic word that hides the button!
         }}
       />
     </Tabs>
-
-    
   );
 }
