@@ -55,9 +55,9 @@ export default function Dashboard() {
       </View>
 
       {/* 3. Quick Search Bar */}
-      <TouchableOpacity 
-        style={styles.searchBar} onPress={() => router.push("/(tab)/map-station-finder")}
-        
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={() => router.push("/map-station-finder")}
       >
         <Text style={styles.searchText}>Quick Search for Chargers</Text>
       </TouchableOpacity>
@@ -65,13 +65,19 @@ export default function Dashboard() {
       {/* 4. Nearby Stations Section */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Nearby Stations</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/map-station-finder")}>
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
       </View>
       
       {/* Station Card 1 */}
-      <View style={styles.stationCard}>
+      <TouchableOpacity
+        style={styles.stationCard}
+        onPress={() => router.push({
+          pathname: "/station-details",
+          params: { stationName: 'Charge Point Station', lat: '6.9067', lng: '79.8707' }
+        })}
+      >
         <View style={styles.stationInfo}>
           <View>
             <Text style={styles.stationName}>Charge Point Station</Text>
@@ -88,7 +94,59 @@ export default function Dashboard() {
             <Text style={styles.statusText}>Available</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
+
+      {/* Station Card 2 */}
+      <TouchableOpacity
+        style={styles.stationCard}
+        onPress={() => router.push({
+          pathname: "/station-details",
+          params: { stationName: 'EVOCK Colombo 07', lat: '6.9067', lng: '79.8707' }
+        })}
+      >
+        <View style={styles.stationInfo}>
+          <View>
+            <Text style={styles.stationName}>EVOCK Colombo 07</Text>
+            <View style={styles.stationDetails}>
+              <Ionicons name="location" size={14} color="#00D1FF" />
+              <Text style={styles.detailText}> 3.5 km away</Text>
+              <Ionicons name="time-outline" size={14} color="#00D1FF" style={{marginLeft: 10}} />
+              <Text style={styles.detailText}> 12 mins</Text>
+            </View>
+            <Text style={styles.ratingText}>⭐ 4.6 (42 reviews)</Text>
+          </View>
+          <View style={styles.statusBadge}>
+            <View style={styles.dot} />
+            <Text style={styles.statusText}>Available</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      {/* Station Card 3 */}
+      <TouchableOpacity
+        style={styles.stationCard}
+        onPress={() => router.push({
+          pathname: "/station-details",
+          params: { stationName: 'Liberty Plaza Charging', lat: '6.9115', lng: '79.8495' }
+        })}
+      >
+        <View style={styles.stationInfo}>
+          <View>
+            <Text style={styles.stationName}>Liberty Plaza Charging</Text>
+            <View style={styles.stationDetails}>
+              <Ionicons name="location" size={14} color="#00D1FF" />
+              <Text style={styles.detailText}> 5.1 km away</Text>
+              <Ionicons name="time-outline" size={14} color="#00D1FF" style={{marginLeft: 10}} />
+              <Text style={styles.detailText}> 18 mins</Text>
+            </View>
+            <Text style={styles.ratingText}>⭐ 4.3 (15 reviews)</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: 'rgba(231, 76, 60, 0.2)' }]}>
+            <View style={[styles.dot, { backgroundColor: '#E74C3C' }]} />
+            <Text style={[styles.statusText, { color: '#E74C3C' }]}>Busy</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
     </ScrollView>
   );
 }

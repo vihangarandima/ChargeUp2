@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function ChargerBooking() {
   const router = useRouter();
   const { stationName } = useLocalSearchParams();
 
+  // State for Date and Time Pickers
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
@@ -27,24 +28,28 @@ export default function ChargerBooking() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Back Button */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
+        {/* Header Section */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.brandTitle}>ChargeUp</Text>
+        </View>
 
         <Text style={styles.stationTitle}>{stationName || "Charger Booking"}</Text>
         <Text style={styles.subTitle}>Select your preferred slot</Text>
 
+        {/* Date and Time Selection Card */}
         <View style={styles.cardContainer}>
           <Text style={styles.label}>Select Date</Text>
           <TouchableOpacity 
             style={styles.selectorButton} 
             onPress={() => setDatePickerVisibility(true)}
           >
-            <Ionicons name="calendar-outline" size={22} color="#00D1FF" />
+            <Ionicons name="calendar-outline" size={20} color="#00D1FF" style={{ marginRight: 10 }} />
             <Text style={styles.selectorText}>{selectedDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
 
@@ -53,20 +58,20 @@ export default function ChargerBooking() {
             style={styles.selectorButton} 
             onPress={() => setTimePickerVisibility(true)}
           >
-            <Ionicons name="time-outline" size={22} color="#00D1FF" />
+            <Ionicons name="time-outline" size={20} color="#00D1FF" style={{ marginRight: 10 }} />
             <Text style={styles.selectorText}>
               {selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </TouchableOpacity>
         </View>
 
+        {/* Modals */}
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
           mode="date"
           onConfirm={handleConfirmDate}
           onCancel={() => setDatePickerVisibility(false)}
           isDarkModeEnabled={true}
-          accentColor="#00D1FF"
         />
 
         <DateTimePickerModal
@@ -75,14 +80,12 @@ export default function ChargerBooking() {
           onConfirm={handleConfirmTime}
           onCancel={() => setTimePickerVisibility(false)}
           isDarkModeEnabled={true}
-          accentColor="#00D1FF"
         />
 
-        {/* Book Now Button */}
+        {/* Action Button: Redirects to bookig-confirmation */}
         <TouchableOpacity 
           style={styles.bookButton}
           onPress={() => {
-            // pathname matches your 'bookig-confirmation.tsx' file
             router.push({
               pathname: "/bookig-confirmation", 
               params: { 
@@ -99,26 +102,32 @@ export default function ChargerBooking() {
         </TouchableOpacity>
 
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B1D21' },
-  scrollContent: { padding: 25, paddingTop: 60, paddingBottom: 40 },
-  backButton: { marginBottom: 20 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#0B1D21',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
+  },
+  scrollContent: { padding: 25, paddingBottom: 40 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  brandTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginLeft: 15 },
+  backButton: { padding: 5 },
   stationTitle: { color: 'white', fontSize: 28, fontWeight: 'bold' },
   subTitle: { color: '#888', fontSize: 16, marginTop: 5, marginBottom: 30 },
   cardContainer: { 
     backgroundColor: '#1C2E33', 
     padding: 20, 
-    borderRadius: 20, 
+    borderRadius: 24, 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.1)' 
+    borderColor: 'rgba(0, 209, 255, 0.1)' 
   },
   label: { 
     color: '#00D1FF', 
-    fontSize: 14, 
+    fontSize: 12, 
     fontWeight: 'bold', 
     marginBottom: 10, 
     textTransform: 'uppercase' 
@@ -133,7 +142,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: 'rgba(255,255,255,0.1)' 
   },
-  selectorText: { color: 'white', marginLeft: 15, fontSize: 18, fontWeight: '500' },
+  selectorText: { color: 'white', fontSize: 16 },
   bookButton: { 
     backgroundColor: '#00D1FF', 
     padding: 20, 
@@ -145,5 +154,5 @@ const styles = StyleSheet.create({
     shadowRadius: 10, 
     elevation: 5 
   },
-  bookButtonText: { color: '#0B1D21', fontSize: 18, fontWeight: 'bold' }
+  bookButtonText: { color: '#0B1D21', fontSize: 18, fontWeight: 'bold' },
 });
