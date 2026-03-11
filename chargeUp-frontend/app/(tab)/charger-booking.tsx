@@ -65,7 +65,7 @@ export default function ChargerBooking() {
           </TouchableOpacity>
         </View>
 
-        {/* Modals */}
+        {/* Date/Time Picker Modals */}
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
           mode="date"
@@ -82,18 +82,18 @@ export default function ChargerBooking() {
           isDarkModeEnabled={true}
         />
 
-        {/* Action Button: Redirects to bookig-confirmation */}
+        {/* Action Button: Redirects to booking-confirm.tsx */}
         <TouchableOpacity 
           style={styles.bookButton}
           onPress={() => {
+            // Formatting the date string so the confirmation page can split it by ','
+            const formattedTime = `${selectedDate.toLocaleDateString()},${selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            
             router.push({
-              pathname: "/bookig-confirmation", 
+              pathname: "/booking-confirm", // UPDATED: Redirects to booking-confirm.tsx
               params: { 
                 stationName: stationName || "Charging Station",
-                bookingTime: selectedDate.toISOString(), 
-                lat: "6.9147", 
-                lng: "79.8543", 
-                connectorType: "Type 2 (Mennekes)"
+                bookingTime: formattedTime, // Sends: "12/05/2026,04:00 PM"
               }
             });
           }}
