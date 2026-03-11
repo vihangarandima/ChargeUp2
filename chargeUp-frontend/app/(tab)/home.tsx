@@ -121,6 +121,32 @@ export default function Dashboard() {
           </View>
         </View>
       </TouchableOpacity>
+
+      {/* Station Card 3 */}
+      <TouchableOpacity
+        style={styles.stationCard}
+        onPress={() => router.push({
+          pathname: "/station-details",
+          params: { stationName: 'Liberty Plaza Charging', lat: '6.9115', lng: '79.8495' }
+        })}
+      >
+        <View style={styles.stationInfo}>
+          <View>
+            <Text style={styles.stationName}>Liberty Plaza Charging</Text>
+            <View style={styles.stationDetails}>
+              <Ionicons name="location" size={14} color="#00D1FF" />
+              <Text style={styles.detailText}> 5.1 km away</Text>
+              <Ionicons name="time-outline" size={14} color="#00D1FF" style={{marginLeft: 10}} />
+              <Text style={styles.detailText}> 18 mins</Text>
+            </View>
+            <Text style={styles.ratingText}>⭐ 4.3 (15 reviews)</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: 'rgba(231, 76, 60, 0.2)' }]}>
+            <View style={[styles.dot, { backgroundColor: '#E74C3C' }]} />
+            <Text style={[styles.statusText, { color: '#E74C3C' }]}>Busy</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
