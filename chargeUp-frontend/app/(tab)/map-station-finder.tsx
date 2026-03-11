@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { useRouter } from 'expo-router';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
 export default function MapScreen() {
   const router = useRouter();
+  const { mode, destLat, destLng, stationName } = useLocalSearchParams();
+
+  const isRouteMode = mode === 'route';
 
   const stations = [
     { id: '1', name: 'Ekanayake - Boralagamuwa', lat: 6.8401, lng: 79.9112, type: 'Fast' },
