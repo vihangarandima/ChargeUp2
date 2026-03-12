@@ -164,3 +164,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
+  heroSection: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  iconContainer: {
+    backgroundColor: "white",
+    borderRadius: 15,
+    padding: 10,
+    marginBottom: 10,
+  },
+  heroText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  formSubtitle: {
+    color: "white",
+    fontSize: 14,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
