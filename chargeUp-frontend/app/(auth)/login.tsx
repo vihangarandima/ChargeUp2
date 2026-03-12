@@ -53,7 +53,7 @@ export default function LoginScreen() {
         if (role === "client") {
           router.replace("/home");
         } else if (role === "host") {
-          router.replace("/(tab)/map-station-finder");
+          router.replace("/(host)/host-charger-details");
         } else {
           router.replace("/(tab)/charger-booking");
         }
