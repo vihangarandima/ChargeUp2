@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Alert, Platform, StatusBar, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Alert, Platform, StatusBar, SafeAreaView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -11,6 +11,7 @@ export default function ScanQRScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [isScanning, setIsScanning] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false); // Added loading state for backend call
 
   const handleStartScan = async () => {
     if (!permission?.granted) {
@@ -23,9 +24,44 @@ export default function ScanQRScreen() {
     setIsScanning(true);
   };
 
-  const onBarCodeScanned = ({ data }: { data: string }) => {
+  // UPDATED: Now sends the QR code to the backend for verification!
+  const onBarCodeScanned = async ({ data }: { data: string }) => {
     setIsScanning(false);
-    router.push("/charging-session");
+    setIsVerifying(true); // Show a loading spinner while we talk to the backend
+    
+    try {
+      // 1. Send the scanned QR text to your new Backend route
+      // 🛑 IMPORTANT: REPLACE THIS IP WITH YOUR LAPTOP'S WI-FI IP! 🛑
+      const response = await fetch("http://192.168.8.160:5000/api/sessions/start", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chargerId: data })
+      });
+      
+      const result = await response.json();
+      setIsVerifying(false);
+
+      // 2. If backend says "success", go to the charging page
+      if (result.success) {
+        router.push({
+          pathname: "/charging-session",
+          params: { 
+            chargerId: result.chargerId, 
+            sessionId: result.sessionId,
+            pricePerUnit: result.pricePerUnit // The backend gave us this price!
+          }
+        });
+      } else {
+        Alert.alert("Error", "Invalid Charger QR Code.");
+      }
+    } catch (error) {
+      setIsVerifying(false);
+      console.error("Backend connection failed:", error);
+      Alert.alert(
+        "Network Error", 
+        "Could not connect to the server. Did you update the IP address in scan-qr.tsx?"
+      );
+    }
   };
 
   return (
@@ -33,12 +69,10 @@ export default function ScanQRScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           
-          {/* 1. Top Brand Header - Now lowered for better balance */}
           <View style={styles.brandHeader}>
             <Text style={styles.brandTitle}>ChargeUp</Text>
           </View>
 
-          {/* 2. Control Row */}
           <View style={styles.controlRow}>
             <TouchableOpacity onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={30} color="white" />
@@ -50,17 +84,16 @@ export default function ScanQRScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* 3. Title Section */}
           <View style={styles.titleSection}>
             <Text style={styles.mainTitle}>Successfully Reach{"\n"}your Destination</Text>
           </View>
 
-          {/* 4. Station Name */}
           <View style={styles.stationContainer}>
             <Text style={styles.stationName}>EVOCK Charging Station</Text>
             <TouchableOpacity 
               style={styles.nextArrowBtn} 
-              onPress={() => router.push("/charging-session")}
+              // We simulate scanning "DEMO-CHARGER-01" when pressing the arrow manually
+              onPress={() => onBarCodeScanned({ data: "DEMO-CHARGER-01" })}
             >
               <Ionicons name="arrow-forward" size={20} color="white" />
             </TouchableOpacity>
@@ -68,9 +101,14 @@ export default function ScanQRScreen() {
 
           <View style={styles.evBadge}><Text style={styles.evBadgeText}>EV</Text></View>
 
-          {/* 5. QR Scan Card / Camera View */}
           <View style={styles.qrCardWrapper}>
-            {isScanning ? (
+            {/* Show a loading spinner if we are currently talking to the backend */}
+            {isVerifying ? (
+              <View style={styles.qrCard}>
+                <ActivityIndicator size="large" color="#00D1FF" />
+                <Text style={{color: 'white', marginTop: 15}}>Verifying with Server...</Text>
+              </View>
+            ) : isScanning ? (
               <View style={styles.cameraContainer}>
                 <CameraView 
                   style={styles.camera} 
@@ -108,116 +146,59 @@ const styles = StyleSheet.create({
   },
   content: { 
     paddingHorizontal: 25,
-    paddingTop: 30, // Moves everything down from the notch/status bar
+    paddingTop: 30, 
   }, 
-
-  brandHeader: { 
-    marginBottom: 8 
-  },
-  brandTitle: { 
-    color: 'white', 
-    fontSize: 28, 
-    fontWeight: 'bold' 
-  },
-
+  brandHeader: { marginBottom: 8 },
+  brandTitle: { color: 'white', fontSize: 28, fontWeight: 'bold' },
   controlRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 15,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginTop: 5, marginBottom: 15,
   },
   notificationBtn: { 
-    backgroundColor: 'rgba(255,255,255,0.1)', 
-    padding: 10, 
-    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 20,
   },
   badge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: '#555',
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'absolute', top: 6, right: 6, backgroundColor: '#555',
+    width: 14, height: 14, borderRadius: 7, justifyContent: 'center', alignItems: 'center',
   },
   badgeText: { color: 'white', fontSize: 8 },
-
   titleSection: { marginTop: 10, alignItems: 'center' },
   mainTitle: { 
-    color: 'white', 
-    fontSize: 21, 
-    fontWeight: 'bold', 
-    textAlign: 'center',
-    lineHeight: 28 
+    color: 'white', fontSize: 21, fontWeight: 'bold', textAlign: 'center', lineHeight: 28 
   },
-
   stationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 40,
   },
   stationName: { color: 'white', fontSize: 22, fontWeight: '500' },
   nextArrowBtn: {
-    marginLeft: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 5,
-    borderRadius: 15,
+    marginLeft: 10, backgroundColor: 'rgba(255,255,255,0.1)', padding: 5, borderRadius: 15,
   },
-
   evBadge: { 
-    alignSelf: 'center',
-    backgroundColor: 'rgba(0, 209, 255, 0.2)', 
-    paddingHorizontal: 12, 
-    paddingVertical: 2, 
-    borderRadius: 4, 
-    marginTop: 5 
+    alignSelf: 'center', backgroundColor: 'rgba(0, 209, 255, 0.2)', 
+    paddingHorizontal: 12, paddingVertical: 2, borderRadius: 4, marginTop: 5 
   },
   evBadgeText: { color: '#00D1FF', fontSize: 14, fontWeight: 'bold' },
-
   qrCardWrapper: { alignItems: 'center', marginTop: 30 },
   qrCard: { 
-    width: width * 0.85, 
-    height: width * 1.05,
-    borderRadius: 25, 
-    borderWidth: 1.5, 
-    borderColor: 'rgba(255,255,255,0.3)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: width * 0.85, height: width * 1.05, borderRadius: 25, 
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center',
   },
   qrInner: { alignItems: 'center' },
   qrCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 40,
+    width: 160, height: 160, borderRadius: 80, borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', marginBottom: 40,
   },
   scanText: { color: 'white', fontSize: 22, fontWeight: '500' },
-  
   cameraContainer: { 
-    width: width * 0.85, 
-    height: width * 1.05, 
-    borderRadius: 25, 
-    overflow: 'hidden',
-    backgroundColor: 'black'
+    width: width * 0.85, height: width * 1.05, borderRadius: 25, 
+    overflow: 'hidden', backgroundColor: 'black'
   },
   camera: { flex: 1 },
   cancelBtn: { 
-    position: 'absolute', 
-    bottom: 20, 
-    alignSelf: 'center', 
-    backgroundColor: 'rgba(255, 0, 0, 0.7)', 
-    paddingVertical: 10, 
-    paddingHorizontal: 30, 
-    borderRadius: 20 
+    position: 'absolute', bottom: 20, alignSelf: 'center', 
+    backgroundColor: 'rgba(255, 0, 0, 0.7)', paddingVertical: 10, 
+    paddingHorizontal: 30, borderRadius: 20 
   },
   cancelText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });
