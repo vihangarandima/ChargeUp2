@@ -102,3 +102,31 @@ export default function HostChargerDetails() {
                 selectionColor="white"
               />
             </View>
+            
+            {/* Input: Telephone */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Telephone number</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="phone-pad"
+                value={telephone}
+                onChangeText={setTelephone}
+                selectionColor="white"
+              />
+            </View>
+
+            {/* Input: Charger Type (Mocking a Dropdown) */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Charging unit type</Text>
+              <View style={styles.dropdownInputContainer}>
+                <TextInput
+                  style={styles.dropdownInput}
+                  placeholder="Ex : Fast charger"
+                  placeholderTextColor="rgba(255,255,255,0.4)"
+                  value={chargerType}
+                  onChangeText={setChargerType}
+                  selectionColor="white"
+                />
+                <Ionicons name="chevron-down-circle" size={20} color="white" style={styles.dropdownIcon} />
+              </View>
+            </View>
