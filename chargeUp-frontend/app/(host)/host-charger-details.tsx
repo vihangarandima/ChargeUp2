@@ -209,3 +209,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 15,
   },
+  dropdownInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.8)",
+    borderRadius: 8,
+    height: 45,
+  },
+  dropdownInput: {
+    flex: 1,
+    color: "white",
+    paddingHorizontal: 15,
+    fontSize: 14,
+  },
+  dropdownIcon: {
+    paddingRight: 15,
+  },
+  buttonRow: {
+    alignItems: "flex-end",
+    marginTop: 10,
+  },
+  continueBtn: {
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 25,
+  },
+  continueBtnText: {
+    color: "white",
+    fontSize: 14,
+  },
+});
