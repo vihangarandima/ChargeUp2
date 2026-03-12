@@ -185,3 +185,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 5,
   },
+  formContainer: {
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.8)",
+    borderRadius: 20,
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    color: "white",
+    fontSize: 13,
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.8)",
+    borderRadius: 8,
+    height: 45,
+    color: "white",
+    paddingHorizontal: 15,
+    fontSize: 15,
+  },
