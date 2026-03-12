@@ -80,3 +80,25 @@ export default function HostChargerDetails() {
                 selectionColor="white"
               />
             </View>
+
+            {/* Input: Address */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Address</Text>
+              <TextInput
+                style={styles.input}
+                value={address}
+                onChangeText={setAddress}
+                selectionColor="white"
+              />
+            </View>
+
+            {/* Input: ID/Passport */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>ID/Passport number</Text>
+              <TextInput
+                style={styles.input}
+                value={idNumber}
+                onChangeText={setIdNumber}
+                selectionColor="white"
+              />
+            </View>
