@@ -84,3 +84,29 @@ export default function LocationPicker() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0C161D", // Dark theme background
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  backButton: {
+    marginRight: 15,
+  },
+  headerTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  mapContainer: {
+    flex: 1,
+    overflow: "hidden",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+  },
