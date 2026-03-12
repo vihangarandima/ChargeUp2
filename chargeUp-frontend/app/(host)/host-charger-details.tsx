@@ -102,7 +102,7 @@ export default function HostChargerDetails() {
                 selectionColor="white"
               />
             </View>
-            
+
             {/* Input: Telephone */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Telephone number</Text>
@@ -129,4 +129,18 @@ export default function HostChargerDetails() {
                 />
                 <Ionicons name="chevron-down-circle" size={20} color="white" style={styles.dropdownIcon} />
               </View>
+              
             </View>
+            {/* Continue Button Aligned to Right */}
+            <View style={styles.buttonRow}>
+              <Pressable style={styles.continueBtn} onPress={handleContinue}>
+                <Text style={styles.continueBtnText}>continue</Text>
+              </Pressable>
+            </View>
+
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+}
