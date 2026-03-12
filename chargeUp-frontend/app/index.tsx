@@ -1,9 +1,9 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
   Dimensions,
-  Image,
+  ImageBackground,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,54 +17,45 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={["#0D1F23", "#132A2F", "#0D1F23"]}
+      <StatusBar barStyle="light-content" />
+
+      {/* FIXED PATH: Changed /assest/ to ../assets/ */}
+      <ImageBackground
+        source={require("../assets/images/car_charging.jpg")}
         style={styles.background}
-      />
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
+          {/* Top Header */}
+          <Text style={styles.brandText}>ChargeUp</Text>
 
-      <View style={styles.content}>
-        {/* Top Header */}
-        <Text style={styles.brandText}>ChargeUp</Text>
+          {/* Main Heading Group */}
+          <View style={styles.centerContent}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.mainTitle}>The Feature of</Text>
+              <Text style={styles.evText}>EV</Text>
+              <Text style={styles.mainTitle}>Charging...</Text>
+            </View>
 
-        {/* Main Heading */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.mainTitle}>
-            The Future of <Text style={styles.evText}>EV</Text>
-          </Text>
-          <Text style={styles.mainTitle}>Charging...</Text>
+            {/* Subtext */}
+            <Text style={styles.subText}>
+              Connect with charging stations instantly.{"\n"}
+              Manage your fleet effortlessly.
+            </Text>
+
+            {/* Get Started Button */}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push("/role-select")}
+              activeOpacity={0.7}
+            >
+              <View style={styles.buttonInner}>
+                <Text style={styles.buttonText}>Get Started</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        {/* Subtext */}
-        <Text style={styles.subText}>
-          Connect with charging stations instantly.{"\n"}
-          Manage your fleet{" "}
-          <Text style={styles.highlightText}>effortlessly.</Text>
-        </Text>
-
-        {/* Illustration Area */}
-        <View style={styles.imageWrapper}>
-          {/* Replace with your local image asset */}
-          <Image
-            source={{ uri: "https://placeholder.com/car-illustration" }}
-            style={styles.carImage}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* Get Started Button */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/role-select")}
-        >
-          <LinearGradient
-            colors={["#1A1A1A", "#2D2D2D"]}
-            style={styles.buttonGradient}
-          >
-            <Text style={styles.buttonText}>Get Started</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -72,73 +63,73 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#000",
   },
   background: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: "100%",
-  },
-  content: {
     flex: 1,
-    paddingHorizontal: 30,
+    width: width,
+    height: height,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    paddingHorizontal: 40,
     paddingTop: 60,
-    paddingBottom: 40,
-    justifyContent: "space-between",
+    paddingBottom: 80,
   },
   brandText: {
     color: "#FFF",
-    fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: 1,
+    fontSize: 24,
+    fontWeight: "bold",
+    alignSelf: 'flex-start'
   },
-  titleContainer: {
-    marginTop: 20,
-  },
-  mainTitle: {
-    color: "#FFF",
-    fontSize: 42,
-    fontWeight: "800",
-    lineHeight: 48,
-  },
-  evText: {
-    color: "#00D1FF", // Cyan blue from your image
-  },
-  subText: {
-    color: "#CCC",
-    fontSize: 16,
-    lineHeight: 24,
-    marginTop: 10,
-  },
-  highlightText: {
-    color: "#00D1FF",
-  },
-  imageWrapper: {
+  centerContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  carImage: {
-    width: width * 0.9,
-    height: height * 0.35,
+  titleContainer: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  mainTitle: {
+    color: "#FFF",
+    fontSize: 42,
+    fontWeight: "300",
+    textAlign: "center",
+  },
+  evText: {
+    color: "#FFF",
+    fontSize: 65,
+    fontWeight: "200",
+    textAlign: "center",
+    marginVertical: -10,
+  },
+  subText: {
+    color: "#FFF",
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+    fontWeight: "600",
+    marginBottom: 40,
   },
   button: {
-    width: "100%",
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 2,
-    borderColor: "#00D1FF", // The glowing cyan border
+    width: width * 0.75,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.7)",
     overflow: "hidden",
   },
-  buttonGradient: {
+  buttonInner: {
     flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
     justifyContent: "center",
     alignItems: "center",
   },
   buttonText: {
     color: "#FFF",
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontWeight: "400",
   },
 });

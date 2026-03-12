@@ -1,137 +1,165 @@
 import React, { useState } from "react";
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
+  StyleSheet,
   SafeAreaView,
-  StatusBar,
-  Dimensions,
+  Alert,
+  TouchableOpacity,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-<<<<<<< Updated upstream
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-
-
-=======
-import { Ionicons, AntDesign } from "@expo/vector-icons";
-// Ensure this is installed via: npx expo install @react-native-async-storage/async-storage
-import AsyncStorage from '@react-native-async-storage/async-storage';
->>>>>>> Stashed changes
-
-const { width } = Dimensions.get("window");
+import AsyncStorage from "@react-native-async-storage/async-storage";
+// 1. Import the Gradient component
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-<<<<<<< Updated upstream
     if (!email || !password) {
       Alert.alert("Missing Info", "Please enter both email and password.");
       return;
     }
 
-    // UI Prototype Mode: Bypassing the backend logic completely
-    Alert.alert("Prototype Mode", "Login simulated successfully!");
+    try {
+      // 1. Send the email and password to your Node.js backend
+      // Make sure this IP address matches your computer's current Wi-Fi IP!
+      const response = await fetch("http://10.90.28.178:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // 🚀 THE FIX: Corrected your navigation routes here!
-    // Assuming host-details is in your app folder
-    // Sending directly to your tabs folder
-    
-    // Defaulting to tabs for the prototype - change to "/charger-information" if needed!
-    router.replace("/(tabs)" as any); 
-=======
-    // Navigate to vehicle-details.tsx
-    router.push("/vehicle-details");
->>>>>>> Stashed changes
+      const data = await response.json();
+
+      // 2. If the backend approves the login (Status 200 OK)
+      if (response.ok) {
+        // 3. Store the authentication token securely
+        if (data.token) {
+          await AsyncStorage.setItem("userToken", data.token);
+        }
+
+        // 4. Get the role (either from the backend response or local memory)
+        const role =
+          data.user?.role || (await AsyncStorage.getItem("userRole"));
+
+        // 5. Navigate to the correct screen based on their role
+        if (role === "client") {
+          router.replace("/home");
+        } else if (role === "host") {
+          router.replace("/(tab)/map-station-finder");
+        } else {
+          router.replace("/(tab)/charger-booking");
+        }
+      } else {
+        // If the password is wrong or user doesn't exist
+        Alert.alert("Login Failed", data.message || "Invalid credentials.");
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      Alert.alert(
+        "Connection Error",
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
+      );
+    }
   };
 
+  const handleGoogleLogin = () =>
+    Alert.alert("Google Login", "Prototype Mode...");
+  const handleAppleLogin = () => Alert.alert("Apple Login", "Coming soon!");
+
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    // 2. Use LinearGradient as the background wrapper
+    <LinearGradient
+      // Your exact colors from the screenshot
+      colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
+      // Your exact percentage stops converted to 0-1 scale
+      locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.inner}>
+          <Text style={styles.brandTitle}>ChargeUp</Text>
 
-      {/* Background Gradient using exact palette stops */}
-      <LinearGradient
-        colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
-        locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      <SafeAreaView style={styles.innerContainer}>
-        <View style={styles.header}>
-          <Text style={styles.logoText}>ChargeUp</Text>
-        </View>
-
-        <View style={styles.heroSection}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="car-sport" size={80} color="white" />
-            <View style={styles.lightningBadge}>
-              <Ionicons name="flash" size={24} color="#101922" />
-            </View>
+          <View style={styles.brandCenter}>
+            <Ionicons name="flash" size={80} color="white" />
+            <Text style={styles.brandTagline}>Find, book and pay</Text>
           </View>
-          <Text style={styles.heroSubText}>Find, book and pay</Text>
-        </View>
 
-        <View style={styles.formSection}>
-          <View style={styles.inputWrapper}>
+          <View style={styles.inputContainer}>
             <TextInput
               placeholder="Email address"
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              style={styles.input}
+              placeholderTextColor="#999"
+              style={styles.underlineInput}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
             />
+            <View style={styles.passwordRow}>
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#999"
+                secureTextEntry={!showPassword}
+                style={[styles.underlineInput, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <Pressable onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color="white"
+                />
+              </Pressable>
+            </View>
           </View>
 
-          <View style={styles.inputWrapper}>
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              style={styles.input}
-              secureTextEntry={!passwordVisible}
-            />
-            <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-              <Ionicons name={passwordVisible ? "eye-outline" : "eye-off-outline"} size={20} color="white" />
-            </TouchableOpacity>
-          </View>
+          <Pressable style={styles.pillButton} onPress={handleLogin}>
+            <Text style={styles.pillButtonText}>Login</Text>
+          </Pressable>
 
-          {/* Login Button directing to vehicle-details.tsx */}
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
-          </TouchableOpacity>
+          <Text style={styles.orText}>or</Text>
 
-          <View style={styles.dividerRow}>
+          <View style={styles.dividerContainer}>
             <View style={styles.line} />
-            <Text style={styles.orText}>or</Text>
+            <Text style={styles.loginWithText}>Login with</Text>
             <View style={styles.line} />
           </View>
 
           <View style={styles.socialRow}>
-            <TouchableOpacity><AntDesign name="apple1" size={32} color="white" /></TouchableOpacity>
-            <TouchableOpacity><AntDesign name="google" size={32} color="#EA4335" /></TouchableOpacity>
-          </View>
-        </View>
+            <Pressable onPress={handleAppleLogin}>
+              <FontAwesome name="apple" size={40} color="white" />
+            </Pressable>
 
-        <View style={styles.footer}>
-          <View style={styles.signupRow}>
-            <Text style={styles.footerText}>Don't have an Account? </Text>
-            <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-              <Text style={styles.signupLink}>Singup</Text>
+            <TouchableOpacity onPress={handleGoogleLogin}>
+              <Text style={{ color: "white", fontSize: 16 }}>
+                Login with Google
+              </Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.termsText}>
-            By continuing, you are agree to our <Text style={styles.link}>Terms and conditions</Text> and <Text style={styles.link}>Privacy Policy.</Text>
-          </Text>
+
+          <View style={styles.signupRow}>
+            <Text style={styles.noAccountText}>Don't have an Account? </Text>
+            <Pressable onPress={() => router.push("/(auth)/register")}>
+              <Text style={styles.signupLink}>Signup</Text>
+            </Pressable>
+          </View>
         </View>
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< Updated upstream
-  container: { flex: 1, backgroundColor: "#0B1D21" },
+  // Removed the solid background color here
+  container: { flex: 1 },
   inner: { paddingHorizontal: 30, flex: 1, alignItems: "center" },
   brandTitle: {
     color: "white",
@@ -178,29 +206,4 @@ const styles = StyleSheet.create({
   signupRow: { flexDirection: "row", marginTop: 20 },
   noAccountText: { color: "white" },
   signupLink: { color: "#83B4BB", fontWeight: "bold" },
-=======
-  container: { flex: 1 },
-  innerContainer: { flex: 1, paddingHorizontal: 30 },
-  header: { marginTop: 20 },
-  logoText: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-  heroSection: { alignItems: 'center', marginTop: 40 },
-  iconContainer: { width: 120, height: 80, justifyContent: 'center', alignItems: 'center' },
-  lightningBadge: { position: 'absolute', backgroundColor: 'white', borderRadius: 15, padding: 2, bottom: 25 },
-  heroSubText: { color: 'white', fontSize: 18, marginTop: 15 },
-  formSection: { marginTop: 60 },
-  inputWrapper: { borderBottomWidth: 1, borderBottomColor: 'white', marginBottom: 30, flexDirection: 'row', alignItems: 'center' },
-  input: { flex: 1, color: 'white', paddingVertical: 10, fontSize: 16 },
-  loginButton: { borderWidth: 1, borderColor: 'white', borderRadius: 25, height: 50, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
-  loginButtonText: { color: 'white', fontSize: 18, fontWeight: '500' },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 15 },
-  line: { height: 1, backgroundColor: 'rgba(255,255,255,0.5)', flex: 1 },
-  orText: { color: 'white', paddingHorizontal: 10 },
-  socialRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 },
-  footer: { marginTop: 'auto', marginBottom: 20, alignItems: 'center' },
-  signupRow: { flexDirection: 'row', marginBottom: 20 },
-  footerText: { color: 'white' },
-  signupLink: { color: '#4DA6FF', fontWeight: 'bold' },
-  termsText: { color: 'white', fontSize: 11, textAlign: 'center' },
-  link: { color: '#76C7C0', textDecorationLine: 'underline' }
->>>>>>> Stashed changes
 });

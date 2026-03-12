@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import {
   View,
@@ -5,21 +6,14 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Alert,
-  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-<<<<<<< Updated upstream
-=======
 import { SafeAreaView } from "react-native-safe-area-context";
-// Import LinearGradient for the background pattern
+// 1. Import the Gradient component
 import { LinearGradient } from "expo-linear-gradient";
-
-const { width } = Dimensions.get("window");
->>>>>>> Stashed changes
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -33,71 +27,87 @@ export default function RegisterScreen() {
       Alert.alert("Missing Info", "Please fill in all fields to sign up.");
       return;
     }
-
-<<<<<<< Updated upstream
-    // ⚠️ CRITICAL: Replace '192.168.1.55' with YOUR computer's actual IPv4 address!
-    // (Backend fetch code temporarily removed for Version 1 UI prototype)
-
-    // Prototype Mode: Fake a successful server response!
-    Alert.alert("Prototype Mode", "Account creation simulated! 🚀");
-
-    // Success! The database saved the user.
-    // NOW we push them to the next screen!
-    router.push("/(auth)/vehicle-details");
-    
-    // Database rejected it (maybe email already exists)
-    // (Handled by backend later)
-=======
-    Alert.alert("Welcome!", "Account created successfully.");
-
     try {
-      const role = await AsyncStorage.getItem("userRole");
-      if (role === "host") {
-        router.replace("/host-charger-details");
+      // 2. Ask memory what role they picked on the very first screen
+      // If it forgets, we default them to a "client" just in case.
+      const role = (await AsyncStorage.getItem("userRole")) || "client";
+      console.log("🚦 THE ROLE IN MEMORY IS:", role);
+
+      // 3. Send the new user's info to your Node.js backend
+      // (Again, make sure this IP matches your current Wi-Fi IP!)
+      const response = await fetch(
+        "http://10.90.28.178:5000/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role }),
+        }
+      );
+
+      const data = await response.json();
+
+      // 4. If the backend says "User created successfully!"
+      if (response.ok) {
+        // Save the VIP token so they are logged in automatically
+        if (data.token) {
+          await AsyncStorage.setItem("userToken", data.token);
+        }
+
+        Alert.alert("Welcome!", "Account created successfully.");
+
+        if (role === "host") {
+          router.replace("/host-charger-details");
+        } else {
+          router.replace("/vehicle-details");
+        }
       } else {
-        router.replace("/vehicle-details");
+        // If the email is already taken or password is too short
+        Alert.alert(
+          "Signup Failed",
+          data.message || "Could not create account."
+        );
       }
     } catch (error) {
-      console.error("Memory error:", error);
-      router.replace("/vehicle-details");
+      console.error("Network error:", error);
+      Alert.alert(
+        "Connection Error",
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!"
+      );
     }
->>>>>>> Stashed changes
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    // 2. Wrap the whole screen in the LinearGradient
+    <LinearGradient
+      colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
+      locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
 
-      {/* 1. Added LinearGradient with exact hex codes and stops from your screenshots */}
-      <LinearGradient
-        colors={['#101922', '#15252E', '#193038', '#1D3B42', '#0E4548']}
-        locations={[0.13, 0.35, 0.55, 0.74, 1.0]} // Stops from the UI tool
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      <SafeAreaView style={styles.container}>
         <View style={styles.content}>
+          {/* Brand Header */}
           <Text style={styles.headerTitle}>ChargeUp</Text>
 
+          {/* Hero Branding */}
           <View style={styles.brandHero}>
-            <Ionicons name="car-sport" size={80} color="white" />
-            <View style={styles.lightningBadge}>
-               <Ionicons name="flash" size={24} color="#101922" />
-            </View>
+            <Ionicons name="flash" size={80} color="white" />
             <Text style={styles.tagline}>Find, book and pay</Text>
           </View>
 
+          {/* Signup Form */}
           <View style={styles.form}>
             <TextInput
               placeholder="Full Name"
-              placeholderTextColor="rgba(255,255,255,0.7)"
+              placeholderTextColor="#889"
               style={styles.inputUnderline}
               value={name}
               onChangeText={setName}
             />
             <TextInput
               placeholder="Email address"
-              placeholderTextColor="rgba(255,255,255,0.7)"
+              placeholderTextColor="#889"
               style={styles.inputUnderline}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -108,7 +118,7 @@ export default function RegisterScreen() {
             <View style={styles.passwordWrapper}>
               <TextInput
                 placeholder="Password"
-                placeholderTextColor="rgba(255,255,255,0.7)"
+                placeholderTextColor="#889"
                 secureTextEntry
                 style={[styles.inputUnderline, { flex: 1 }]}
                 value={password}
@@ -123,15 +133,14 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <Pressable
-            style={styles.signupBtn}
-            onPress={handleRegister}
-          >
+          {/* Main Action Button */}
+          <Pressable style={styles.signupBtn} onPress={handleRegister}>
             <Text style={styles.signupBtnText}>Signup</Text>
           </Pressable>
 
           <Text style={styles.orText}>or</Text>
 
+          {/* Social Options */}
           <View style={styles.socialDivider}>
             <View style={styles.line} />
             <Text style={styles.socialLabel}>Signup with</Text>
@@ -139,10 +148,11 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.socialRow}>
-            <FontAwesome name="apple" size={40} color="white" />
-            <FontAwesome name="google" size={38} color="#EA4335" />
+            <FontAwesome name="apple" size={45} color="white" />
+            <FontAwesome name="google" size={42} color="#EA4335" />
           </View>
 
+          {/* Footer Toggle */}
           <View style={styles.footerRow}>
             <Text style={styles.footerText}>Already have an Account? </Text>
             <Pressable onPress={() => router.push("/(auth)/login")}>
@@ -150,6 +160,7 @@ export default function RegisterScreen() {
             </Pressable>
           </View>
 
+          {/* Legal Disclaimer */}
           <Text style={styles.legalNotice}>
             By continuing, you agree to our{" "}
             <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
@@ -157,7 +168,7 @@ export default function RegisterScreen() {
           </Text>
         </View>
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -165,42 +176,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 30,
+    paddingTop: 40,
     alignItems: "center",
   },
   headerTitle: {
     alignSelf: "flex-start",
     color: "white",
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
-    marginTop: 10,
+    marginBottom: 30,
   },
   brandHero: {
     alignItems: "center",
-    marginTop: 30,
-    marginBottom: 40,
-  },
-  lightningBadge: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 2,
-    top: 45, // Positioned over the car icon
+    marginBottom: 50,
   },
   tagline: {
     color: "white",
-    fontSize: 18,
-    marginTop: 15,
+    fontSize: 16,
+    marginTop: 10,
   },
   form: {
     width: "100%",
-    marginBottom: 30,
+    marginBottom: 40,
   },
   inputUnderline: {
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.8)",
+    borderBottomColor: "white",
     color: "white",
     paddingVertical: 10,
     fontSize: 16,
@@ -219,27 +226,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "white",
     borderRadius: 25,
-    height: 48,
-    width: width * 0.45, // Slimmer pill shape matching design
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 50,
     marginBottom: 15,
-    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   signupBtnText: {
     color: "white",
     fontSize: 18,
-    fontWeight: "500",
   },
   orText: {
     color: "white",
-    marginBottom: 10,
+    marginBottom: 15,
   },
   socialDivider: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 25,
+    marginBottom: 30,
   },
   line: {
     flex: 1,
@@ -253,9 +256,9 @@ const styles = StyleSheet.create({
   },
   socialRow: {
     flexDirection: "row",
-    gap: 45,
+    gap: 40,
     alignItems: "center",
-    marginBottom: 35,
+    marginBottom: 40,
   },
   footerRow: {
     flexDirection: "row",
@@ -263,21 +266,20 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: "white",
-    fontSize: 15,
+    fontSize: 14,
   },
   loginLink: {
-    color: "#4DA6FF", // Blue link color
-    fontSize: 15,
+    color: "#7BB1BA",
+    fontSize: 14,
     fontWeight: "bold",
   },
   legalNotice: {
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.6)",
     fontSize: 11,
     textAlign: "center",
     lineHeight: 18,
   },
   legalLink: {
-    color: '#76C7C0', // Teal link color
     textDecorationLine: "underline",
   },
 });
