@@ -15,3 +15,12 @@ export default function LocationPicker() {
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   });
+
+  const handleMapPress = (event) => {
+    // Update the marker when the user taps the map
+    setSelectedLocation({
+      ...selectedLocation,
+      latitude: event.nativeEvent.coordinate.latitude,
+      longitude: event.nativeEvent.coordinate.longitude,
+    });
+  };
