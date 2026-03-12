@@ -16,3 +16,10 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 
 export default function HostChargerDetails() {
   const router = useRouter();
+
+  // State for form inputs
+  const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [telephone, setTelephone] = useState("");
+  const [chargerType, setChargerType] = useState("");
