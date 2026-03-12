@@ -24,3 +24,11 @@ export default function LocationPicker() {
       longitude: event.nativeEvent.coordinate.longitude,
     });
   };
+
+  const handleConfirmLocation = () => {
+    // Here you would eventually save this location to your database
+    console.log("Location confirmed:", selectedLocation);
+
+    // Send the user to their new dashboard!
+    router.push("/(host)/home"); // Or whatever your host dashboard file is named
+  };
