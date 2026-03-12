@@ -38,7 +38,7 @@ export default function HostChargerDetails() {
     // router.push("/home");
   };
 
-return (
+  return (
     <LinearGradient
       colors={["#0C161D", "#0E1C24", "#11262F", "#13343A", "#0C3C40"]}
       locations={[0.0, 0.25, 0.5, 0.75, 1.0]}
@@ -52,3 +52,14 @@ return (
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Brand Header */}
+          <Text style={styles.headerTitle}>ChargeUp</Text>
+
+          {/* Hero Icon */}
+          <View style={styles.heroSection}>
+            <View style={styles.iconContainer}>
+              {/* This icon perfectly matches the fuel-pump-with-lightning in your design */}
+              <MaterialCommunityIcons name="ev-station" size={90} color="white" />
+            </View>
+            <Text style={styles.heroText}>Share & Earn</Text>
+          </View>
