@@ -71,3 +71,16 @@ export default function LocationPicker() {
           />
         </MapView>
       </View>
+
+      {/* Bottom Action Area */}
+      <View style={styles.bottomPanel}>
+        <Text style={styles.instructionText}>
+          Drag the pin or tap the map to set the exact location of your charger.
+        </Text>
+        <Pressable style={styles.confirmButton} onPress={handleConfirmLocation}>
+          <Text style={styles.confirmButtonText}>Confirm Location</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
