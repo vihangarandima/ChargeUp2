@@ -44,3 +44,30 @@ export default function LocationPicker() {
         </Pressable>
         <Text style={styles.headerTitle}>Set Charger Location</Text>
       </View>
+
+      {/* Map Area */}
+      <View style={styles.mapContainer}>
+        <MapView
+          style={styles.map}
+          provider={PROVIDER_GOOGLE}
+          initialRegion={selectedLocation}
+          onPress={handleMapPress}
+          // Optional: A custom dark map style array would go here
+        >
+          {/* Draggable Marker */}
+          <Marker
+            coordinate={{
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+            }}
+            draggable
+            onDragEnd={(e) => {
+              setSelectedLocation({
+                ...selectedLocation,
+                latitude: e.nativeEvent.coordinate.latitude,
+                longitude: e.nativeEvent.coordinate.longitude,
+              });
+            }}
+          />
+        </MapView>
+      </View>
