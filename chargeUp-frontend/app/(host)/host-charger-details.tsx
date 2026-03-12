@@ -37,3 +37,18 @@ export default function HostChargerDetails() {
     // Navigate to your next dashboard or home screen
     // router.push("/home");
   };
+
+return (
+    <LinearGradient
+      colors={["#0C161D", "#0E1C24", "#11262F", "#13343A", "#0C3C40"]}
+      locations={[0.0, 0.25, 0.5, 0.75, 1.0]}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
+
+        {/* We use ScrollView so the screen doesn't break on smaller phones when the keyboard opens */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
