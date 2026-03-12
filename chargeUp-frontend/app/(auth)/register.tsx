@@ -41,7 +41,7 @@ export default function RegisterScreen() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, role }),
-        },
+        }
       );
 
       const data = await response.json();
@@ -64,14 +64,14 @@ export default function RegisterScreen() {
         // If the email is already taken or password is too short
         Alert.alert(
           "Signup Failed",
-          data.message || "Could not create account.",
+          data.message || "Could not create account."
         );
       }
     } catch (error) {
       console.error("Network error:", error);
       Alert.alert(
         "Connection Error",
-        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!"
       );
     }
   };
