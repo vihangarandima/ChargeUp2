@@ -129,7 +129,7 @@ export default function HostChargerDetails() {
                 />
                 <Ionicons name="chevron-down-circle" size={20} color="white" style={styles.dropdownIcon} />
               </View>
-              
+
             </View>
             {/* Continue Button Aligned to Right */}
             <View style={styles.buttonRow}>
@@ -144,3 +144,23 @@ export default function HostChargerDetails() {
     </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  headerTitle: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
