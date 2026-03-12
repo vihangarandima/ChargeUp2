@@ -127,3 +127,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  confirmButton: {
+    backgroundColor: "#0C3C40",
+    paddingVertical: 15,
+    borderRadius: 25,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  confirmButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
