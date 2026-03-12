@@ -35,7 +35,7 @@ export default function HostChargerDetails() {
     // Later, you will plug your backend fetch() back in here.
     Alert.alert("Success!", "Host details saved.");
     // Navigate to your next dashboard or home screen
-    // router.push("/home");
+    router.push("/(host)/location-picker");
   };
 
   return (
