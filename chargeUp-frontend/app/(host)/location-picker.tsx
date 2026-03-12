@@ -110,3 +110,20 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
   },
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  bottomPanel: {
+    backgroundColor: "#11262F",
+    padding: 25,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -20, // Overlaps the map slightly
+  },
+  instructionText: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+  },
