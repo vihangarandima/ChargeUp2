@@ -63,3 +63,20 @@ export default function HostChargerDetails() {
             </View>
             <Text style={styles.heroText}>Share & Earn</Text>
           </View>
+
+          {/* Form Title */}
+          <Text style={styles.formSubtitle}>Add your details here.</Text>
+
+          {/* The Outlined Form Box */}
+          <View style={styles.formContainer}>
+
+            {/* Input: Full Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Full Name</Text>
+              <TextInput
+                style={styles.input}
+                value={fullName}
+                onChangeText={setFullName}
+                selectionColor="white"
+              />
+            </View>
