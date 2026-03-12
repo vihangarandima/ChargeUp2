@@ -32,3 +32,15 @@ export default function LocationPicker() {
     // Send the user to their new dashboard!
     router.push("/(host)/home"); // Or whatever your host dashboard file is named
   };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Set Charger Location</Text>
+      </View>
