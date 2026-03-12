@@ -36,7 +36,7 @@ export default function RegisterScreen() {
       // 3. Send the new user's info to your Node.js backend
       // (Again, make sure this IP matches your current Wi-Fi IP!)
       const response = await fetch(
-        "http://10.236.64.178:5000/api/auth/register",
+        "http://10.90.28.178:5000/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

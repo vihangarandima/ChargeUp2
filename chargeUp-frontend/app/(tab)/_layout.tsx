@@ -57,7 +57,7 @@ export default function TabLayout() {
 
       {/* 👤 TAB 4: PROFILE */}
       <Tabs.Screen
-        name="index" // Or whatever your profile page is named
+        name="profile" // Or whatever your profile page is named
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={32} color={color} />
@@ -108,20 +108,13 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
+      
       <Tabs.Screen
         name="scan-qr"
         options={{
           href: null, // This is the magic word that hides the button!
         }}
       />
-
     </Tabs>
   );
 }
