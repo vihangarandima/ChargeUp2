@@ -67,15 +67,15 @@ export default function VehicleDetailsScreen() {
     setModalVisible(false);
   };
 
-  // ✅ Updated Navigation Logic to direct to location-picker
+  // ✅ Updated Navigation Logic to /(tab)/home
   const handleContinue = () => {
     if (!selectedBrand || !selectedModel || !selectedPort) {
       Alert.alert("Required Fields", "Please select your brand, model, and charging port to continue.");
       return;
     }
 
-    // Directing to the location picker screen
-    router.replace("/(host)/home");
+    // Using replace to prevent the user from "back-buttoning" into the setup screen
+    router.replace("/(tab)/home");
   };
 
   return (
