@@ -57,7 +57,7 @@ export default function TabLayout() {
 
       {/* 👤 TAB 4: PROFILE */}
       <Tabs.Screen
-        name="profile" // Or whatever your profile page is named
+        name="host-profile" // Or whatever your profile page is named
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={32} color={color} />

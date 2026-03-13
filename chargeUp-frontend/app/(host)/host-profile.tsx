@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   StyleSheet,
   Text,
@@ -8,42 +8,45 @@ import {
   Alert,
   SafeAreaView,
   Platform,
-  StatusBar
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+  StatusBar,
+  ImageBackground,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Logout',
-        style: 'destructive',
+        text: "Logout",
+        style: "destructive",
         onPress: async () => {
           await AsyncStorage.clear();
-          router.replace(''); 
+          router.replace("");
         },
       },
     ]);
   };
 
   const menuItems = [
-    { label: 'My Profile', onPress: () => {} },
-    { label: 'My Vehicle', onPress: () => {} },
-    { label: 'Lending details', onPress: () => {} },
-    { label: 'History', onPress: () => {} },
-    { label: 'Log Out', onPress: handleLogout },
+    { label: "My Profile", onPress: () => {} },
+    { label: "My Vehicle", onPress: () => {} },
+    { label: "Lending details", onPress: () => {} },
+    { label: "History", onPress: () => {} },
+    { label: "Log Out", onPress: handleLogout },
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Dark background matching your theme */}
-      <View style={styles.backgroundFill} />
-
+    <ImageBackground
+      source={require("../../assets/images/host/host-profile.png")} // 👈 UPDATE THIS PATH TO MATCH YOUR IMAGE!
+      style={styles.container}
+      resizeMode="cover"
+    >
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -86,112 +89,111 @@ export default function ProfileScreen() {
                 activeOpacity={0.7}
               >
                 <LinearGradient
-                  colors={['#2A3F4C', '#13222A']} // 3D gradient look
+                  colors={["#2A3F4C", "#13222A"]} // 3D gradient look
                   style={styles.menuPill}
                 >
                   <Text style={styles.menuLabel}>{item.label}</Text>
-                  <Ionicons 
-                    name="chevron-forward" 
-                    size={20} 
-                    color="rgba(255,255,255,0.4)" 
-                    style={styles.chevron} 
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color="rgba(255,255,255,0.4)"
+                    style={styles.chevron}
                   />
                 </LinearGradient>
               </TouchableOpacity>
             ))}
           </View>
-
         </ScrollView>
       </SafeAreaView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
+  container: {
     flex: 1,
-    backgroundColor: '#0A1114', // Very dark base
+    backgroundColor: "#0A1114", // Very dark base
   },
   backgroundFill: {
     flex: 1,
-    width: '100%',
+    width: "100%",
   },
-  safeArea: { 
-    flex: 1, 
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  scrollContent: { 
-    paddingHorizontal: 25, 
-    paddingTop: 15, 
-    paddingBottom: 120 
+  scrollContent: {
+    paddingHorizontal: 25,
+    paddingTop: 15,
+    paddingBottom: 120,
   },
-  
+
   // Header
   topHeader: {
     marginBottom: 5,
   },
   brandTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   pageTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 40,
   },
 
   // Profile Section
   profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 50,
   },
   avatarWrapper: {
-    position: 'relative',
+    position: "relative",
     marginRight: 25,
   },
   avatarCircle: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
   },
   cameraBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     width: 28,
     height: 28,
     borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: '#050B0D',
+    borderColor: "#050B0D",
   },
-  profileInfo: { 
-    justifyContent: 'center' 
+  profileInfo: {
+    justifyContent: "center",
   },
-  profileName: { 
-    color: 'white', 
-    fontSize: 16, 
-    fontWeight: '500', 
-    marginBottom: 6 
-  },
-  profileEmail: { 
-    color: '#D1D5DB', 
-    fontSize: 12, 
+  profileName: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
     marginBottom: 6,
-    textDecorationLine: 'underline', 
   },
-  profilePhone: { 
-    color: '#D1D5DB', 
-    fontSize: 12, 
+  profileEmail: {
+    color: "#D1D5DB",
+    fontSize: 12,
+    marginBottom: 6,
+    textDecorationLine: "underline",
+  },
+  profilePhone: {
+    color: "#D1D5DB",
+    fontSize: 12,
   },
 
   // Menu Pills
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
   menuButtonWrapper: {
     marginBottom: 15,
     borderRadius: 25,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
@@ -211,19 +213,19 @@ const styles = StyleSheet.create({
   menuPill: {
     borderRadius: 25,
     paddingVertical: 18,
-    flexDirection: 'row',
-    justifyContent: 'center', 
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
-  menuLabel: { 
-    color: 'white', 
-    fontSize: 14, 
-    fontWeight: '400' 
+  menuLabel: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "400",
   },
   chevron: {
-    position: 'absolute',
-    right: 20, 
+    position: "absolute",
+    right: 20,
   },
 });
