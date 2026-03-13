@@ -179,3 +179,151 @@ export default function LocationPicker() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0A1114",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  backButton: {
+    marginRight: 15,
+    padding: 5,
+  },
+  headerTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  mapContainer: {
+    flex: 1,
+    overflow: "hidden",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    position: "relative",
+  },
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  searchContainer: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(10, 17, 20, 0.85)",
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    height: 50,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: "white",
+    fontSize: 16,
+  },
+  mapControls: {
+    position: "absolute",
+    right: 20,
+    bottom: 40,
+    backgroundColor: "rgba(10, 17, 20, 0.85)",
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    overflow: "hidden",
+  },
+  controlButton: {
+    padding: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    width: "100%",
+  },
+
+  // --- CUSTOM MARKER STYLES ---
+  customMarkerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 5,
+  },
+  markerCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#7BB1BA", // Light blue matching your design
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  markerDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "white", // White center dot
+  },
+  markerPointer: {
+    width: 0,
+    height: 0,
+    backgroundColor: "transparent",
+    borderStyle: "solid",
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 10,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#7BB1BA",
+    transform: [{ rotate: "180deg" }],
+    marginTop: -2, // Pulls the triangle into the circle slightly
+  },
+
+  // --- BOTTOM PANEL STYLES ---
+  bottomPanel: {
+    backgroundColor: "#0A1114",
+    padding: 25,
+    // Add extra bottom padding (80px) so the button isn't hidden by your Tab layout!
+    paddingBottom: Platform.OS === "ios" ? 100 : 90,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -20,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
+  },
+  instructionText: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  selectLocationButton: {
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 25,
+    paddingVertical: 14,
+    backgroundColor: "rgba(10, 17, 20, 0.8)",
+    alignItems: "center",
+    width: "100%",
+  },
+  selectLocationText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
