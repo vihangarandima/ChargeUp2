@@ -79,15 +79,21 @@ export default function LocationPicker() {
     });
   };
 
+  // --- HANDLE SELECT LOCATION (POPUP & ROUTING) ---
   const handleSelectLocation = () => {
-    Alert.alert("Location Set!", "Your charger's location has been fixed.", [
-      {
-        text: "OK",
-        onPress: () => {
-          router.replace("/(host)/home");
+    Alert.alert(
+      "Location Saved!",
+      "Your charger's location has been successfully set.",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            // Directs to the host-home screen exactly as requested!
+            router.replace("/(host)/host-home");
+          }
         }
-      }
-    ]);
+      ]
+    );
   };
 
   return (
@@ -264,7 +270,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#7BB1BA", // Light blue matching your design
+    backgroundColor: "#7BB1BA",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -277,7 +283,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "white", // White center dot
+    backgroundColor: "white",
   },
   markerPointer: {
     width: 0,
@@ -291,14 +297,13 @@ const styles = StyleSheet.create({
     borderRightColor: "transparent",
     borderBottomColor: "#7BB1BA",
     transform: [{ rotate: "180deg" }],
-    marginTop: -2, // Pulls the triangle into the circle slightly
+    marginTop: -2,
   },
 
   // --- BOTTOM PANEL STYLES ---
   bottomPanel: {
     backgroundColor: "#0A1114",
     padding: 25,
-    // Add extra bottom padding (80px) so the button isn't hidden by your Tab layout!
     paddingBottom: Platform.OS === "ios" ? 100 : 90,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
