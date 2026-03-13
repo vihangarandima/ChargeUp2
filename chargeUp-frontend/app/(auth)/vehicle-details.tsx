@@ -75,7 +75,7 @@ export default function VehicleDetailsScreen() {
     }
 
     // Using replace to prevent the user from "back-buttoning" into the setup screen
-    router.replace("/(tab)/home");
+    router.replace("/(client)/home");
   };
 
   return (
