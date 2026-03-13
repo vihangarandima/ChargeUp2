@@ -25,7 +25,7 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.clear();
-          router.replace('/(client)'); 
+          router.replace(''); 
         },
       },
     ]);

@@ -47,7 +47,7 @@ export default function TabLayout() {
 
       {/* 📄 TAB 3: DETAILS */}
       <Tabs.Screen
-        name="" // Make sure this matches your details file
+        name="station-details" // Make sure this matches your details file
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="reader" size={28} color={color} />
