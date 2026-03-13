@@ -82,5 +82,22 @@ export default function HostHomeScreen() {
               />
             </LinearGradient>
 
+            {/* --- MANAGE YOUR CHARGER SECTION --- */}
+            <Text style={styles.sectionTitle}>Manage Your Charger</Text>
 
+            <Pressable style={styles.listItem}>
+              <Text style={styles.listItemText}>EVOCK Charging Station</Text>
+            </Pressable>
+
+            <Pressable style={styles.listItem}>
+              <Ionicons name="add" size={24} color="white" style={styles.addIcon} />
+              <Text style={styles.listItemText}>Add a new Charging Station</Text>
+            </Pressable>
+
+          </ScrollView>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
+  );
+}
 
