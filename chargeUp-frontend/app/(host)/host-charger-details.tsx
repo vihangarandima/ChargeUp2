@@ -12,6 +12,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function HostDetailsScreen() {
   const [fullName, setFullName] = useState("");
@@ -19,6 +20,7 @@ export default function HostDetailsScreen() {
   const [idNumber, setIdNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [chargerType, setChargerType] = useState("");
+  const router = useRouter();
 
   return (
     <ImageBackground
@@ -116,6 +118,7 @@ export default function HostDetailsScreen() {
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.continueButton}
+                onPress={() => router.push("/(host)/location-picker")}
               >
                 <Text style={styles.continueButtonText}>continue</Text>
               </TouchableOpacity>
