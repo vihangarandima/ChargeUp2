@@ -75,7 +75,7 @@ export default function VehicleDetailsScreen() {
     }
 
     // Directing to the location picker screen
-    router.replace("/(host)/location-picker");
+    router.replace("/(host)/home");
   };
 
   return (
