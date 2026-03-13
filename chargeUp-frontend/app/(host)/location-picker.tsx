@@ -18,7 +18,7 @@ import * as Location from "expo-location";
 export default function LocationPicker() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const mapRef = useRef(null);
+  const mapRef = useRef<MapView>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -35,7 +35,10 @@ export default function LocationPicker() {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permission Denied", "Allow location access to find your current spot.");
+        Alert.alert(
+          "Permission Denied",
+          "Allow location access to find your current spot.",
+        );
         return;
       }
 
@@ -55,7 +58,7 @@ export default function LocationPicker() {
   };
 
   // --- ZOOM IN AND OUT ---
-  const handleZoom = (direction) => {
+  const handleZoom = (direction: string) => {
     const zoomMultiplier = direction === "in" ? 0.5 : 2;
     const newRegion = {
       ...selectedLocation,
@@ -82,7 +85,7 @@ export default function LocationPicker() {
 
   // --- HANDLE SELECT LOCATION (POPUP & ROUTING) ---
   // --- HANDLE SELECT LOCATION (POPUP & ROUTING) ---
-  const handleSelectLocation = () => {
+  const handleSelectLocation = async () => {
     // 1. Bundle everything together for the backend!
     const finalChargerData = {
       fullName: params.fullName,
@@ -93,26 +96,52 @@ export default function LocationPicker() {
       location: {
         latitude: selectedLocation.latitude,
         longitude: selectedLocation.longitude,
-      }
+      },
     };
 
     // 2. Log it so you can see it working!
     console.log("🚀 READY FOR BACKEND:", finalChargerData);
 
-    // 3. Show success and navigate
-    Alert.alert(
-      "Location Saved!",
-      "Your charger's location has been successfully set.",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            // TODO: We will add the backend API call here next!
-            router.replace("/(host)/host-home");
-          }
-        }
-      ]
-    );
+    try {
+      // 2. The API Call! (Replace YOUR_IP_ADDRESS with your computer's actual Wi-Fi IP and 5000 with your server port)
+      const response = await fetch("http://YOUR_IP_ADDRESS:5000/api/chargers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(finalChargerData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 3. If the server says "Success!", show the popup and navigate
+        Alert.alert(
+          "Location Saved!",
+          "Your charger's location has been successfully set in the database.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                router.replace("/(host)/host-home");
+              },
+            },
+          ],
+        );
+      } else {
+        // Handle backend errors (like missing data)
+        Alert.alert(
+          "Error Saving Charger",
+          data.message || "Something went wrong.",
+        );
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      Alert.alert(
+        "Network Error",
+        "Could not connect to the server. Check your connection.",
+      );
+    }
   };
 
   return (
@@ -163,7 +192,12 @@ export default function LocationPicker() {
 
         {/* Floating Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#8A9A9D" style={styles.searchIcon} />
+          <Ionicons
+            name="search"
+            size={20}
+            color="#8A9A9D"
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Search city or address..."
@@ -181,11 +215,17 @@ export default function LocationPicker() {
             <MaterialIcons name="my-location" size={22} color="white" />
           </Pressable>
           <View style={styles.divider} />
-          <Pressable style={styles.controlButton} onPress={() => handleZoom("in")}>
+          <Pressable
+            style={styles.controlButton}
+            onPress={() => handleZoom("in")}
+          >
             <Ionicons name="add" size={24} color="white" />
           </Pressable>
           <View style={styles.divider} />
-          <Pressable style={styles.controlButton} onPress={() => handleZoom("out")}>
+          <Pressable
+            style={styles.controlButton}
+            onPress={() => handleZoom("out")}
+          >
             <Ionicons name="remove" size={24} color="white" />
           </Pressable>
         </View>
@@ -197,7 +237,10 @@ export default function LocationPicker() {
           Drag the pin or tap the map to set the exact location of your charger.
         </Text>
 
-        <Pressable style={styles.selectLocationButton} onPress={handleSelectLocation}>
+        <Pressable
+          style={styles.selectLocationButton}
+          onPress={handleSelectLocation}
+        >
           <Text style={styles.selectLocationText}>Select Location</Text>
         </Pressable>
       </View>
