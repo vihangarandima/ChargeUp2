@@ -71,3 +71,45 @@ export default function HostChargerDetailsScreen() {
                 {/* --- STATUS SECTION --- */}
                 <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Status</Text>
                 <Text style={styles.subtitleText}>Upgrade your Status</Text>
+              <View style={styles.statusRow}>
+                {/* In-Use Button */}
+                <Pressable
+                  style={[
+                    styles.statusButton,
+                    chargerStatus === 'in-use' && styles.statusButtonActive
+                  ]}
+                  onPress={() => setChargerStatus('in-use')}
+                >
+                  <Text style={styles.statusTextWhite}>in-use</Text>
+                </Pressable>
+
+                {/* Available Button */}
+                <Pressable
+                  style={[
+                    styles.statusButton,
+                    chargerStatus === 'available' && styles.statusButtonActive
+                  ]}
+                  onPress={() => setChargerStatus('available')}
+                >
+                  <Text style={styles.statusTextGreen}>available</Text>
+                </Pressable>
+
+                {/* Unavailable Button */}
+                <Pressable
+                  style={[
+                    styles.statusButton,
+                    chargerStatus === 'unavailable' && styles.statusButtonActive
+                  ]}
+                  onPress={() => setChargerStatus('unavailable')}
+                >
+                  <Text style={styles.statusTextRed}>unavailable</Text>
+                </Pressable>
+              </View>
+
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
+  );
+}
