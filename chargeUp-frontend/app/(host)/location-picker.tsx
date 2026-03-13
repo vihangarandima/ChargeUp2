@@ -10,13 +10,14 @@ import {
   Platform,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 
 export default function LocationPicker() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const mapRef = useRef(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,7 +81,25 @@ export default function LocationPicker() {
   };
 
   // --- HANDLE SELECT LOCATION (POPUP & ROUTING) ---
+  // --- HANDLE SELECT LOCATION (POPUP & ROUTING) ---
   const handleSelectLocation = () => {
+    // 1. Bundle everything together for the backend!
+    const finalChargerData = {
+      fullName: params.fullName,
+      address: params.address,
+      idNumber: params.idNumber,
+      phone: params.phone,
+      chargerType: params.chargerType,
+      location: {
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+      }
+    };
+
+    // 2. Log it so you can see it working!
+    console.log("🚀 READY FOR BACKEND:", finalChargerData);
+
+    // 3. Show success and navigate
     Alert.alert(
       "Location Saved!",
       "Your charger's location has been successfully set.",
@@ -88,7 +107,7 @@ export default function LocationPicker() {
         {
           text: "OK",
           onPress: () => {
-            // Directs to the host-home screen exactly as requested!
+            // TODO: We will add the backend API call here next!
             router.replace("/(host)/host-home");
           }
         }
