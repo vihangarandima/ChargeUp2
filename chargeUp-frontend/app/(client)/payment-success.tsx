@@ -9,11 +9,12 @@ export default function PaymentSuccessScreen() {
   const router = useRouter();
   
   const { amount } = useLocalSearchParams();
-  const displayAmount = amount ? (amount as string) : "1000.00";
+  const displayAmount = amount ? (amount as string) : "0.00";
 
-  const handleStartCharging = () => {
-    // Action for the start charging button
-    console.log("Charging started!");
+  // FIXED LOGIC: Redirects to the home page
+  const handleGoHome = () => {
+    // We use .replace so the user can't "go back" to the success screen
+    router.replace('/'); 
   };
 
   return (
@@ -23,14 +24,13 @@ export default function PaymentSuccessScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           
-          {}
           <View style={styles.brandHeader}>
             <Text style={styles.brandTitle}>ChargeUp</Text>
           </View>
 
-          {}
           <View style={styles.controlRow}>
-            <TouchableOpacity onPress={() => router.back()}>
+            {/* Back button also goes home for safety */}
+            <TouchableOpacity onPress={handleGoHome}>
               <Ionicons name="arrow-back" size={26} color="white" />
             </TouchableOpacity>
             
@@ -40,13 +40,13 @@ export default function PaymentSuccessScreen() {
             </TouchableOpacity>
           </View>
 
-          {}
           <Text style={styles.stationTitle}>EVOCK Charging Station</Text>
 
-          {}
+          {/* Pass the redirect function and a clearer label */}
           <PaymentDetailsCard 
             amount={displayAmount} 
-            onStartCharging={handleStartCharging} 
+            onStartCharging={handleGoHome} 
+            buttonLabel="Charging Successful" 
           />
           
         </View>
@@ -66,19 +66,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25, 
     paddingTop: 30 
   },
-  
-  // Brand Header
-  brandHeader: { 
-    marginBottom: 5 
-  },
-  brandTitle: { 
-    color: 'white', 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    letterSpacing: 0.5 
-  },
-
-  // Control Row
+  brandHeader: { marginBottom: 5 },
+  brandTitle: { color: 'white', fontSize: 28, fontWeight: 'bold', letterSpacing: 0.5 },
   controlRow: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -86,32 +75,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 25 
   },
-  notificationBtn: { 
-    backgroundColor: 'rgba(255,255,255,0.05)', 
-    padding: 10, 
-    borderRadius: 25, 
-    position: 'relative' 
-  },
-  badge: { 
-    position: 'absolute', 
-    top: -2, 
-    right: -2, 
-    backgroundColor: '#555', 
-    width: 16, 
-    height: 16, 
-    borderRadius: 8, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 1, 
-    borderColor: '#163B46' 
-  },
+  notificationBtn: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 25, position: 'relative' },
+  badge: { position: 'absolute', top: -2, right: -2, backgroundColor: '#555', width: 16, height: 16, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#163B46' },
   badgeText: { color: 'white', fontSize: 9, fontWeight: 'bold' },
-
-  stationTitle: { 
-    color: 'white', 
-    fontSize: 20, 
-    fontWeight: '600', 
-    textAlign: 'center', 
-    marginBottom: 25 
-  },
+  stationTitle: { color: 'white', fontSize: 20, fontWeight: '600', textAlign: 'center', marginBottom: 25 },
 });
