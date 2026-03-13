@@ -8,17 +8,12 @@ import PaymentDetailsCard from '@/components/ui/PaymentDetailsCard';
 export default function PaymentSuccessScreen() {
   const router = useRouter();
   
-  // 1. Capture the amount passed from the Payment WebView logic
   const { amount } = useLocalSearchParams();
-  
-  // 2. Format the amount for display (defaults to 0.00 if something goes wrong)
-  const displayAmount = amount ? parseFloat(amount as string).toFixed(2) : "0.00";
+  const displayAmount = amount ? (amount as string) : "1000.00";
 
-  // ✅ This function correctly handles the navigation back to the Home/Scan screen
-  const handleReturnHome = () => {
-    console.log("Payment flow complete. Returning to Home...");
-    // .replace ensures the user cannot swipe back into the payment success screen
-    router.replace('/'); 
+  const handleStartCharging = () => {
+    // Action for the start charging button
+    console.log("Charging started!");
   };
 
   return (
@@ -28,14 +23,14 @@ export default function PaymentSuccessScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           
-          {/* 1. Brand Header */}
+          {}
           <View style={styles.brandHeader}>
             <Text style={styles.brandTitle}>ChargeUp</Text>
           </View>
 
-          {/* 2. Top Navigation/Notification Row */}
+          {}
           <View style={styles.controlRow}>
-            <TouchableOpacity onPress={handleReturnHome}>
+            <TouchableOpacity onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={26} color="white" />
             </TouchableOpacity>
             
@@ -45,27 +40,15 @@ export default function PaymentSuccessScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* 3. Station Info */}
+          {}
           <Text style={styles.stationTitle}>EVOCK Charging Station</Text>
 
-          {/* 4. Success Receipt Card 
-               Ensure PaymentDetailsCard uses 'amount' and 'onStartCharging' props! 
-          */}
+          {}
           <PaymentDetailsCard 
             amount={displayAmount} 
-            onStartCharging={handleReturnHome} 
+            onStartCharging={handleStartCharging} 
           />
           
-          <View style={{ marginTop: 30, alignItems: 'center' }}>
-            <Ionicons name="checkmark-circle" size={80} color="#00D1FF" />
-            <Text style={{ color: 'white', fontSize: 22, fontWeight: 'bold', marginTop: 15 }}>
-               Payment Successful
-            </Text>
-            <Text style={{ color: '#BDC3C7', fontSize: 14, marginTop: 8, textAlign: 'center' }}>
-               Your transaction was completed successfully. Your charger has been deactivated.
-            </Text>
-          </View>
-
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -83,6 +66,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25, 
     paddingTop: 30 
   },
+  
+  // Brand Header
   brandHeader: { 
     marginBottom: 5 
   },
@@ -92,6 +77,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     letterSpacing: 0.5 
   },
+
+  // Control Row
   controlRow: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -119,6 +106,7 @@ const styles = StyleSheet.create({
     borderColor: '#163B46' 
   },
   badgeText: { color: 'white', fontSize: 9, fontWeight: 'bold' },
+
   stationTitle: { 
     color: 'white', 
     fontSize: 20, 

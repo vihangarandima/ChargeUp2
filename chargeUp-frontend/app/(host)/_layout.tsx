@@ -27,7 +27,7 @@ export default function TabLayout() {
     >
       {/* 🏠 TAB 1: HOME */}
       <Tabs.Screen
-        name="(client)/home" // Make sure this exactly matches your home.tsx filename
+        name="host-charger-details" // Make sure this exactly matches your home.tsx filename
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={28} color={color} />
@@ -37,7 +37,7 @@ export default function TabLayout() {
 
       {/* 📍 TAB 2: MAP */}
       <Tabs.Screen
-        name="(client)/map-station-finder" // Make sure this matches your map file
+        name="map-station-finder" // Make sure this matches your map file
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="map" size={28} color={color} />
@@ -47,7 +47,7 @@ export default function TabLayout() {
 
       {/* 📄 TAB 3: DETAILS */}
       <Tabs.Screen
-        name="(client)/station-details" // Make sure this matches your details file
+        name="station-details" // Make sure this matches your details file
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="reader" size={28} color={color} />
@@ -57,7 +57,7 @@ export default function TabLayout() {
 
       {/* 👤 TAB 4: PROFILE */}
       <Tabs.Screen
-        name="(host)/profile" // Or whatever your profile page is named
+        name="profile" // Or whatever your profile page is named
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={32} color={color} />

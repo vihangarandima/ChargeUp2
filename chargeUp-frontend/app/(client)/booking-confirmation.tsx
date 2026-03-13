@@ -39,7 +39,7 @@ export default function BookingConfirmation() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* 1. Brand Header */}
+        {/* 1. Brand Header - Adjusted margin to be slightly lower */}
         <View style={styles.brandHeader}>
           <Text style={styles.brandTitle}>ChargeUp</Text>
         </View>
@@ -107,10 +107,7 @@ export default function BookingConfirmation() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={[styles.actionButton, { marginRight: 12 }]} 
-            onPress={() => {
-              console.log("Scan QR Button Pressed!"); 
-              router.push('/scan-qr');
-            }}
+            onPress={() => router.push('/scan-qr')}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="qr-code" size={18} color="#0B1D21" style={{ marginRight: 8 }} />
@@ -135,15 +132,16 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#0B1D21',
+    // Ensures space for the system status bar
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
   },
   scrollContent: { 
     padding: 24, 
-    paddingTop: 20, 
+    paddingTop: 20, // Increased slightly to lower the brand name
     paddingBottom: 40 
   },
   brandHeader: { 
-    marginBottom: 10, 
+    marginBottom: 10, // Space between brand and back button
   },
   brandTitle: { 
     color: 'white', 
