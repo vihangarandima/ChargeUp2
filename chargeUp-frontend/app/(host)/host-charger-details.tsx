@@ -135,7 +135,9 @@ export default function HostDetailsScreen() {
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.continueButton}
-                onPress={() => router.push("/(host)/location-picker")}
+                onPress={() => router.push({ pathname: "/(host)/location-picker", params: { fullName, address, idNumber, phone, chargerType } })}
+
+
               >
                 <Text style={styles.continueButtonText}>continue</Text>
               </TouchableOpacity>
