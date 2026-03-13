@@ -1,285 +1,239 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
   StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+  Platform,
   StatusBar,
-  Alert,
+  ImageBackground,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-// 1. Import the Gradient component
-import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 
-export default function RegisterScreen() {
-  const router = useRouter();
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert("Missing Info", "Please fill in all fields to sign up.");
-      return;
-    }
-    try {
-      // 2. Ask memory what role they picked on the very first screen
-      // If it forgets, we default them to a "client" just in case.
-      const role = (await AsyncStorage.getItem("userRole")) || "client";
-      console.log("🚦 THE ROLE IN MEMORY IS:", role);
-
-      // 3. Send the new user's info to your Node.js backend
-      // (Again, make sure this IP matches your current Wi-Fi IP!)
-      const response = await fetch(
-        "http://10.241.115.178:5000/api/auth/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, role }),
-        },
-      );
-
-      const data = await response.json();
-
-      // 4. If the backend says "User created successfully!"
-      if (response.ok) {
-        // Save the VIP token so they are logged in automatically
-        if (data.token) {
-          await AsyncStorage.setItem("userToken", data.token);
-        }
-
-        Alert.alert("Welcome!", "Account created successfully.");
-
-        if (role === "host") {
-          router.replace("/host-charger-details");
-        } else {
-          router.replace("/vehicle-details");
-        }
-      } else {
-        // If the email is already taken or password is too short
-        Alert.alert(
-          "Signup Failed",
-          data.message || "Could not create account.",
-        );
-      }
-    } catch (error) {
-      console.error("Network error:", error);
-      Alert.alert(
-        "Connection Error",
-        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
-      );
-    }
-  };
+export default function HostDetailsScreen() {
+  const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [phone, setPhone] = useState("");
+  const [chargerType, setChargerType] = useState("");
 
   return (
-    // 2. Wrap the whole screen in the LinearGradient
-    <LinearGradient
-      colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
-      locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+    <ImageBackground
+      // You can use the same background image, or replace with a new one if you have it!
+      source={require("../../assets/images/host/host-charger-details.png")}
       style={styles.container}
+      resizeMode="cover"
     >
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" />
-
-        <View style={styles.content}>
-          {/* Brand Header */}
-          <Text style={styles.headerTitle}>ChargeUp</Text>
-
-          {/* Hero Branding */}
-          <View style={styles.brandHero}>
-            <Ionicons name="flash" size={80} color="white" />
-            <Text style={styles.tagline}>Find, book and pay</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Top Brand Header */}
+          <View style={styles.topHeader}>
+            <Text style={styles.brandTitle}>ChargeUp</Text>
           </View>
 
-          {/* Signup Form */}
-          <View style={styles.form}>
-            <TextInput
-              placeholder="Full Name"
-              placeholderTextColor="#889"
-              style={styles.inputUnderline}
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              placeholder="Email address"
-              placeholderTextColor="#889"
-              style={styles.inputUnderline}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
+          {/* Icon & Title Section */}
+          <View style={styles.titleSection}>
+            <MaterialCommunityIcons name="ev-station" size={60} color="white" />
+            <Text style={styles.pageTitle}>Share & Earn</Text>
+          </View>
 
-            <View style={styles.passwordWrapper}>
+          {/* Subtitle */}
+          <Text style={styles.subtitle}>Add your details here.</Text>
+
+          {/* Main Form Box */}
+          <View style={styles.formContainer}>
+            {/* Full Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Full Name</Text>
               <TextInput
-                placeholder="Password"
-                placeholderTextColor="#889"
-                secureTextEntry
-                style={[styles.inputUnderline, { flex: 1 }]}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <Ionicons
-                name="eye-off-outline"
-                size={20}
-                color="white"
-                style={styles.eyeIcon}
+                style={styles.input}
+                value={fullName}
+                onChangeText={setFullName}
+                selectionColor="white"
               />
             </View>
+
+            {/* Address */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Address</Text>
+              <TextInput
+                style={styles.input}
+                value={address}
+                onChangeText={setAddress}
+                selectionColor="white"
+              />
+            </View>
+
+            {/* ID/Passport */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>ID/Passport number</Text>
+              <TextInput
+                style={styles.input}
+                value={idNumber}
+                onChangeText={setIdNumber}
+                selectionColor="white"
+              />
+            </View>
+
+            {/* Telephone */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Telephone number</Text>
+              <TextInput
+                style={styles.input}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                selectionColor="white"
+              />
+            </View>
+
+            {/* Charging Unit Type (Custom Dropdown UI) */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Charging unit type</Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.dropdownInput}
+              >
+                <Text style={styles.dropdownPlaceholder}>
+                  {chargerType ? chargerType : "Ex : Fast charger"}
+                </Text>
+                <Ionicons
+                  name="chevron-down-circle"
+                  size={20}
+                  color="#E0E0E0"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Continue Button */}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.continueButton}
+              >
+                <Text style={styles.continueButtonText}>continue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          {/* Main Action Button */}
-          <Pressable style={styles.signupBtn} onPress={handleRegister}>
-            <Text style={styles.signupBtnText}>Signup</Text>
-          </Pressable>
-
-          <Text style={styles.orText}>or</Text>
-
-          {/* Social Options */}
-          <View style={styles.socialDivider}>
-            <View style={styles.line} />
-            <Text style={styles.socialLabel}>Signup with</Text>
-            <View style={styles.line} />
-          </View>
-
-          <View style={styles.socialRow}>
-            <FontAwesome name="apple" size={45} color="white" />
-            <FontAwesome name="google" size={42} color="#EA4335" />
-          </View>
-
-          {/* Footer Toggle */}
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Already have an Account? </Text>
-            <Pressable onPress={() => router.push("/(auth)/login")}>
-              <Text style={styles.loginLink}>Login</Text>
-            </Pressable>
-          </View>
-
-          {/* Legal Disclaimer */}
-          <Text style={styles.legalNotice}>
-            By continuing, you agree to our{" "}
-            <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
-            <Text style={styles.legalLink}>Privacy Policy</Text>.
-          </Text>
-        </View>
+        </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#0A1114",
   },
   safeArea: {
     flex: 1,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 40,
-    alignItems: "center",
+  scrollContent: {
+    paddingHorizontal: 25,
+    paddingTop: 15,
+    paddingBottom: 40,
   },
-  headerTitle: {
-    alignSelf: "flex-start",
+
+  // Header
+  topHeader: {
+    marginBottom: 20,
+  },
+  brandTitle: {
     color: "white",
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "bold",
+  },
+
+  // Title Section
+  titleSection: {
+    alignItems: "center",
     marginBottom: 30,
   },
-  brandHero: {
-    alignItems: "center",
-    marginBottom: 50,
-  },
-  tagline: {
-    color: "white",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  form: {
-    width: "100%",
-    marginBottom: 40,
-  },
-  inputUnderline: {
-    borderBottomWidth: 1,
-    borderBottomColor: "white",
-    color: "white",
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 25,
-  },
-  passwordWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: 0,
-    bottom: 35,
-  },
-  signupBtn: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 50,
-    marginBottom: 15,
-  },
-  signupBtnText: {
+  pageTitle: {
     color: "white",
     fontSize: 18,
+    fontWeight: "600",
+    marginTop: 10,
   },
-  orText: {
+
+  // Subtitle
+  subtitle: {
     color: "white",
-    marginBottom: 15,
+    fontSize: 14,
+    marginBottom: 10,
+    marginLeft: 5,
   },
-  socialDivider: {
+
+  // Form Container
+  formContainer: {
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.03)", // Slight tint to see the box better
+  },
+
+  // Inputs
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    color: "white",
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 8,
+    height: 45,
+    paddingHorizontal: 15,
+    color: "white",
+    backgroundColor: "rgba(10, 17, 20, 0.5)",
+  },
+
+  // Custom Dropdown
+  dropdownInput: {
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 8,
+    height: 45,
+    paddingHorizontal: 15,
+    backgroundColor: "rgba(10, 17, 20, 0.5)",
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    marginBottom: 30,
+    justifyContent: "space-between",
   },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.3)",
-  },
-  socialLabel: {
-    color: "white",
-    marginHorizontal: 10,
+  dropdownPlaceholder: {
+    color: "#8A9A9D", // Matches the faded text in your screenshot
     fontSize: 14,
   },
-  socialRow: {
-    flexDirection: "row",
-    gap: 40,
-    alignItems: "center",
-    marginBottom: 40,
+
+  // Button
+  buttonRow: {
+    alignItems: "flex-end",
+    marginTop: 10,
+    marginBottom: 10,
   },
-  footerRow: {
-    flexDirection: "row",
-    marginBottom: 30,
+  continueButton: {
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 25,
+    backgroundColor: "rgba(10, 17, 20, 0.5)",
   },
-  footerText: {
+  continueButtonText: {
     color: "white",
     fontSize: 14,
-  },
-  loginLink: {
-    color: "#7BB1BA",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  legalNotice: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 11,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  legalLink: {
-    textDecorationLine: "underline",
   },
 });
