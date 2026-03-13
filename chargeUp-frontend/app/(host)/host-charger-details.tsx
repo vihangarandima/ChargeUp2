@@ -10,9 +10,22 @@ import {
   Platform,
   StatusBar,
   ImageBackground,
+  Modal, // <-- Added Modal
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+
+// List of available charger types
+const CHARGER_TYPES = [
+  "Standard 3-Pin Plug (13A)",
+  "Commando Socket (16A/32A)",
+  "Type 1 (J1772) - AC",
+  "Type 2 (Mennekes) - AC",
+  "CHAdeMO - DC Fast",
+  "CCS2 - DC Fast",
+  "Tesla Proprietary",
+  "Other",
+];
 
 export default function HostDetailsScreen() {
   const [fullName, setFullName] = useState("");
@@ -20,11 +33,14 @@ export default function HostDetailsScreen() {
   const [idNumber, setIdNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [chargerType, setChargerType] = useState("");
+
+  // State to control the dropdown modal
+  const [isModalVisible, setModalVisible] = useState(false);
+
   const router = useRouter();
 
   return (
     <ImageBackground
-      // You can use the same background image, or replace with a new one if you have it!
       source={require("../../assets/images/host/host-charger-details.png")}
       style={styles.container}
       resizeMode="cover"
@@ -101,8 +117,9 @@ export default function HostDetailsScreen() {
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.dropdownInput}
+                onPress={() => setModalVisible(true)} // <-- Opens the modal
               >
-                <Text style={styles.dropdownPlaceholder}>
+                <Text style={[styles.dropdownPlaceholder, chargerType && { color: "white" }]}>
                   {chargerType ? chargerType : "Ex : Fast charger"}
                 </Text>
                 <Ionicons
@@ -126,6 +143,51 @@ export default function HostDetailsScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* --- ADDED DROPDOWN MODAL --- */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Charger Type</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {CHARGER_TYPES.map((type, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setChargerType(type);
+                    setModalVisible(false); // Close modal after selection
+                  }}
+                >
+                  <Text style={[
+                    styles.modalOptionText,
+                    chargerType === type && { color: "#7BB1BA", fontWeight: "bold" } // Highlight selected
+                  ]}>
+                    {type}
+                  </Text>
+                  {chargerType === type && (
+                    <Ionicons name="checkmark-circle" size={20} color="#7BB1BA" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </ImageBackground>
   );
 }
@@ -238,5 +300,54 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: "white",
     fontSize: 14,
+  },
+
+  // --- Modal Styles ---
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end", // Slides up from bottom
+  },
+  modalContent: {
+    backgroundColor: "#11262F",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 25,
+    maxHeight: "60%",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.2)",
+  },
+  modalTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center"
+  },
+  modalOption: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+  },
+  modalOptionText: {
+    color: "white",
+    fontSize: 16,
+  },
+  modalCloseBtn: {
+    marginTop: 20,
+    alignItems: "center",
+    paddingVertical: 12,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)"
+  },
+  modalCloseText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
