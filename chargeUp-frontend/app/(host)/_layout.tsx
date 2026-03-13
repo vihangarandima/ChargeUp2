@@ -27,7 +27,7 @@ export default function TabLayout() {
     >
       {/* 🏠 TAB 1: HOME */}
       <Tabs.Screen
-        name="home" // Make sure this exactly matches your home.tsx filename
+        name="(client)/home" // Make sure this exactly matches your home.tsx filename
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={28} color={color} />
@@ -37,7 +37,7 @@ export default function TabLayout() {
 
       {/* 📍 TAB 2: MAP */}
       <Tabs.Screen
-        name="map-station-finder" // Make sure this matches your map file
+        name="(client)/map-station-finder" // Make sure this matches your map file
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="map" size={28} color={color} />
@@ -47,7 +47,7 @@ export default function TabLayout() {
 
       {/* 📄 TAB 3: DETAILS */}
       <Tabs.Screen
-        name="station-details" // Make sure this matches your details file
+        name="(client)/station-details" // Make sure this matches your details file
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="reader" size={28} color={color} />
@@ -57,7 +57,7 @@ export default function TabLayout() {
 
       {/* 👤 TAB 4: PROFILE */}
       <Tabs.Screen
-        name="profile" // Or whatever your profile page is named
+        name="(host)/profile" // Or whatever your profile page is named
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={32} color={color} />
@@ -66,55 +66,6 @@ export default function TabLayout() {
       />
 
       {/* Replace 'booking-page' with the actual name of your file (without the .tsx) */}
-      <Tabs.Screen
-        name="booking-confirmation"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="booking-confirm"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="charger-booking"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="charging-session"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="payment-success"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="payment"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      
-      <Tabs.Screen
-        name="scan-qr"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
     </Tabs>
   );
 }

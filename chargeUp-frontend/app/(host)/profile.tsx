@@ -86,14 +86,14 @@ export default function ProfileScreen() {
                 activeOpacity={0.7}
               >
                 <LinearGradient
-                  colors={['#2A4A57', '#162F36']} // 3D gradient look
+                  colors={['#2A3F4C', '#13222A']} // 3D gradient look
                   style={styles.menuPill}
                 >
                   <Text style={styles.menuLabel}>{item.label}</Text>
                   <Ionicons 
                     name="chevron-forward" 
                     size={20} 
-                    color="rgba(255,255,255,0.6)" 
+                    color="rgba(255,255,255,0.4)" 
                     style={styles.chevron} 
                   />
                 </LinearGradient>
@@ -110,11 +110,11 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
-    backgroundColor: '#050B0D', // Very dark base
+    backgroundColor: '#0A1114', // Very dark base
   },
   backgroundFill: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#050B0D',
+    flex: 1,
+    width: '100%',
   },
   safeArea: { 
     flex: 1, 

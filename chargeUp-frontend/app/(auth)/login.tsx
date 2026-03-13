@@ -30,7 +30,7 @@ export default function LoginScreen() {
     try {
       // 1. Send the email and password to your Node.js backend
       // Make sure this IP address matches your computer's current Wi-Fi IP!
-      const response = await fetch("http://10.90.28.178:5000/api/auth/login", {
+      const response = await fetch("http://10.241.115.178:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -53,9 +53,9 @@ export default function LoginScreen() {
         if (role === "client") {
           router.replace("/home");
         } else if (role === "host") {
-          router.replace("/(tab)/map-station-finder");
+          router.replace("/(host)/host-charger-details");
         } else {
-          router.replace("/(tab)/charger-booking");
+          router.replace("/(client)/charger-booking");
         }
       } else {
         // If the password is wrong or user doesn't exist
