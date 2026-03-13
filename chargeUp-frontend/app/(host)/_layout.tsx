@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function TabLayout() {
   return (
@@ -35,22 +36,12 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 📍 TAB 2: MAP */}
+      {/* 👤 TAB 4: Manage charger */}
       <Tabs.Screen
-        name="map-station-finder" // Make sure this matches your map file
+        name="manage-charger" // Or whatever your profile page is named
         options={{
           tabBarIcon: ({ color }) => (
-            <Ionicons name="map" size={28} color={color} />
-          ),
-        }}
-      />
-
-      {/* 📄 TAB 3: DETAILS */}
-      <Tabs.Screen
-        name="station-details" // Make sure this matches your details file
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="reader" size={28} color={color} />
+            <Ionicons name="battery-charging-outline" size={32} color={color} />
           ),
         }}
       />
@@ -65,7 +56,11 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Replace 'booking-page' with the actual name of your file (without the .tsx) */}
+      <Tabs.Screen name="host-home" options={{ href: null }} />
+
+      <Tabs.Screen name="location-picker" options={{ href: null }} />
+
+      
     </Tabs>
   );
 }
