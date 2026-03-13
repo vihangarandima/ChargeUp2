@@ -23,6 +23,7 @@ export default function WelcomeScreen() {
       <ImageBackground
         source={require("../assets/images/car_charging.jpg")}
         style={styles.background}
+        imageStyle={{ opacity: 0.45 }} /* Added 45% opacity to the image itself */
         resizeMode="cover"
       >
         <View style={styles.overlay}>
@@ -72,6 +73,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
+    // You can adjust or remove this overlay color now that the image itself is darker
     backgroundColor: "rgba(0,0,0,0.25)",
     paddingHorizontal: 40,
     paddingTop: 60,
@@ -95,13 +97,13 @@ const styles = StyleSheet.create({
   mainTitle: {
     color: "#FFF",
     fontSize: 42,
-    fontWeight: "300",
+    fontWeight: "600", // Changed to Semi-bold
     textAlign: "center",
   },
   evText: {
     color: "#FFF",
     fontSize: 65,
-    fontWeight: "200",
+    fontWeight: "600", // Changed to Semi-bold
     textAlign: "center",
     marginVertical: -10,
   },
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     lineHeight: 24,
-    fontWeight: "600",
+    fontWeight: "400", // Changed to Regular
     marginBottom: 40,
   },
   button: {
