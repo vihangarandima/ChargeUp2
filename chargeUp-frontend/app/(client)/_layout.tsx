@@ -5,29 +5,29 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Hides the top header
-        tabBarShowLabel: false, // Hides the text labels (Icon only)
-        tabBarActiveTintColor: "white", // White icon when selected
-        tabBarInactiveTintColor: "#83B4BB", // Faded color when not selected
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: "white",
+        tabBarInactiveTintColor: "#83B4BB",
         tabBarStyle: {
-          backgroundColor: "#213A45", // Dark blue/grey background
-          borderTopLeftRadius: 25, // Rounded top left
-          borderTopRightRadius: 25, // Rounded top right
-          borderTopWidth: 1, // The white line on top
-          borderTopColor: "white", // Color of the top line
-          borderLeftWidth: 1, // Connects the border to the curves
+          backgroundColor: "#213A45",
+          borderTopLeftRadius: 25,
+          borderTopRightRadius: 25,
+          borderTopWidth: 1,
+          borderTopColor: "white",
+          borderLeftWidth: 1,
           borderLeftColor: "white",
           borderRightWidth: 1,
           borderRightColor: "white",
-          height: 70, // Height of the bar
-          position: "absolute", // Required to show rounded corners properly
-          bottom: -1, // Pulls it down slightly to hide bottom edges
+          height: 70,
+          position: "absolute",
+          bottom: -1,
         },
       }}
     >
       {/* 🏠 TAB 1: HOME */}
       <Tabs.Screen
-        name="home" // Make sure this exactly matches your home.tsx filename
+        name="home"
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={28} color={color} />
@@ -37,7 +37,7 @@ export default function TabLayout() {
 
       {/* 📍 TAB 2: MAP */}
       <Tabs.Screen
-        name="map-station-finder" // Make sure this matches your map file
+        name="map-station-finder"
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="map" size={28} color={color} />
@@ -45,9 +45,9 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 📄 TAB 3: DETAILS */}
+      {/* 📄 TAB 3: DETAILS (FIXED: Added 'station-details') */}
       <Tabs.Screen
-        name="" // Make sure this matches your details file
+        name="station-details" 
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="reader" size={28} color={color} />
@@ -57,7 +57,7 @@ export default function TabLayout() {
 
       {/* 👤 TAB 4: PROFILE */}
       <Tabs.Screen
-        name="profile" // Or whatever your profile page is named
+        name="profile"
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={32} color={color} />
@@ -65,56 +65,15 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Replace 'booking-page' with the actual name of your file (without the .tsx) */}
+      {/* HIDDEN SCREENS (href: null hides them from the bottom bar) */}
 
-      <Tabs.Screen
-        name="booking-confirmation"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="booking-confirm"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="charger-booking"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="charging-session"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="payment-success"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="payment"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="scan-qr"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
+      <Tabs.Screen name="booking-confirmation" options={{ href: null }} />
+      <Tabs.Screen name="charger-booking" options={{ href: null }} />
+      <Tabs.Screen name="charging-session" options={{ href: null }} />
+      <Tabs.Screen name="payment-success" options={{ href: null }} />
+      <Tabs.Screen name="payment" options={{ href: null }} />
+      <Tabs.Screen name="scan-qr" options={{ href: null }} />
+      
     </Tabs>
   );
 }
