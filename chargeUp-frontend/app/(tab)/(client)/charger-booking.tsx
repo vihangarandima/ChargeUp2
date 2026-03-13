@@ -90,7 +90,7 @@ export default function ChargerBooking() {
             const formattedTime = `${selectedDate.toLocaleDateString()},${selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             
             router.push({
-              pathname: "/booking-confirm", // UPDATED: Redirects to booking-confirm.tsx
+              pathname: "/booking-confirmation", // UPDATED: Redirects to booking-confirm.tsx
               params: { 
                 stationName: stationName || "Charging Station",
                 bookingTime: formattedTime, // Sends: "12/05/2026,04:00 PM"

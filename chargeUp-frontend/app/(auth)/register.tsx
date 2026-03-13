@@ -36,12 +36,12 @@ export default function RegisterScreen() {
       // 3. Send the new user's info to your Node.js backend
       // (Again, make sure this IP matches your current Wi-Fi IP!)
       const response = await fetch(
-        "http://10.90.28.178:5000/api/auth/register",
+        "http://10.241.115.178:5000/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, role }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -64,14 +64,14 @@ export default function RegisterScreen() {
         // If the email is already taken or password is too short
         Alert.alert(
           "Signup Failed",
-          data.message || "Could not create account."
+          data.message || "Could not create account.",
         );
       }
     } catch (error) {
       console.error("Network error:", error);
       Alert.alert(
         "Connection Error",
-        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!"
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
       );
     }
   };
