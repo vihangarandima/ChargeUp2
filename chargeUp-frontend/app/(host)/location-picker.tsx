@@ -89,3 +89,93 @@ export default function LocationPicker() {
       }
     ]);
   };
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Set Charger Location</Text>
+      </View>
+
+      <View style={styles.mapContainer}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          provider={PROVIDER_GOOGLE}
+          initialRegion={selectedLocation}
+          onPress={handleMapPress}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+        >
+          {/* Custom Draggable Marker matching your design */}
+          <Marker
+            coordinate={{
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+            }}
+            draggable
+            onDragEnd={(e) => {
+              setSelectedLocation({
+                ...selectedLocation,
+                latitude: e.nativeEvent.coordinate.latitude,
+                longitude: e.nativeEvent.coordinate.longitude,
+              });
+            }}
+          >
+            <View style={styles.customMarkerContainer}>
+              <View style={styles.markerCircle}>
+                <View style={styles.markerDot} />
+              </View>
+              <View style={styles.markerPointer} />
+            </View>
+          </Marker>
+        </MapView>
+
+        {/* Floating Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#8A9A9D" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search city or address..."
+            placeholderTextColor="#8A9A9D"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+          />
+        </View>
+
+        {/* Floating Map Controls */}
+        <View style={styles.mapControls}>
+          <Pressable style={styles.controlButton} onPress={getUserLocation}>
+            <MaterialIcons name="my-location" size={22} color="white" />
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable style={styles.controlButton} onPress={() => handleZoom("in")}>
+            <Ionicons name="add" size={24} color="white" />
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable style={styles.controlButton} onPress={() => handleZoom("out")}>
+            <Ionicons name="remove" size={24} color="white" />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Bottom Action Area */}
+      <View style={styles.bottomPanel}>
+        <Text style={styles.instructionText}>
+          Drag the pin or tap the map to set the exact location of your charger.
+        </Text>
+
+        <Pressable style={styles.selectLocationButton} onPress={handleSelectLocation}>
+          <Text style={styles.selectLocationText}>Select Location</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
