@@ -12,8 +12,11 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router'; // <-- Added import for navigation
 
 export default function HostHomeScreen() {
+  const router = useRouter(); // <-- Initialize the router
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -85,7 +88,11 @@ export default function HostHomeScreen() {
             {/* --- MANAGE YOUR CHARGER SECTION --- */}
             <Text style={styles.sectionTitle}>Manage Your Charger</Text>
 
-            <Pressable style={styles.listItem}>
+            {/* Added onPress navigation here */}
+            <Pressable
+              style={styles.listItem}
+              onPress={() => router.push('/(host)/manage-charger')}
+            >
               <Text style={styles.listItemText}>EVOCK Charging Station</Text>
             </Pressable>
 
