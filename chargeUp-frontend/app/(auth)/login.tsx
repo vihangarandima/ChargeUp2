@@ -53,9 +53,9 @@ export default function LoginScreen() {
         if (role === "client") {
           router.replace("/home");
         } else if (role === "host") {
-          router.replace("/(tab)/(host)/host-charger-details");
+          router.replace("/(host)/host-charger-details");
         } else {
-          router.replace("/(tab)/(client)/charger-booking");
+          router.replace("/(client)/charger-booking");
         }
       } else {
         // If the password is wrong or user doesn't exist

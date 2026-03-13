@@ -57,7 +57,7 @@ export default function TabLayout() {
 
       {/* 👤 TAB 4: PROFILE */}
       <Tabs.Screen
-        name="(client)/profile" // Or whatever your profile page is named
+        name="(host)/profile" // Or whatever your profile page is named
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={32} color={color} />
@@ -66,57 +66,6 @@ export default function TabLayout() {
       />
 
       {/* Replace 'booking-page' with the actual name of your file (without the .tsx) */}
-
-      
-
-      <Tabs.Screen
-        name="(client)/booking-confirmation"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="(client)/booking-confirm"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="(client)/charger-booking"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="(client)/charging-session"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="(client)/payment-success"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="(client)/payment"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
-
-      <Tabs.Screen
-        name="(client)/scan-qr"
-        options={{
-          href: null, // This is the magic word that hides the button!
-        }}
-      />
     </Tabs>
   );
 }
