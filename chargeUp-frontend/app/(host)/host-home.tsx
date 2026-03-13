@@ -101,3 +101,126 @@ export default function HostHomeScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0A1114', // Fallback color
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    // Add bottom padding so the list items aren't hidden behind the absolute tab bar
+    paddingBottom: 110,
+  },
+
+  // Header Styles
+  brandText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  greetingText: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitleText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#4A5A60',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#0A1114',
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+
+  // Hero Card Styles
+  heroCard: {
+    width: '100%',
+    height: 300,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 35,
+    position: 'relative',
+  },
+  plugIcon: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+  },
+  chargerImage: {
+    width: '60%',
+    height: '70%',
+  },
+
+  // Manage List Styles
+  sectionTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: '300',
+    marginBottom: 15,
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'white',
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  listItemText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  addIcon: {
+    marginRight: 15,
+  },
+});
