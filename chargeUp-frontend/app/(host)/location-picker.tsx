@@ -52,3 +52,40 @@ export default function LocationPicker() {
       console.log("Error getting location", error);
     }
   };
+
+  // --- ZOOM IN AND OUT ---
+  const handleZoom = (direction) => {
+    const zoomMultiplier = direction === "in" ? 0.5 : 2;
+    const newRegion = {
+      ...selectedLocation,
+      latitudeDelta: selectedLocation.latitudeDelta * zoomMultiplier,
+      longitudeDelta: selectedLocation.longitudeDelta * zoomMultiplier,
+    };
+    setSelectedLocation(newRegion);
+    mapRef.current?.animateToRegion(newRegion, 500);
+  };
+
+  // --- SEARCH LOCATION ---
+  const handleSearch = () => {
+    if (!searchQuery) return;
+    Alert.alert("Search", `Searching for: ${searchQuery}`);
+  };
+
+  const handleMapPress = (event) => {
+    setSelectedLocation({
+      ...selectedLocation,
+      latitude: event.nativeEvent.coordinate.latitude,
+      longitude: event.nativeEvent.coordinate.longitude,
+    });
+  };
+
+  const handleSelectLocation = () => {
+    Alert.alert("Location Set!", "Your charger's location has been fixed.", [
+      {
+        text: "OK",
+        onPress: () => {
+          router.replace("/(host)/home");
+        }
+      }
+    ]);
+  };
