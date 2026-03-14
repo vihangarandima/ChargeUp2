@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 // ⬇️ REPLACE THIS WITH YOUR ACTUAL IP
-const BACKEND_URL = "http://192.168.8.160:3000/api/charger"; 
+const BACKEND_URL = "http://172.20.10.2:3000/api/charger"; 
 
 export default function ScanQRScreen() {
   const router = useRouter();
@@ -49,6 +49,14 @@ export default function ScanQRScreen() {
     }
   };
 
+  // NEW FUNCTION: This bypasses the scanner for the Android Emulator
+  const handleSimulateScan = () => {
+    router.push({
+      pathname: "/charging-session",
+      params: { chargerId: "EMULATOR_TEST_123", stationName: "Emulator Test Point" }
+    });
+  };
+
   return (
     <LinearGradient colors={['#0B1315', '#163B46', '#0B1315']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -63,14 +71,25 @@ export default function ScanQRScreen() {
               <Ionicons name="arrow-back" size={30} color="white" />
             </TouchableOpacity>
 
+            {/* Notification bell restored to its original state */}
             <TouchableOpacity style={styles.notificationBtn}>
-              <Ionicons name="notifications-outline" size={24} color="rgba(255,255,255,0.7)" />
-              <View style={styles.badge}><Text style={styles.badgeText}>4</Text></View>
+                <Ionicons name="notifications-outline" size={24} color="rgba(255,255,255,0.7)" />
+                <View style={styles.badge}><Text style={styles.badgeText}>4</Text></View>
             </TouchableOpacity>
           </View>
 
           <View style={styles.titleSection}>
             <Text style={styles.mainTitle}>Ready to Charge?{"\n"}Scan and Start</Text>
+          </View>
+
+          {/* EMULATOR BYPASS BUTTON - Styled and positioned as requested */}
+          <View style={styles.emulatorBypassContainer}>
+            <TouchableOpacity 
+                style={styles.emulatorBypassBtn} 
+                onPress={handleSimulateScan}
+            >
+                <Ionicons name="arrow-forward" size={30} color="white" />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.qrCardWrapper}>
@@ -121,6 +140,19 @@ const styles = StyleSheet.create({
   badgeText: { color: 'white', fontSize: 8 },
   titleSection: { marginVertical: 20, alignItems: 'center' },
   mainTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+  
+  // Styles for the new emulator bypass button
+  emulatorBypassContainer: { 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    marginTop: 30, // Positioning it further down
+    marginBottom: 20 // Space before the QR card
+  },
+  emulatorBypassBtn: { 
+    // Minimal styling, un-styled like back button
+    // Centered horizontally within the container
+  },
+
   qrCardWrapper: { alignItems: 'center', marginTop: 20 },
   qrCard: { width: width * 0.85, height: width * 1.0, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' },
   qrInner: { alignItems: 'center' },
