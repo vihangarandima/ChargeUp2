@@ -1,3 +1,5 @@
+const Charger = require("../models/Charger");
+
 const createCharger = async (req, res) => {
   try {
     console.log("📦 Incoming charger data from phone:", req.body);
@@ -20,6 +22,5 @@ const createCharger = async (req, res) => {
       .json({ message: "Failed to save charger", error: error.message });
   }
 };
-
 
 module.exports = { createCharger };
