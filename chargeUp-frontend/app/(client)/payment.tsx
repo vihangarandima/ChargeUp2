@@ -7,9 +7,9 @@ import { WebView } from 'react-native-webview';
 import md5 from 'md5';
 
 // --- PAYHERE CREDENTIALS ---
-const MERCHANT_ID = "1234373"; 
-const MERCHANT_SECRET = "NjkyNzU0MjMwMjk5NTIyNDYxNTM3MTcyMjU1NjQzNzcxMjAxODU2"; 
-const BACKEND_URL = "http://192.168.8.160:5000"; 
+const MERCHANT_ID ="1234373"; 
+const MERCHANT_SECRET ="NjkyNzU0MjMwMjk5NTIyNDYxNTM3MTcyMjU1NjQzNzcxMjAxODU2"; 
+const BACKEND_URL = "http://172.20.10.2:5000"; 
 
 export default function PaymentPage() {
   const router = useRouter();
