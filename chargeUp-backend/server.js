@@ -37,6 +37,12 @@ app.get("/", (req, res) => {
 // Auth Routes (Login, Register)
 app.use("/api/auth", authRoutes);
 
+// Import the new Charger Routes
+const chargerRoutes = require("./src/routes/chargerRoutes");
+
+// Open the door for the map data!
+app.use("/api/chargers", chargerRoutes);
+
 // Host Details Route (Saves to DB!)
 app.post("/api/host-details", async (req, res) => {
   try {
