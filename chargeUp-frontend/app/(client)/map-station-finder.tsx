@@ -151,7 +151,7 @@ export default function MapScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {stations.map((station) => (
             <TouchableOpacity
-              key={station.id}
+              key={station._id}
               style={styles.stationCard}
               onPress={() =>
                 router.push({
