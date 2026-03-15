@@ -6,21 +6,31 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  ActivityIndicator, // ✅ Added this for the loading spinner!
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location"; // ✅ Added the missing Location import!
 
 const { width } = Dimensions.get("window");
 
 // 🌟 NEW: The Math Formula to calculate distance between two GPS points in Kilometers
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) => {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
@@ -33,22 +43,72 @@ export default function MapScreen() {
 
   // 1. Our dynamic bucket for database chargers
   const [stations, setStations] = useState<any[]>([]);
+  const [userLocation, setUserLocation] = useState<any>(null); // 🌟 NEW: Bucket for user's GPS
+  const [loading, setLoading] = useState(true); // 🌟 NEW: Loading spinner state
 
   // 2. Fetch the real data when the map opens
   useEffect(() => {
-    const fetchChargers = async () => {
+    const fetchStationsAndLocation = async () => {
       try {
         // 🚨 REPLACE 192.168.X.X WITH YOUR EXACT WI-FI IP ADDRESS
         const response = await fetch("http://10.241.115.178:5000/api/chargers");
         const data = await response.json();
-        setStations(data); // Fill the bucket!
+
+        // 🌟 FIX: Tell TypeScript this is definitely an array using ": any[]".
+        // (We also add "|| data" just in case your backend sends the array directly!)
+        const dbStations: any[] = data.chargers || data;
+
+        // 2. Ask User for GPS Permission
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.log("Permission to access location was denied");
+          setStations(dbStations); // If denied, just show all of them
+          setLoading(false);
+          return;
+        }
+
+        // 3. Get User's Current GPS Location
+        let location = await Location.getCurrentPositionAsync({});
+        const currentLat = location.coords.latitude;
+        const currentLng = location.coords.longitude;
+        setUserLocation({ latitude: currentLat, longitude: currentLng });
+
+        // 4. FILTER MAGIC: Only keep stations within 20 Kilometers!
+        const nearbyStations = dbStations.filter((station: any) => {
+          const distance = calculateDistance(
+            currentLat,
+            currentLng,
+            station.location.latitude,
+            station.location.longitude,
+          );
+          return distance <= 20; // 👈 Change this number to make the radius bigger or smaller!
+        });
+
+        setStations(nearbyStations); // Put only nearby stations in the bucket
       } catch (error) {
-        console.error("❌ Error fetching from DB:", error);
+        console.error("❌ Error:", error);
+      } finally {
+        setLoading(false); // Turn off the loading spinner
       }
     };
 
-    fetchChargers();
+    fetchStationsAndLocation();
   }, []);
+
+  // 🌟 NEW: Show a loading spinner while waiting for GPS and Database
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#00D1FF" />
+        <Text style={{ marginTop: 10 }}>Finding nearby chargers...</Text>
+      </View>
+    );
+  }
 
   if (isRouteMode) {
     const destLatNum = parseFloat(destLat as string) || 6.9147;
