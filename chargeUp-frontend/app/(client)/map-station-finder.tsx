@@ -27,7 +27,7 @@ export default function MapScreen() {
     const fetchChargers = async () => {
       try {
         // 🚨 REPLACE 192.168.X.X WITH YOUR EXACT WI-FI IP ADDRESS
-        const response = await fetch("http://192.168.X.X:5000/api/chargers");
+        const response = await fetch("http://10.241.115.178:5000/api/chargers");
         const data = await response.json();
         setStations(data); // Fill the bucket!
       } catch (error) {
