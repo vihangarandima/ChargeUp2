@@ -51,7 +51,7 @@ export default function MapScreen() {
     const fetchStationsAndLocation = async () => {
       try {
         // 🚨 REPLACE 192.168.X.X WITH YOUR EXACT WI-FI IP ADDRESS
-        const response = await fetch("http://10.241.115.178:5000/api/chargers");
+        const response = await fetch("http://10.111.13.178:5000/api/chargers");
         const data = await response.json();
 
         // 🌟 FIX: Tell TypeScript this is definitely an array using ": any[]".
@@ -229,18 +229,26 @@ export default function MapScreen() {
                 router.push({
                   pathname: "/station-details",
                   params: {
-                    stationName: station.name,
-                    lat: String(station.lat),
-                    lng: String(station.lng),
+                    lat: String(station.location.latitude), 
+                    lng: String(station.location.longitude),
+                    distance: station.distance ? String(station.distance.toFixed(1)) : "0"
                   },
                 })
               }
             >
-              <Text style={styles.cardTitle}>{station.name}</Text>
-              <Text style={styles.cardType}>{station.type} Charger</Text>
+              {/* 1. STATION NAME */}
+              <Text style={styles.cardTitle}>{station.fullName}</Text> 
+
+              {/* 2. CHARGER TYPE */}
+              <Text style={styles.cardType}>{station.chargerType || 'Standard'} Charger</Text> 
+              
               <View style={styles.cardFooter}>
-                <Ionicons name="flash" size={14} color="#00D1FF" />
-                <Text style={styles.cardDistance}>Tap for details</Text>
+                <Ionicons name="location" size={14} color="#00D1FF" />
+                
+                {/* 3. DISTANCE */}
+                <Text style={styles.cardDistance}>
+                  {station.distance ? `${station.distance.toFixed(1)} km away` : 'Calculating...'}
+                </Text>
               </View>
             </TouchableOpacity>
           ))}
