@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,13 @@ import {
   Image,
   Pressable,
   ScrollView,
-  StatusBar
-} from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router'; // <-- Added import for navigation
+  StatusBar,
+} from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router"; // <-- Added import for navigation
 // 🌟 NEW: Import AsyncStorage to read the saved user data
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HostHomeScreen() {
   const router = useRouter(); // <-- Initialize the router
@@ -27,7 +27,7 @@ export default function HostHomeScreen() {
     const fetchName = async () => {
       try {
         // We are looking for the label "userName" in the locker
-        const storedName = await AsyncStorage.getItem("userName"); 
+        const storedName = await AsyncStorage.getItem("userName");
         if (storedName) {
           setUserName(storedName); // Put the found name on the screen!
         }
@@ -41,17 +41,25 @@ export default function HostHomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       {/* Background Image with 35% opacity */}
       <ImageBackground
-        source={require('../../assets/images/car_charging.jpg')}
+        source={require("../../assets/images/car_charging.jpg")}
         style={StyleSheet.absoluteFillObject}
         imageStyle={{ opacity: 0.35 }}
       >
         {/* Dark Gradient Overlay to ensure text readability */}
         <LinearGradient
-          colors={['rgba(10, 17, 20, 0.9)', 'rgba(15, 35, 45, 0.7)', 'rgba(10, 17, 20, 0.9)']}
+          colors={[
+            "rgba(10, 17, 20, 0.9)",
+            "rgba(15, 35, 45, 0.7)",
+            "rgba(10, 17, 20, 0.9)",
+          ]}
           style={StyleSheet.absoluteFillObject}
         />
 
@@ -75,7 +83,11 @@ export default function HostHomeScreen() {
                 </Pressable>
 
                 <Pressable style={styles.iconCircle}>
-                  <Ionicons name="notifications-outline" size={20} color="white" />
+                  <Ionicons
+                    name="notifications-outline"
+                    size={20}
+                    color="white"
+                  />
                   {/* Notification Badge */}
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>4</Text>
@@ -86,7 +98,7 @@ export default function HostHomeScreen() {
 
             {/* --- MAIN CHARGER CARD --- */}
             <LinearGradient
-              colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.02)']}
+              colors={["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.02)"]}
               style={styles.heroCard}
             >
               {/* Plug Icon Top Right */}
@@ -101,7 +113,9 @@ export default function HostHomeScreen() {
                 Replace the uri with require('../../assets/images/charger_model.png') if you have it locally downloaded
               */}
               <Image
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/8643/8643034.png' }}
+                source={{
+                  uri: "https://cdn-icons-png.flaticon.com/512/8643/8643034.png",
+                }}
                 style={styles.chargerImage}
                 resizeMode="contain"
               />
@@ -113,16 +127,26 @@ export default function HostHomeScreen() {
             {/* Added onPress navigation here */}
             <Pressable
               style={styles.listItem}
-              onPress={() => router.push('/(host)/manage-charger')}
+              onPress={() => router.push("/(host)/manage-charger")}
             >
-              <Text style={styles.listItemText}>EVOCK Charging Station</Text>
+              <Text style={styles.listItemText}>
+                {userName
+                  ? `${userName}'s Charging Station`
+                  : "Your Charging Station"}
+              </Text>
             </Pressable>
 
             <Pressable style={styles.listItem}>
-              <Ionicons name="add" size={24} color="white" style={styles.addIcon} />
-              <Text style={styles.listItemText}>Add a new Charging Station</Text>
+              <Ionicons
+                name="add"
+                size={24}
+                color="white"
+                style={styles.addIcon}
+              />
+              <Text style={styles.listItemText}>
+                Add Another Charger
+              </Text>
             </Pressable>
-
           </ScrollView>
         </SafeAreaView>
       </ImageBackground>
@@ -133,7 +157,7 @@ export default function HostHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1114', // Fallback color
+    backgroundColor: "#0A1114", // Fallback color
   },
   safeArea: {
     flex: 1,
@@ -147,30 +171,30 @@ const styles = StyleSheet.create({
 
   // Header Styles
   brandText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 30,
   },
   greetingText: {
-    color: 'white',
+    color: "white",
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   subtitleText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   iconCircle: {
@@ -178,76 +202,76 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    position: 'relative',
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    position: "relative",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
-    backgroundColor: '#4A5A60',
+    backgroundColor: "#4A5A60",
     width: 16,
     height: 16,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#0A1114',
+    borderColor: "#0A1114",
   },
   badgeText: {
-    color: 'white',
+    color: "white",
     fontSize: 9,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   // Hero Card Styles
   heroCard: {
-    width: '100%',
+    width: "100%",
     height: 300,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 35,
-    position: 'relative',
+    position: "relative",
   },
   plugIcon: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     right: 20,
   },
   chargerImage: {
-    width: '60%',
-    height: '70%',
+    width: "60%",
+    height: "70%",
   },
 
   // Manage List Styles
   sectionTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 22,
-    fontWeight: '300',
+    fontWeight: "300",
     marginBottom: 15,
   },
   listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
     borderWidth: 1,
-    borderColor: 'white',
+    borderColor: "white",
     borderRadius: 20,
     paddingVertical: 18,
     paddingHorizontal: 20,
     marginBottom: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   listItemText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: "400",
   },
   addIcon: {
     marginRight: 15,
