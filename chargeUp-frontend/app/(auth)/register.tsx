@@ -52,6 +52,9 @@ export default function RegisterScreen() {
         if (data.token) {
           await AsyncStorage.setItem("userToken", data.token);
         }
+        // ---> 🌟 ADD THIS NEW LINE RIGHT HERE <---
+        // Lock the name they just typed into the "userName" locker!
+        await AsyncStorage.setItem("userName", name);
 
         Alert.alert("Welcome!", "Account created successfully.");
 
