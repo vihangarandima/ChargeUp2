@@ -48,7 +48,7 @@ export default function ChargingSession() {
 
     try {
       // 🛑 Signal hardware to stop (Using your IP)
-      await fetch("http://10.111.13.178:5000/api/stop-charging", {
+      await fetch("http://10.178.213.178:5000/api/stop-charging", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: currentSessionId }),

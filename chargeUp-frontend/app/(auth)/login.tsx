@@ -48,6 +48,11 @@ export default function LoginScreen() {
           await AsyncStorage.setItem("userToken", data.token);
         }
 
+        // ---> 🌟 ADD THIS NEW PART RIGHT HERE <---
+        if (data.user && data.user.userName) {
+          await AsyncStorage.setItem("name", data.user.userName);
+        }
+
         // 4. Get the role (either from the backend response or local memory)
         const role =
           data.user?.role || (await AsyncStorage.getItem("userRole"));
@@ -56,7 +61,7 @@ export default function LoginScreen() {
         if (role === "client") {
           router.replace("/home");
         } else if (role === "host") {
-          router.replace("/(host)/host-charger-details");
+          router.replace("/(host)/host-home");
         } else {
           router.replace("/(client)/charger-booking");
         }

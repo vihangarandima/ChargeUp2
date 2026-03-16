@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HostHomeScreen() {
   const router = useRouter(); // <-- Initialize the router
+
+  // 🌟 NEW: 1. Create a safe state for the name. It starts blank so it doesn't crash!
+  const [userName, setUserName] = useState("");
+
+  //  2. ADD THIS WHOLE BLOCK: Check memory as soon as the screen loads
+  useEffect(() => {
+    const fetchName = async () => {
+      try {
+        // We are looking for the label "userName" in the locker
+        const storedName = await AsyncStorage.getItem("userName"); 
+        if (storedName) {
+          setUserName(storedName); // Put the found name on the screen!
+        }
+      } catch (error) {
+        console.log("Error loading name:", error);
+      }
+    };
+
+    fetchName();
+  }, []); // The empty brackets mean "only do this once when opening the screen"
 
   return (
     <View style={styles.container}>

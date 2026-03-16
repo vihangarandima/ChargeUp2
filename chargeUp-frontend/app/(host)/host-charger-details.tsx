@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+// 🌟 NEW: Import AsyncStorage to save the user's name
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 // List of available charger types
@@ -136,7 +138,19 @@ export default function HostDetailsScreen() {
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.continueButton}
-                onPress={() => router.push({ pathname: "/(host)/location-picker", params: { fullName, address, idNumber, phone, chargerType } })}
+                onPress={async () => {
+                  // 🌟 NEW: Save the typed name into local storage before moving on!
+                  if (fullName) {
+                    try {
+                      await AsyncStorage.setItem('userName', fullName);
+                    } catch (error) {
+                      console.error("Failed to save name", error);
+                    }
+                  }
+                  router.push({ pathname: "/(host)/location-picker", params: { fullName, address, idNumber, phone, chargerType } 
+                });
+
+              }}
 
 
               >

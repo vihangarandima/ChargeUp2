@@ -1,5 +1,5 @@
 // backend/src/models/User.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // This is the Blueprint. Every user MUST have these details.
 const userSchema = new mongoose.Schema({
@@ -24,4 +24,4 @@ const userSchema = new mongoose.Schema({
 });
 
 // We wrap this blueprint into a "Model" called 'User' and export it
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);
