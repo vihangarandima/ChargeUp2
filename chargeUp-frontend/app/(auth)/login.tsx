@@ -50,7 +50,7 @@ export default function LoginScreen() {
 
         // ---> 🌟 ADD THIS NEW PART RIGHT HERE <---
         if (data.user && data.user.userName) {
-          await AsyncStorage.setItem("name", data.user.userName);
+          await AsyncStorage.setItem("userName", data.user.userName);
         }
 
         // 4. Get the role (either from the backend response or local memory)
