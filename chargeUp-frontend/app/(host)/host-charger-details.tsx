@@ -15,6 +15,7 @@ import {
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
+
 // List of available charger types
 const CHARGER_TYPES = [
   "Standard 3-Pin Plug (13A)",
