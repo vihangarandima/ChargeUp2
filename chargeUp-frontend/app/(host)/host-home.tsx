@@ -13,13 +13,15 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router"; // <-- Added import for navigation
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HostHomeScreen() {
   const router = useRouter(); // <-- Initialize the router
 
   // 🌟 NEW: 1. Create a safe state for the name. It starts blank so it doesn't crash!
   const [userName, setUserName] = useState("");
+  const [chargerType, setChargerType] = useState("No Charger Added");
+  const [chargerImage, setChargerImage] = useState("https://cdn-icons-png.flaticon.com/512/8643/8643034.png");
 
   //  2. ADD THIS WHOLE BLOCK: Check memory as soon as the screen loads
   useEffect(() => {
@@ -100,6 +102,9 @@ export default function HostHomeScreen() {
               colors={["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.02)"]}
               style={styles.heroCard}
             >
+
+              {/*NEW: Your brand new text sitting inside the card! */}
+              <Text style={styles.cardChargerType}>{chargerType}</Text>
               {/* Plug Icon Top Right */}
               <MaterialCommunityIcons
                 name="power-plug"
@@ -112,9 +117,7 @@ export default function HostHomeScreen() {
                 Replace the uri with require('../../assets/images/charger_model.png') if you have it locally downloaded
               */}
               <Image
-                source={{
-                  uri: "https://cdn-icons-png.flaticon.com/512/8643/8643034.png",
-                }}
+                source={{ uri: chargerImage }}
                 style={styles.chargerImage}
                 resizeMode="contain"
               />
@@ -142,9 +145,7 @@ export default function HostHomeScreen() {
                 color="white"
                 style={styles.addIcon}
               />
-              <Text style={styles.listItemText}>
-                Add Another Charger
-              </Text>
+              <Text style={styles.listItemText}>Add Another Charger</Text>
             </Pressable>
           </ScrollView>
         </SafeAreaView>
@@ -275,4 +276,14 @@ const styles = StyleSheet.create({
   addIcon: {
     marginRight: 15,
   },
+
+  cardChargerType: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    position: "absolute",
+    top: 20,
+    left: 20,
+  }, 
+
 });
