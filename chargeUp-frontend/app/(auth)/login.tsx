@@ -42,8 +42,9 @@ export default function LoginScreen() {
       // 2. If the backend approves the login (Status 200 OK)
       if (response.ok) {
         // 3. Store the authentication token securely
-        if (data.token) {
-          await AsyncStorage.setItem("userToken", data.token);
+        // 3. Store the user's ID securely
+        if (data.user && data.user.id) {
+          await AsyncStorage.setItem("userId", data.user.id);
         }
 
         if (data.user && data.user.name) {

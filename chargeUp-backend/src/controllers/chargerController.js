@@ -38,6 +38,8 @@ const getAllChargers = async (req, res) => {
 
 // 🌟 NEW: Function to get just ONE charger to show on the Home Screen card
 const getLatestCharger = async (req, res) => {
+  // 🛎️ THE DOORBELL: If the phone reaches the server, this WILL print!
+  console.log("🛎️ DING! The phone just asked for the latest charger!");
   try {
     // This tells MongoDB: "Find one charger, and sort them by the newest first!"
     const latestCharger = await Charger.findOne().sort({ createdAt: -1 });

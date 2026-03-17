@@ -47,6 +47,11 @@ export default function HostHomeScreen() {
         if (storedName) {
           setUserName(storedName);
         }
+        // 🌟 NEW: Grab the User's ID (Driver's License) from the Locker
+        const userId = await AsyncStorage.getItem("userId");
+        console.log("🔑 Found ID in Locker:", userId);
+
+        // NEW: Grab the VIP Wristband (Token) from the Locker
 
         // Step B: Ask the backend for the newest charger
         // IMPORTANT: Make sure this IP address matches your computer's current IP!
@@ -56,6 +61,7 @@ export default function HostHomeScreen() {
 
         if (response.ok) {
           const data = await response.json();
+          console.log("🔌 WHAT IS IN THE CHARGER BOX?:", data);
 
           // Step C: If a charger exists, put the details in our boxes
           if (data && data.chargerType) {
