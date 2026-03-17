@@ -52,11 +52,11 @@ export default function PaymentDetailsCard({ amount, onStartCharging, buttonLabe
 
 const styles = StyleSheet.create({
   card: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.05)', // Subtle background makes text easier to read
+    backgroundColor: 'rgba(255, 255, 255, 0.05)', 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.4)', 
+    borderColor: 'rgba(255,255,255,0.2)', 
     borderRadius: 20, 
-    padding: 24, // Slightly more padding for a premium feel
+    padding: 24, 
     marginBottom: 20 
   },
   successTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 25 },
@@ -69,11 +69,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center', 
     marginTop: 10, 
     borderWidth: 1, 
-    borderColor: 'white', 
+    borderColor: 'rgba(255,255,255,0.2)', 
     borderRadius: 30, 
-    paddingVertical: 14, 
-    width: '100%', 
-    alignItems: 'center'
+    paddingVertical: 12, 
+    paddingHorizontal: 40, // Reduced width by using horizontal padding instead of 100% width
+    alignItems: 'center',
+    backgroundColor: 'transparent'
   },
   actionButtonText: { color: 'white', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5 },
 });
