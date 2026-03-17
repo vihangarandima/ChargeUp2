@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 // ⬇️ REPLACE THIS WITH YOUR ACTUAL IP
-const BACKEND_URL = "http://172.20.10.2:3000/api/charger"; 
+const BACKEND_URL = "http://192.168.8.158:3000/api/charger"; 
 
 export default function ScanQRScreen() {
   const router = useRouter();
@@ -117,11 +117,6 @@ export default function ScanQRScreen() {
             )}
           </View>
 
-          <View style={styles.footerInfo}>
-             <Ionicons name="information-circle-outline" size={20} color="#00D1FF" />
-             <Text style={styles.footerText}>Align the QR code within the frame</Text>
-          </View>
-
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -131,29 +126,31 @@ export default function ScanQRScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  content: { paddingHorizontal: 25, paddingTop: 30 }, 
+  content: { paddingHorizontal: 25, paddingTop: 20 }, // Reduced top padding slightly
   brandHeader: { marginBottom: 8 },
   brandTitle: { color: 'white', fontSize: 28, fontWeight: 'bold' },
-  controlRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  controlRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }, // Reduced margin bottom
   notificationBtn: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 20 },
   badge: { position: 'absolute', top: 6, right: 6, backgroundColor: '#555', width: 14, height: 14, borderRadius: 7, justifyContent: 'center', alignItems: 'center' },
   badgeText: { color: 'white', fontSize: 8 },
-  titleSection: { marginVertical: 20, alignItems: 'center' },
+  
+  // Adjusted: Reduced margin to pull the title up
+  titleSection: { marginTop: 5, marginBottom: 10, alignItems: 'center' },
   mainTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
   
-  // Styles for the new emulator bypass button
+  // Adjusted: Drastically reduced margins to pull the arrow and QR box up
   emulatorBypassContainer: { 
     alignItems: 'center', 
     justifyContent: 'center',
-    marginTop: 30, // Positioning it further down
-    marginBottom: 20 // Space before the QR card
+    marginTop: 5, 
+    marginBottom: 10 
   },
   emulatorBypassBtn: { 
-    // Minimal styling, un-styled like back button
-    // Centered horizontally within the container
+    // Minimal styling
   },
 
-  qrCardWrapper: { alignItems: 'center', marginTop: 20 },
+  // Adjusted: Reduced top margin to pull the box closer to the arrow
+  qrCardWrapper: { alignItems: 'center', marginTop: 5 },
   qrCard: { width: width * 0.85, height: width * 1.0, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' },
   qrInner: { alignItems: 'center' },
   qrCircle: { width: 140, height: 140, borderRadius: 70, borderWidth: 2, borderColor: '#00D1FF', justifyContent: 'center', alignItems: 'center', marginBottom: 30 },
@@ -162,6 +159,8 @@ const styles = StyleSheet.create({
   camera: { flex: 1 },
   cancelBtn: { position: 'absolute', bottom: 20, alignSelf: 'center', backgroundColor: '#FF3B30', paddingVertical: 8, paddingHorizontal: 25, borderRadius: 20 },
   cancelText: { color: 'white', fontWeight: 'bold' },
-  footerInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 30 },
+  
+  // Adjusted: Pulled the footer up slightly too
+  footerInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
   footerText: { color: 'rgba(255,255,255,0.6)', marginLeft: 8, fontSize: 14 }
 });
