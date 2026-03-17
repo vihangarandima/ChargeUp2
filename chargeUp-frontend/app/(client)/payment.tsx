@@ -9,35 +9,35 @@ import {
   Platform,
   StatusBar,
   Modal,
+  ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { WebView } from "react-native-webview";
 import md5 from "md5";
 
-// --- PAYHERE CREDENTIALS ---
 const MERCHANT_ID = "1234373";
 const MERCHANT_SECRET = "NjkyNzU0MjMwMjk5NTIyNDYxNTM3MTcyMjU1NjQzNzcxMjAxODU2";
-const BACKEND_URL = "http://10.178.213.178:5000";
+const BACKEND_URL = "http://192.168.8.158:5000";
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { amount, sessionId } = useLocalSearchParams();
+
+  const { amount, sessionId, date, time, duration } = useLocalSearchParams();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPayHere, setShowPayHere] = useState(false);
 
-  // 1. Format Amount
   const displayAmount = amount
     ? parseFloat(amount as string).toFixed(2)
     : "10.00";
 
-  // 2. Security Hash Logic
   const safeSessionId =
     (sessionId ? String(sessionId).trim() : "SESS_" + Date.now()) +
     "_" +
     Math.floor(Math.random() * 999);
+
   const safeMerchantId = MERCHANT_ID.trim();
   const safeSecret = MERCHANT_SECRET.trim();
 
@@ -49,7 +49,6 @@ export default function PaymentPage() {
     return md5(hashString).toUpperCase();
   };
 
-  // 3. PayHere HTML Form
   const checkoutHTML = `
     <html>
       <head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
@@ -81,7 +80,6 @@ export default function PaymentPage() {
       setIsProcessing(true);
 
       try {
-        // 🛑 Final Hardware Stop Signal
         await fetch(`${BACKEND_URL}/api/stop-charging`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -92,9 +90,16 @@ export default function PaymentPage() {
       }
 
       setIsProcessing(false);
+
       router.push({
         pathname: "/payment-success",
-        params: { amount: displayAmount, sessionId: safeSessionId },
+        params: {
+          amount: displayAmount,
+          sessionId: safeSessionId,
+          date: date,
+          time: time,
+          duration: duration,
+        },
       });
     } else if (navState.url.includes("chargeup.local/cancel")) {
       setShowPayHere(false);
@@ -109,7 +114,6 @@ export default function PaymentPage() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* PayHere WebView Modal */}
       <Modal
         visible={showPayHere}
         animationType="slide"
@@ -143,54 +147,52 @@ export default function PaymentPage() {
               <Ionicons name="arrow-back" size={26} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.notificationBtn}>
-              <Ionicons
-                name="notifications-outline"
-                size={20}
-                color="#BDC3C7"
-              />
+              <Ionicons name="notifications-outline" size={20} color="#BDC3C7" />
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>4</Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.stationTitle}>EVOCK Charging Station</Text>
+          <View style={styles.middleContainer}>
+            <Text style={styles.stationTitle}>EVOCK Charging Station</Text>
 
-          <View style={styles.card}>
-            <Text style={styles.cardHeader}>Choose payment method</Text>
+            <View style={styles.card}>
+              <Text style={styles.cardHeader}>Choose payment method</Text>
 
-            <TouchableOpacity
-              style={styles.paymentMethodRow}
-              onPress={() => setShowPayHere(true)}
-            >
-              <View style={styles.rowLeft}>
-                <View style={styles.visaBox}>
-                  <Text style={styles.visaText}>VISA</Text>
-                </View>
-                <Text style={styles.methodText}>Pay with PayHere</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="white" />
-            </TouchableOpacity>
-
-            <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Total Amount</Text>
-              <Text style={styles.amountValue}>Rs. {displayAmount}</Text>
-            </View>
-
-            {isProcessing ? (
-              <ActivityIndicator
-                size="large"
-                color="#00D1FF"
-                style={{ marginTop: 20 }}
-              />
-            ) : (
               <TouchableOpacity
-                style={styles.payButton}
+                style={styles.paymentMethodRow}
                 onPress={() => setShowPayHere(true)}
               >
-                <Text style={styles.payButtonText}>Pay here</Text>
+                <View style={styles.rowLeft}>
+                  <View style={styles.visaBox}>
+                    <Text style={styles.visaText}>VISA</Text>
+                  </View>
+                  <Text style={styles.methodText}>Pay with PayHere</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="white" />
               </TouchableOpacity>
-            )}
+
+              <View style={styles.amountContainer}>
+                <Text style={styles.amountLabel}>Total Amount</Text>
+                <Text style={styles.amountValue}>Rs. {displayAmount}</Text>
+              </View>
+
+              {isProcessing ? (
+                <ActivityIndicator
+                  size="large"
+                  color="#00D1FF"
+                  style={{ marginTop: 20 }}
+                />
+              ) : (
+                <TouchableOpacity
+                  style={styles.payButton}
+                  onPress={() => setShowPayHere(true)}
+                >
+                  <Text style={styles.payButtonText}>Pay here</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -204,7 +206,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  content: { flex: 1, paddingHorizontal: 25, paddingTop: 30 },
+  content: { 
+    flex: 1, 
+    paddingHorizontal: 25, 
+    paddingTop: 30 
+  },
   brandHeader: { marginBottom: 5 },
   brandTitle: {
     color: "white",
@@ -218,6 +224,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 5,
     marginBottom: 25,
+  },
+  middleContainer: { 
+    marginTop: "5%" 
   },
   notificationBtn: {
     backgroundColor: "rgba(255,255,255,0.05)",
@@ -249,7 +258,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
@@ -260,7 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 30,
     paddingVertical: 12,
     paddingHorizontal: 15,
@@ -269,7 +278,7 @@ const styles = StyleSheet.create({
   rowLeft: { flexDirection: "row", alignItems: "center" },
   visaBox: {
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: "rgba(255,255,255,0.2)",
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
@@ -291,7 +300,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 30,
     paddingVertical: 12,
     paddingHorizontal: 60,
@@ -303,10 +312,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#0B1315",
   },
-  modalTitle: {
-    color: "white",
-    marginLeft: 15,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
+  modalTitle: { color: "white", marginLeft: 15, fontSize: 18, fontWeight: "bold" },
 });
