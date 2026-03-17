@@ -15,8 +15,7 @@ import {
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 // 🌟 NEW: Import AsyncStorage to save the user's name
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // List of available charger types
 const CHARGER_TYPES = [
@@ -122,7 +121,12 @@ export default function HostDetailsScreen() {
                 style={styles.dropdownInput}
                 onPress={() => setModalVisible(true)} // <-- Opens the modal
               >
-                <Text style={[styles.dropdownPlaceholder, chargerType && { color: "white" }]}>
+                <Text
+                  style={[
+                    styles.dropdownPlaceholder,
+                    chargerType && { color: "white" },
+                  ]}
+                >
                   {chargerType ? chargerType : "Ex : Fast charger"}
                 </Text>
                 <Ionicons
@@ -138,21 +142,13 @@ export default function HostDetailsScreen() {
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.continueButton}
-                onPress={async () => {
-                  // 🌟 NEW: Save the typed name into local storage before moving on!
-                  if (fullName) {
-                    try {
-                      await AsyncStorage.setItem('userName', fullName);
-                    } catch (error) {
-                      console.error("Failed to save name", error);
-                    }
-                  }
-                  router.push({ pathname: "/(host)/location-picker", params: { fullName, address, idNumber, phone, chargerType } 
-                });
-
-              }}
-
-
+                onPress={() => {
+                  // Just pass the data to the next screen, no local storage saving!
+                  router.push({
+                    pathname: "/(host)/location-picker",
+                    params: { fullName, address, idNumber, phone, chargerType },
+                  });
+                }}
               >
                 <Text style={styles.continueButtonText}>continue</Text>
               </TouchableOpacity>
@@ -182,14 +178,23 @@ export default function HostDetailsScreen() {
                     setModalVisible(false); // Close modal after selection
                   }}
                 >
-                  <Text style={[
-                    styles.modalOptionText,
-                    chargerType === type && { color: "#7BB1BA", fontWeight: "bold" } // Highlight selected
-                  ]}>
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      chargerType === type && {
+                        color: "#7BB1BA",
+                        fontWeight: "bold",
+                      }, // Highlight selected
+                    ]}
+                  >
                     {type}
                   </Text>
                   {chargerType === type && (
-                    <Ionicons name="checkmark-circle" size={20} color="#7BB1BA" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#7BB1BA"
+                    />
                   )}
                 </TouchableOpacity>
               ))}
@@ -204,7 +209,6 @@ export default function HostDetailsScreen() {
           </View>
         </View>
       </Modal>
-
     </ImageBackground>
   );
 }
@@ -339,7 +343,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 15,
-    textAlign: "center"
+    textAlign: "center",
   },
   modalOption: {
     flexDirection: "row",
@@ -360,7 +364,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)"
+    borderColor: "rgba(255,255,255,0.2)",
   },
   modalCloseText: {
     color: "white",

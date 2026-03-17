@@ -51,7 +51,7 @@ export default function MapScreen() {
     const fetchStationsAndLocation = async () => {
       try {
         // 🚨 REPLACE 192.168.X.X WITH YOUR EXACT WI-FI IP ADDRESS
-        const response = await fetch("http://10.178.213.178:5000/api/chargers");
+        const response = await fetch("http://10.128.54.178:5000/api/chargers");
         const data = await response.json();
 
         // 🌟 FIX: Tell TypeScript this is definitely an array using ": any[]".

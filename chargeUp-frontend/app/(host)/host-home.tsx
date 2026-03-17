@@ -13,8 +13,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router"; // <-- Added import for navigation
-// 🌟 NEW: Import AsyncStorage to read the saved user data
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function HostHomeScreen() {
   const router = useRouter(); // <-- Initialize the router

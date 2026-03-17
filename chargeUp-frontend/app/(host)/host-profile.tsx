@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -18,6 +18,57 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const router = useRouter();
+
+  // 🌟 1. Create state variables to hold the user's data
+  const [userName, setUserName] = useState("Loading...");
+  const [userEmail, setUserEmail] = useState("...");
+  const [userPhone, setUserPhone] = useState("...");
+
+  // 🌟 2. Fetch data from backend when the screen loads
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        // First, check if we have a name stored locally so the UI updates instantly
+        const storedName = await AsyncStorage.getItem("userName");
+        if (storedName) {
+          setUserName(storedName);
+        }
+
+        // Get the token we saved during login/register
+        const token = await AsyncStorage.getItem("userToken");
+        if (!token) return; // If there's no token, they aren't logged in
+
+        // Hit your Node.js backend to get the full profile (email, phone, etc.)
+        // ⚠️ Make sure this endpoint matches your actual backend route!
+        const response = await fetch(
+          "http://10.128.54.178:5000/api/auth/profile",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Send token to prove who is requesting
+            },
+          },
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          // 3. Update the screen with the backend data
+          // Adjust 'data.email', 'data.phone', etc. based on what your backend actually sends back
+          if (data.name || data.userName)
+            setUserName(data.name || data.userName);
+          if (data.email) setUserEmail(data.email);
+          if (data.phone) setUserPhone(data.phone);
+        } else {
+          console.log("Could not fetch profile data.");
+        }
+      } catch (error) {
+        console.error("Network error fetching profile:", error);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
 
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -73,9 +124,13 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>Leo Sutton</Text>
-              <Text style={styles.profileEmail}>leoSutton@gmail.com</Text>
-              <Text style={styles.profilePhone}>077 123 5678</Text>
+              {/* NEW CODE */}
+              <Text style={styles.profileName}>{userName}</Text>
+              <Text style={styles.profileEmail}>{userEmail}</Text>
+
+              {userPhone !== "..." && (
+                <Text style={styles.profilePhone}>{userPhone}</Text>
+              )}
             </View>
           </View>
 
