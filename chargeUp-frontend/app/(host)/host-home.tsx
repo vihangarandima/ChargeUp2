@@ -20,6 +20,8 @@ export default function HostHomeScreen() {
 
   // 🌟 NEW: 1. Create a safe state for the name. It starts blank so it doesn't crash!
   const [userName, setUserName] = useState("");
+  const [chargerType, setChargerType] = useState("No Charger Added");
+  const [chargerImage, setChargerImage] = useState("https://cdn-icons-png.flaticon.com/512/8643/8643034.png");
 
   //  2. ADD THIS WHOLE BLOCK: Check memory as soon as the screen loads
   useEffect(() => {
