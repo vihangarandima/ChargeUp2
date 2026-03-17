@@ -28,8 +28,8 @@ export default function LoginScreen() {
     }
 
     try {
-      // 1. Send the email and password to your Node.js backend
-      // Make sure this IP address matches your computer's current Wi-Fi IP!
+      // 1. Send the email and password to my Node.js backend
+      // Make sure this IP address matches my computer's current Wi-Fi IP!
       const response = await fetch("http://10.128.54.178:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,6 +37,7 @@ export default function LoginScreen() {
       });
 
       const data = await response.json();
+      console.log("📦 WHAT IS IN THE LOGIN BOX?:", data);
 
       // 2. If the backend approves the login (Status 200 OK)
       if (response.ok) {
@@ -45,9 +46,8 @@ export default function LoginScreen() {
           await AsyncStorage.setItem("userToken", data.token);
         }
 
-        // ---> 🌟 ADD THIS NEW PART RIGHT HERE <---
-        if (data.user && data.user.userName) {
-          await AsyncStorage.setItem("userName", data.user.userName);
+        if (data.user && data.user.name) {
+          await AsyncStorage.setItem("userName", data.user.name);
         }
 
         // 4. Get the role (either from the backend response or local memory)
