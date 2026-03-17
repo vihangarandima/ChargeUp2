@@ -21,23 +21,54 @@ export default function HostHomeScreen() {
   // 🌟 NEW: 1. Create a safe state for the name. It starts blank so it doesn't crash!
   const [userName, setUserName] = useState("");
   const [chargerType, setChargerType] = useState("No Charger Added");
-  const [chargerImage, setChargerImage] = useState("https://cdn-icons-png.flaticon.com/512/8643/8643034.png");
+  const [chargerImage, setChargerImage] = useState(
+    "https://cdn-icons-png.flaticon.com/512/8643/8643034.png",
+  );
 
-  //  2. ADD THIS WHOLE BLOCK: Check memory as soon as the screen loads
+  // 🌟 NEW: Our dictionary that matches the name to the picture!
+  const getChargerImage = (type: string) => {
+    switch (type) {
+      case "Tesla Wall Connector": // Must match what is in your database!
+        return "https://cdn-icons-png.flaticon.com/512/5968/5968925.png";
+      case "Type 2":
+        return "https://cdn-icons-png.flaticon.com/512/8643/8643034.png";
+      case "CCS":
+        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/8643/8643034.png"; // Backup image
+    }
+  };
+
   useEffect(() => {
-    const fetchName = async () => {
+    const fetchData = async () => {
       try {
-        // We are looking for the label "userName" in the locker
+        // Step A: Grab the Host's name from local memory
         const storedName = await AsyncStorage.getItem("userName");
         if (storedName) {
-          setUserName(storedName); // Put the found name on the screen!
+          setUserName(storedName);
+        }
+
+        // Step B: Ask the backend for the newest charger
+        // IMPORTANT: Make sure this IP address matches your computer's current IP!
+        const response = await fetch(
+          "http://10.128.54.178:5000/api/chargers/latest",
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Step C: If a charger exists, put the details in our boxes
+          if (data && data.chargerType) {
+            setChargerType(data.chargerType);
+            setChargerImage(getChargerImage(data.chargerType));
+          }
         }
       } catch (error) {
-        console.log("Error loading name:", error);
+        console.log("Error loading data:", error);
       }
     };
 
-    fetchName();
+    fetchData();
   }, []); // The empty brackets mean "only do this once when opening the screen"
 
   return (
@@ -102,7 +133,6 @@ export default function HostHomeScreen() {
               colors={["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.02)"]}
               style={styles.heroCard}
             >
-
               {/*NEW: Your brand new text sitting inside the card! */}
               <Text style={styles.cardChargerType}>{chargerType}</Text>
               {/* Plug Icon Top Right */}
@@ -284,6 +314,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 20,
     left: 20,
-  }, 
-
+  },
 });
