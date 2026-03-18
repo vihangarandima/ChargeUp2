@@ -41,7 +41,7 @@ export default function ProfileScreen() {
         // Hit your Node.js backend to get the full profile (email, phone, etc.)
         // ⚠️ Make sure this endpoint matches your actual backend route!
         const response = await fetch(
-          "http://10.128.54.178:5000/api/auth/profile",
+          "http://10.84.44.178:5000/api/auth/profile",
           {
             method: "GET",
             headers: {

@@ -28,12 +28,20 @@ export default function HostHomeScreen() {
   // 🌟 NEW: Our dictionary that matches the name to the picture!
   const getChargerImage = (type: string) => {
     switch (type) {
-      case "Tesla Wall Connector": // Must match what is in your database!
+      case "Standard 3-Pin Plug (13A)": // Must match what is in your database!
         return "https://cdn-icons-png.flaticon.com/512/5968/5968925.png";
-      case "Type 2":
+      case "Commando Socket (16A/32A)":
         return "https://cdn-icons-png.flaticon.com/512/8643/8643034.png";
-      case "CCS":
+      case "Type 1 (J1772) - AC":
         return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";
+      case "Type 2 (Mennekes) - AC":
+        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";
+      case "CHAdeMO - DC Fast":
+        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";    
+      case "CCS2 - DC Fast":
+        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png"; 
+      case "Tesla Proprietary":
+        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";         
       default:
         return "https://cdn-icons-png.flaticon.com/512/8643/8643034.png"; // Backup image
     }
@@ -56,7 +64,7 @@ export default function HostHomeScreen() {
         // Step B: Ask the backend for the newest charger
         // IMPORTANT: Make sure this IP address matches your computer's current IP!
         const response = await fetch(
-          "http://10.128.54.178:5000/api/chargers/latest",
+          "http://10.84.44.178:5000/api/chargers/latest",
         );
 
         if (response.ok) {

@@ -104,7 +104,7 @@ export default function LocationPicker() {
 
     try {
       // 2. The API Call! (Replace YOUR_IP_ADDRESS with your computer's actual Wi-Fi IP and 5000 with your server port)
-      const response = await fetch("http://10.128.54.178:5000/api/chargers", {
+      const response = await fetch("http://10.84.44.178:5000/api/chargers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
