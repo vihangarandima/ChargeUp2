@@ -58,7 +58,7 @@ export default function MapScreen() {
     const fetchStationsAndLocation = async () => {
       try {
         // 1. Get stations from your backend
-        const response = await fetch("http://10.84.44.178:5000/api/chargers");
+        const response = await fetch("http://10.184.109.178:5000/api/chargers");
         const data = await response.json();
         const dbStations: any[] = data.chargers || data;
 

@@ -170,9 +170,7 @@ export default function LoginScreen() {
           await AsyncStorage.setItem("userName", data.user.name);
         const role = data.user?.role || "client";
         await AsyncStorage.setItem("userRole", role);
-        router.replace(
-          role === "host" ? "/host-charger-details" : "/vehicle-details",
-        );
+        router.replace(role === "host" ? "/host-home" : "/home");
       } else {
         Alert.alert(
           "Login Failed",

@@ -18,13 +18,75 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
+// 1. Moved InputField OUTSIDE the main component
+const InputField = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  keyboardType,
+  autoCapitalize,
+  isPassword,
+  isFocused,
+  onFocus,
+  onBlur,
+}: any) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const hasValue = value.length > 0;
+
+  return (
+    <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+      <View style={styles.inputIconBox}>
+        <Ionicons
+          name={icon}
+          size={17}
+          color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+        />
+      </View>
+      <View style={styles.inputBody}>
+        {(isFocused || hasValue) && (
+          <Text
+            style={[styles.floatLabel, isFocused && styles.floatLabelActive]}
+          >
+            {placeholder}
+          </Text>
+        )}
+        <TextInput
+          style={styles.textInput}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={!isFocused && !hasValue ? placeholder : ""}
+          placeholderTextColor="rgba(255,255,255,0.28)"
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize || "sentences"}
+          secureTextEntry={isPassword && !showPassword}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          selectionColor="#5ECFDA"
+        />
+      </View>
+      {isPassword && (
+        <Pressable
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.eyeBtn}
+        >
+          <Ionicons
+            name={showPassword ? "eye-outline" : "eye-off-outline"}
+            size={18}
+            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+          />
+        </Pressable>
+      )}
+    </View>
+  );
+};
+
 export default function RegisterScreen() {
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -35,23 +97,55 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 11, useNativeDriver: true }),
-      Animated.spring(iconAnim, { toValue: 1, tension: 90, friction: 7, delay: 150, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 70,
+        friction: 11,
+        useNativeDriver: true,
+      }),
+      Animated.spring(iconAnim, {
+        toValue: 1,
+        tension: 90,
+        friction: 7,
+        delay: 150,
+        useNativeDriver: true,
+      }),
     ]).start();
 
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.07, duration: 2000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
-      ])
+        Animated.timing(pulseAnim, {
+          toValue: 1.07,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
   }, []);
 
   const animateBtn = () => {
     Animated.sequence([
-      Animated.timing(btnScale, { toValue: 0.96, duration: 70, useNativeDriver: true }),
-      Animated.spring(btnScale, { toValue: 1, tension: 200, friction: 10, useNativeDriver: true }),
+      Animated.timing(btnScale, {
+        toValue: 0.96,
+        duration: 70,
+        useNativeDriver: true,
+      }),
+      Animated.spring(btnScale, {
+        toValue: 1,
+        tension: 200,
+        friction: 10,
+        useNativeDriver: true,
+      }),
     ]).start();
   };
 
@@ -63,78 +157,31 @@ export default function RegisterScreen() {
     }
     try {
       const role = (await AsyncStorage.getItem("userRole")) || "client";
-      const response = await fetch("http://10.184.109.178:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
-      });
+      const response = await fetch(
+        "http://10.184.109.178:5000/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role }),
+        },
+      );
       const data = await response.json();
       if (response.ok) {
         if (data.token) await AsyncStorage.setItem("userToken", data.token);
         await AsyncStorage.setItem("userName", name);
         Alert.alert("Welcome!", "Account created successfully.");
-        router.replace(role === "host" ? "/host-charger-details" : "/vehicle-details");
+        router.replace(
+          role === "host" ? "/host-charger-details" : "/vehicle-details",
+        );
       } else {
-        Alert.alert("Signup Failed", data.message || "Could not create account.");
+        Alert.alert(
+          "Signup Failed",
+          data.message || "Could not create account.",
+        );
       }
     } catch {
       Alert.alert("Connection Error", "Could not reach the server.");
     }
-  };
-
-  const InputField = ({
-    icon,
-    placeholder,
-    value,
-    onChangeText,
-    keyboardType,
-    autoCapitalize,
-    isPassword,
-    fieldKey,
-  }: any) => {
-    const isFocused = focusedField === fieldKey;
-    const hasValue = value.length > 0;
-
-    return (
-      <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
-        <View style={styles.inputIconBox}>
-          <Ionicons
-            name={icon}
-            size={17}
-            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
-          />
-        </View>
-        <View style={styles.inputBody}>
-          {(isFocused || hasValue) && (
-            <Text style={[styles.floatLabel, isFocused && styles.floatLabelActive]}>
-              {placeholder}
-            </Text>
-          )}
-          <TextInput
-            style={styles.textInput}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={!isFocused && !hasValue ? placeholder : ""}
-            placeholderTextColor="rgba(255,255,255,0.28)"
-            keyboardType={keyboardType}
-            autoCapitalize={autoCapitalize || "sentences"}
-            secureTextEntry={isPassword && !showPassword}
-            onFocus={() => setFocusedField(fieldKey)}
-            onBlur={() => setFocusedField(null)}
-            selectionColor="#5ECFDA"
-          />
-        </View>
-        {isPassword && (
-          <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-            <Ionicons
-              name={showPassword ? "eye-outline" : "eye-off-outline"}
-              size={18}
-              color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
-            />
-          </Pressable>
-        )}
-      </View>
-    );
   };
 
   return (
@@ -162,8 +209,12 @@ export default function RegisterScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
               {/* ── TOP BAR ── */}
               <View style={styles.topBar}>
                 <View style={styles.logoChip}>
@@ -178,13 +229,21 @@ export default function RegisterScreen() {
 
               {/* ── HERO ── */}
               <View style={styles.hero}>
-                <Animated.View style={[styles.iconOuter, { transform: [{ scale: pulseAnim }] }]}>
+                <Animated.View
+                  style={[
+                    styles.iconOuter,
+                    { transform: [{ scale: pulseAnim }] },
+                  ]}
+                >
                   <LinearGradient
                     colors={["rgba(94,207,218,0.18)", "rgba(94,207,218,0.04)"]}
                     style={styles.iconGradient}
                   >
                     <Animated.View
-                      style={[styles.iconInner, { transform: [{ scale: iconAnim }] }]}
+                      style={[
+                        styles.iconInner,
+                        { transform: [{ scale: iconAnim }] },
+                      ]}
                     >
                       <Ionicons name="flash" size={38} color="white" />
                     </Animated.View>
@@ -192,12 +251,13 @@ export default function RegisterScreen() {
                 </Animated.View>
 
                 <Text style={styles.heroTitle}>Get Started</Text>
-                <Text style={styles.heroSub}>Create your free ChargeUp account</Text>
+                <Text style={styles.heroSub}>
+                  Create your free ChargeUp account
+                </Text>
               </View>
 
               {/* ── GLASS CARD ── */}
               <View style={styles.card}>
-
                 {/* Form */}
                 <View style={styles.form}>
                   <InputField
@@ -205,7 +265,9 @@ export default function RegisterScreen() {
                     placeholder="Full Name"
                     value={name}
                     onChangeText={setName}
-                    fieldKey="name"
+                    isFocused={focusedField === "name"}
+                    onFocus={() => setFocusedField("name")}
+                    onBlur={() => setFocusedField(null)}
                   />
                   <InputField
                     icon="mail-outline"
@@ -214,7 +276,9 @@ export default function RegisterScreen() {
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    fieldKey="email"
+                    isFocused={focusedField === "email"}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
                   />
                   <InputField
                     icon="lock-closed-outline"
@@ -222,7 +286,9 @@ export default function RegisterScreen() {
                     value={password}
                     onChangeText={setPassword}
                     isPassword
-                    fieldKey="password"
+                    isFocused={focusedField === "password"}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
 
@@ -237,7 +303,11 @@ export default function RegisterScreen() {
                     >
                       <Text style={styles.ctaText}>Create Account</Text>
                       <View style={styles.ctaArrow}>
-                        <Ionicons name="arrow-forward" size={16} color="#0E4548" />
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="#0E4548"
+                        />
                       </View>
                     </LinearGradient>
                   </Pressable>
@@ -258,7 +328,9 @@ export default function RegisterScreen() {
                   </Pressable>
                   <Pressable style={[styles.socialBtn, styles.googleBtn]}>
                     <FontAwesome5 name="google" size={17} color="#EA4335" />
-                    <Text style={[styles.socialText, { color: "#EA4335" }]}>Google</Text>
+                    <Text style={[styles.socialText, { color: "#EA4335" }]}>
+                      Google
+                    </Text>
                   </Pressable>
                 </View>
               </View>
@@ -281,12 +353,10 @@ export default function RegisterScreen() {
                 />
                 <Text style={styles.legalText}>
                   By signing up you agree to our{" "}
-                  <Text style={styles.legalLink}>Terms & Conditions</Text>
-                  {" "}and{" "}
+                  <Text style={styles.legalLink}>Terms & Conditions</Text> and{" "}
                   <Text style={styles.legalLink}>Privacy Policy</Text>
                 </Text>
               </View>
-
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -306,24 +376,30 @@ const styles = StyleSheet.create({
 
   topAccent: {
     position: "absolute",
-    top: 0, left: 0, right: 0,
+    top: 0,
+    left: 0,
+    right: 0,
     height: 2,
     backgroundColor: "#5ECFDA",
     opacity: 0.65,
   },
   blob1: {
     position: "absolute",
-    width: 300, height: 300,
+    width: 300,
+    height: 300,
     borderRadius: 150,
     backgroundColor: "rgba(94,207,218,0.055)",
-    top: -100, right: -80,
+    top: -100,
+    right: -80,
   },
   blob2: {
     position: "absolute",
-    width: 220, height: 220,
+    width: 220,
+    height: 220,
     borderRadius: 110,
     backgroundColor: "rgba(94,207,218,0.03)",
-    bottom: 100, left: -70,
+    bottom: 100,
+    left: -70,
   },
 
   // Top bar
@@ -334,7 +410,8 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   logoChip: {
-    width: 28, height: 28,
+    width: 28,
+    height: 28,
     borderRadius: 8,
     backgroundColor: "#5ECFDA",
     alignItems: "center",
@@ -360,7 +437,8 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   badgeDot: {
-    width: 6, height: 6,
+    width: 6,
+    height: 6,
     borderRadius: 3,
     backgroundColor: "#5ECFDA",
   },
@@ -377,7 +455,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconOuter: {
-    width: 92, height: 92,
+    width: 92,
+    height: 92,
     borderRadius: 46,
     marginBottom: 14,
   },
@@ -388,7 +467,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconInner: {
-    width: 72, height: 72,
+    width: 72,
+    height: 72,
     borderRadius: 36,
     backgroundColor: "rgba(94,207,218,0.1)",
     borderWidth: 1.5,
@@ -474,7 +554,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   ctaArrow: {
-    width: 28, height: 28,
+    width: 28,
+    height: 28,
     borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.85)",
     alignItems: "center",
@@ -489,7 +570,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   divLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.08)" },
-  divLabel: { color: "rgba(255,255,255,0.28)", fontSize: 12, letterSpacing: 0.4 },
+  divLabel: {
+    color: "rgba(255,255,255,0.28)",
+    fontSize: 12,
+    letterSpacing: 0.4,
+  },
 
   // Social
   socialRow: { flexDirection: "row", gap: 12 },
