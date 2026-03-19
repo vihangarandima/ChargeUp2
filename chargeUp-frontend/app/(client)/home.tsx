@@ -69,7 +69,7 @@ export default function Dashboard() {
         const currentLng = location.coords.longitude;
 
         // C. Fetch all stations from your Backend Controller (getAllChargers)
-        const response = await fetch("http://10.159.92.178:5000/api/chargers");
+        const response = await fetch("http://10.184.109.178:5000/api/chargers");
         const data = await response.json();
 
         // Ensure we are working with an array (matches your controller setup)
