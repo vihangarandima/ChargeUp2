@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password,role } = req.body;
 
     // Check if this user already exists
     let user = await User.findOne({ email });
@@ -20,6 +20,7 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: role || "client", // default to client if no roleprovided
     });
 
     // Save it to the database!
@@ -51,7 +52,7 @@ const login = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful!",
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email,role: user.role },
     });
   } catch (error) {
     console.error(error);

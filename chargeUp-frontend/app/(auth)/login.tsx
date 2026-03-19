@@ -164,6 +164,7 @@ export default function LoginScreen() {
         },
       );
       const data = await response.json();
+      console.log("SERVER RESPONSE:", JSON.stringify(data, null, 2));
       if (response.ok) {
         if (data.token) await AsyncStorage.setItem("userToken", data.token);
         if (data.user?.name)
