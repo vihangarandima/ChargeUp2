@@ -180,11 +180,50 @@ export default function LoginScreen() {
     }
 
     try {
-      // 2. Firebase Authentication Request
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password,
+      // 1. Send the email and password to my Node.js backend
+      // Make sure this IP address matches my computer's current Wi-Fi IP!
+      const response = await fetch("http://10.184.109.178:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      console.log("📦 WHAT IS IN THE LOGIN BOX?:", data);
+
+      // 2. If the backend approves the login (Status 200 OK)
+      if (response.ok) {
+        // 3. Store the authentication token securely
+        // 3. Store the user's ID securely
+        if (data.user && data.user.id) {
+          await AsyncStorage.setItem("userId", data.user.id);
+        }
+
+        if (data.user && data.user.name) {
+          await AsyncStorage.setItem("userName", data.user.name);
+        }
+
+        // 4. Get the role (either from the backend response or local memory)
+        const role =
+          data.user?.role || (await AsyncStorage.getItem("userRole"));
+
+        // 5. Navigate to the correct screen based on their role
+        if (role === "client") {
+          router.replace("/home");
+        } else if (role === "host") {
+          router.replace("/(host)/host-home");
+        } else {
+          router.replace("/(client)/charger-booking");
+        }
+      } else {
+        // If the password is wrong or user doesn't exist
+        Alert.alert("Login Failed", data.message || "Invalid credentials.");
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      Alert.alert(
+        "Connection Error",
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
       );
       const user = userCredential.user;
 

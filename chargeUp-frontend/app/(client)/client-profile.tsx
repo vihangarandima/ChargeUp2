@@ -33,7 +33,7 @@ export default function ProfileScreen() {
         if (!token) return;
 
         const response = await fetch(
-          "http://172.20.10.2:5000/api/auth/profile",
+          "http://10.184.109.178:5000/api/auth/profile",
           {
             method: "GET",
             headers: {

@@ -215,28 +215,22 @@ export default function RoleSelectScreen() {
               </Text>
             </Animated.View>
 
-            {/* ── EV OWNER CARD ── */}
-            <Animated.View style={{ transform: [{ translateY: slideCard1 }, { scale: scale1 }] }}>
-              <Pressable onPress={handleSelectOwner} style={styles.roleCard}>
-                <LinearGradient
-                  colors={["rgba(94,207,218,0.13)", "rgba(94,207,218,0.03)"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.cardGradient}
-                >
-                  {/* Top row: icon + label + arrow */}
-                  <View style={styles.cardTopRow}>
-                    <Animated.View style={[styles.bigIconCircle, styles.bigIconCircleBlue, { opacity: glow1.interpolate({ inputRange: [0.5, 1], outputRange: [0.85, 1] }) }]}>
-                      <MaterialCommunityIcons name="car-electric" size={38} color="white" />
-                    </Animated.View>
-                    <View style={styles.cardTopText}>
-                      <Text style={styles.cardQuestion}>I own an electric car</Text>
-                      <Text style={styles.roleTitle}>EV Owner</Text>
-                    </View>
-                    <View style={styles.cardArrow}>
-                      <Ionicons name="arrow-forward" size={16} color="#0E4548" />
-                    </View>
-                  </View>
+          {/* Lender Option */}
+          <Pressable style={styles.roleCard} onPress={handleSelectLender}>
+            <View style={styles.iconCircle}>
+              <MaterialCommunityIcons
+                name="ev-station"
+                size={30}
+                color="white"
+              />
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.roleTitle}>Lender</Text>
+              <Text style={styles.roleDesc}>Share your charger and earn.</Text>
+            </View>
+            <Entypo name="chevron-right" size={24} color="#888" />
+          </Pressable>
+        </View>
 
                   {/* Divider */}
                   <View style={styles.cardDivider} />
@@ -328,60 +322,18 @@ export default function RoleSelectScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1 },
-
-  topAccent: {
-    position: "absolute", top: 0, left: 0, right: 0,
-    height: 2, backgroundColor: "#5ECFDA", opacity: 0.65, zIndex: 10,
+  gradientBackground: {
+    flex: 1,
   },
-
-  // Blobs
-  blob1: {
-    position: "absolute",
-    width: 320, height: 320, borderRadius: 160,
-    backgroundColor: "rgba(94,207,218,0.07)",
-    top: -80, right: -90,
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: 25,
   },
-  blob2: {
-    position: "absolute",
-    width: 260, height: 260, borderRadius: 130,
-    backgroundColor: "rgba(94,207,218,0.04)",
-    bottom: 60, left: -80,
-  },
-
-  // Particles
-  particle: {
-    position: "absolute",
-    backgroundColor: "#5ECFDA",
-  },
-
-  // Top bar
-  topBar: {
-    flexDirection: "row", alignItems: "center",
-    paddingHorizontal: 26, paddingTop: 8, marginBottom: 6,
-  },
-  logoChip: {
-    width: 26, height: 26, borderRadius: 7, backgroundColor: "#5ECFDA",
-    alignItems: "center", justifyContent: "center", marginRight: 8,
-  },
-  brandText: { color: "white", fontSize: 20, fontWeight: "700", letterSpacing: 0.4, flex: 1 },
-  badgePill: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: "rgba(94,207,218,0.1)", borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.22)", borderRadius: 20,
-    paddingHorizontal: 10, paddingVertical: 4, gap: 5,
-  },
-  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#5ECFDA" },
-  badgeText: { color: "#5ECFDA", fontSize: 11, fontWeight: "600" },
-
-  // Content
-  content: { flex: 1, paddingHorizontal: 24, justifyContent: "center", gap: 0 },
-
-  eyebrow: {
-    color: "rgba(94,207,218,0.75)",
-    fontSize: 11, fontWeight: "700", letterSpacing: 3,
-    marginBottom: 6,
+  brandHeader: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "bold",
+    marginTop: 60,
   },
   welcomeTitle: {
     color: "white",
@@ -483,23 +435,5 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 20,
   },
-
-  // Or divider
-  orRow: {
-    flexDirection: "row", alignItems: "center",
-    gap: 12, marginVertical: 14,
-  },
-  orLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.07)" },
-  orText: { color: "rgba(255,255,255,0.25)", fontSize: 12 },
-
-  // Legal
-  legalBox: {
-    flexDirection: "row", alignItems: "flex-start",
-    backgroundColor: "rgba(94,207,218,0.06)",
-    borderWidth: 1, borderColor: "rgba(94,207,218,0.12)",
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
-    marginHorizontal: 24, marginBottom: 12,
-  },
-  legalText: { flex: 1, color: "rgba(255,255,255,0.5)", fontSize: 11, lineHeight: 17 },
-  legalLink: { color: "#5ECFDA", fontWeight: "700", textDecorationLine: "underline" },
+  underline: { textDecorationLine: "underline" },
 });

@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 // ⬇️ REPLACE THIS WITH YOUR ACTUAL IP
-const BACKEND_URL = "http://192.168.8.158:3000/api/charger"; 
+const BACKEND_URL = "http://10.184.109.178:3000/api/charger"; 
 
 export default function ScanQRScreen() {
   const router = useRouter();
