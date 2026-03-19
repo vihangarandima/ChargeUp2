@@ -44,11 +44,13 @@ export default function MapScreen() {
 
   const isRouteMode = mode === "route";
 
-  // 🌟 mapRef controls the map camera (zooming/centering)
   const mapRef = useRef<MapView>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [stations, setStations] = useState<any[]>([]);
+  // 🌟 SEPARATED STATE: All for Map, Displayed for Bottom Cards
+  const [allStations, setAllStations] = useState<any[]>([]);
+  const [displayedCards, setDisplayedCards] = useState<any[]>([]);
+
   const [userLocation, setUserLocation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +66,8 @@ export default function MapScreen() {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           console.log("Permission denied");
-          setStations(dbStations);
+          setAllStations(dbStations);
+          setDisplayedCards(dbStations);
           setLoading(false);
           return;
         }
@@ -74,7 +77,7 @@ export default function MapScreen() {
         const currentLng = location.coords.longitude;
         setUserLocation({ latitude: currentLat, longitude: currentLng });
 
-        // 3. Calculate distance, filter 15km, and sort by closest!
+        // 3. Calculate distance for ALL stations
         const stationsWithDistance = dbStations.map((station: any) => {
           const distance = calculateDistance(
             currentLat,
@@ -85,11 +88,16 @@ export default function MapScreen() {
           return { ...station, distance };
         });
 
-        const nearbyStations = stationsWithDistance
-          .filter((station: any) => station.distance <= 15) // 15 KM Radius Limit
-          .sort((a: any, b: any) => a.distance - b.distance); // Show closest first
+        // 4. Set ALL stations for the map markers
+        setAllStations(stationsWithDistance);
 
-        setStations(nearbyStations);
+        // 5. Filter nearest 15km ONLY for the bottom cards
+        const nearbyStations = stationsWithDistance
+          .filter((station: any) => station.distance <= 15)
+          .sort((a: any, b: any) => a.distance - b.distance);
+
+        setDisplayedCards(nearbyStations);
+
       } catch (error) {
         console.error("❌ Error:", error);
       } finally {
@@ -100,7 +108,6 @@ export default function MapScreen() {
     fetchStationsAndLocation();
   }, []);
 
-  // 🌟 Function to fly the map back to the user when they press the Target button
   const centerOnUser = () => {
     if (userLocation && mapRef.current) {
       mapRef.current.animateToRegion(
@@ -115,11 +122,64 @@ export default function MapScreen() {
     }
   };
 
-  // 🌟 NEW: Function to handle when user presses "Search" on keyboard
+  // 🌟 SEARCH FUNCTIONALITY
   const handleSearchSubmit = () => {
-    Keyboard.dismiss(); // Hides the keyboard
-    console.log("Searching for:", searchQuery);
-    // You can add your actual search filtering logic here later!
+    Keyboard.dismiss();
+
+    // If search is empty, go back to showing Nearby Chargers
+    if (searchQuery.trim() === "") {
+      const nearby = allStations
+        .filter((s) => s.distance <= 15)
+        .sort((a, b) => a.distance - b.distance);
+      setDisplayedCards(nearby);
+      return;
+    }
+
+    // Filter ALL stations by Name or Address based on search
+    const lowerQuery = searchQuery.toLowerCase();
+    const searchResults = allStations.filter((station) =>
+      station.fullName?.toLowerCase().includes(lowerQuery) ||
+      station.address?.toLowerCase().includes(lowerQuery)
+    );
+
+    setDisplayedCards(searchResults);
+
+    // Fly camera to the first matched result
+    if (searchResults.length > 0 && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: searchResults[0].location.latitude,
+        longitude: searchResults[0].location.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }, 800);
+    }
+  };
+
+  // 🌟 MARKER CLICK FUNCTIONALITY
+  const handleMarkerPress = (station: any) => {
+    // Show ONLY this station in the bottom card
+    setDisplayedCards([station]);
+
+    // Animate map to zoom exactly on this station
+    if (mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: station.location.latitude,
+        longitude: station.location.longitude,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      }, 600);
+    }
+  };
+
+  // Clear search and reset cards
+  const clearSearch = () => {
+    setSearchQuery("");
+    Keyboard.dismiss();
+    const nearby = allStations
+      .filter((s) => s.distance <= 15)
+      .sort((a, b) => a.distance - b.distance);
+    setDisplayedCards(nearby);
+    centerOnUser();
   };
 
   if (loading) {
@@ -131,11 +191,12 @@ export default function MapScreen() {
         ]}
       >
         <ActivityIndicator size="large" color="#00D1FF" />
-        <Text style={{ marginTop: 10 }}>Finding nearby chargers...</Text>
+        <Text style={{ marginTop: 10 }}>Loading Map Data...</Text>
       </View>
     );
   }
 
+  // --- Route Mode Output removed for brevity, keep your original block here ---
   if (isRouteMode) {
     // Standard Route Mode Code
     const destLatNum = parseFloat(destLat as string) || 6.9147;
@@ -155,10 +216,7 @@ export default function MapScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.routeHeader}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.routeBackBtn}
-          >
+          <TouchableOpacity onPress={() => router.back()} style={styles.routeBackBtn}>
             <Ionicons name="chevron-back" size={26} color="#333" />
           </TouchableOpacity>
           <Text style={styles.routeHeaderTitle}>Route Preview</Text>
@@ -189,12 +247,7 @@ export default function MapScreen() {
               <Ionicons name="location" size={32} color="#E74C3C" />
             </View>
           </Marker>
-          <Polyline
-            coordinates={routeCoords}
-            strokeColor="#4A5ACB"
-            strokeWidth={6}
-            lineDashPattern={[0]}
-          />
+          <Polyline coordinates={routeCoords} strokeColor="#4A5ACB" strokeWidth={6} lineDashPattern={[0]} />
         </MapView>
       </View>
     );
@@ -214,31 +267,32 @@ export default function MapScreen() {
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            returnKeyType="search" // 🌟 Changes "Return" key to "Search"
-            onSubmitEditing={handleSearchSubmit} // 🌟 Closes keyboard on submit
+            returnKeyType="search"
+            onSubmitEditing={handleSearchSubmit}
             autoCorrect={false}
           />
-          <TouchableOpacity style={{ marginRight: 15 }}>
-            <Ionicons name="mic" size={20} color="#333" />
-          </TouchableOpacity>
+
+          {/* Show Clear (X) icon if typing, otherwise Mic */}
+          {searchQuery.length > 0 ? (
+            <TouchableOpacity style={{ marginRight: 15 }} onPress={clearSearch}>
+              <Ionicons name="close-circle" size={20} color="#888" />
+            </TouchableOpacity>
+          ) : (
+             <TouchableOpacity style={{ marginRight: 15 }}>
+              <Ionicons name="mic" size={20} color="#333" />
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity onPress={handleSearchSubmit}>
             <Ionicons name="search" size={20} color="#333" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 🌟 Right Side Map Controls (Directions & Locate) */}
+      {/* Right Side Map Controls */}
       <View style={styles.rightControls}>
-        <TouchableOpacity
-          style={styles.controlBtn}
-          onPress={() => console.log("Directions pressed")}
-        >
-          <Ionicons
-            name="navigate"
-            size={22}
-            color="#007AFF"
-            style={{ transform: [{ rotate: "45deg" }] }}
-          />
+        <TouchableOpacity style={styles.controlBtn} onPress={clearSearch}>
+          <Ionicons name="refresh" size={22} color="#007AFF" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.controlBtn} onPress={centerOnUser}>
           <Ionicons name="locate" size={22} color="#666" />
@@ -250,8 +304,8 @@ export default function MapScreen() {
         ref={mapRef}
         style={styles.map}
         showsUserLocation={true}
-        onPress={() => Keyboard.dismiss()} // 🌟 Tapping map closes the keyboard
-        onPanDrag={() => Keyboard.dismiss()} // 🌟 Dragging map closes the keyboard
+        onPress={() => Keyboard.dismiss()}
+        onPanDrag={() => Keyboard.dismiss()}
         initialRegion={{
           latitude: userLocation ? userLocation.latitude : 6.9271,
           longitude: userLocation ? userLocation.longitude : 79.8612,
@@ -259,7 +313,8 @@ export default function MapScreen() {
           longitudeDelta: 0.15,
         }}
       >
-        {stations.map((station) => (
+        {/* Render ALL stations on the map */}
+        {allStations.map((station) => (
           <Marker
             key={station._id}
             coordinate={{
@@ -267,7 +322,8 @@ export default function MapScreen() {
               longitude: station.location.longitude,
             }}
             title={station.fullName}
-            description={`${station.distance.toFixed(1)} km away`}
+            description={station.distance ? `${station.distance.toFixed(1)} km away` : ""}
+            onPress={() => handleMarkerPress(station)} // 🌟 Added OnPress Event
           >
             <View style={styles.stationMarker}>
               <Ionicons name="flash" size={14} color="white" />
@@ -279,7 +335,8 @@ export default function MapScreen() {
       {/* 🌟 Bottom Station Cards */}
       <View style={styles.cardWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {stations.map((station) => (
+          {/* Render ONLY displayed stations in the cards */}
+          {displayedCards.map((station) => (
             <TouchableOpacity
               key={station._id}
               style={styles.stationCard}
@@ -289,7 +346,8 @@ export default function MapScreen() {
                   params: {
                     lat: String(station.location.latitude),
                     lng: String(station.location.longitude),
-                    distance: String(station.distance.toFixed(1)),
+                    distance: station.distance ? String(station.distance.toFixed(1)) : "0",
+                    stationName: station.fullName
                   },
                 })
               }
@@ -301,20 +359,18 @@ export default function MapScreen() {
               <View style={styles.cardFooter}>
                 <Ionicons name="location" size={14} color="#00D1FF" />
                 <Text style={styles.cardDistance}>
-                  {station.distance.toFixed(1)} km away
+                  {station.distance ? station.distance.toFixed(1) : "??"} km away
                 </Text>
               </View>
             </TouchableOpacity>
           ))}
 
-          {/* Show this if no stations are in the radius */}
-          {stations.length === 0 && (
-            <View style={styles.stationCard}>
-              <Text style={styles.cardTitle}>No chargers nearby</Text>
-              <Text style={styles.cardDistance}>
-                Try expanding your search.
-              </Text>
-            </View>
+          {/* Show this if search yields nothing or no nearby stations */}
+          {displayedCards.length === 0 && (
+             <View style={styles.stationCard}>
+                <Text style={styles.cardTitle}>No chargers found</Text>
+                <Text style={styles.cardDistance}>Try a different search or clear filter.</Text>
+             </View>
           )}
         </ScrollView>
       </View>
@@ -326,7 +382,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   map: { width: "100%", height: "100%", position: "absolute" },
 
-  // 🌟 OVERLAY STYLES
   searchOverlay: {
     position: "absolute",
     top: Platform.OS === "ios" ? 60 : 40,
@@ -373,7 +428,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  // Existing Styles
   stationMarker: {
     backgroundColor: "#E74C3C",
     width: 28,
