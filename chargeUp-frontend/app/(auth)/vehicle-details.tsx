@@ -17,6 +17,8 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+// 🌟 Added AsyncStorage Import
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -43,21 +45,21 @@ export default function VehicleDetailsScreen() {
   const [currentType, setCurrentType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const openDropdown = (type) => {
+  const openDropdown = (type: string) => {
     setCurrentType(type);
     setSearchQuery("");
     setModalVisible(true);
   };
 
   const getFilteredData = () => {
-    let data = [];
+    let data: string[] = [];
     if (currentType === "brand") data = BRANDS;
-    else if (currentType === "model") data = MODELS[selectedBrand] || [];
+    else if (currentType === "model") data = MODELS[selectedBrand as keyof typeof MODELS] || [];
     else if (currentType === "port") data = PORTS;
     return data.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
   };
 
-  const handleSelect = (item) => {
+  const handleSelect = (item: string) => {
     if (currentType === "brand") {
       setSelectedBrand(item);
       setSelectedModel("");
@@ -67,15 +69,26 @@ export default function VehicleDetailsScreen() {
     setModalVisible(false);
   };
 
-  // ✅ Updated Navigation Logic to /(tab)/home
-  const handleContinue = () => {
+  // 🌟 Updated to Save to Memory Before Navigating
+  const handleContinue = async () => {
     if (!selectedBrand || !selectedModel || !selectedPort) {
       Alert.alert("Required Fields", "Please select your brand, model, and charging port to continue.");
       return;
     }
 
-    // Using replace to prevent the user from "back-buttoning" into the setup screen
-    router.replace("/(client)/home");
+    try {
+      // Save the details to the phone's memory
+      await AsyncStorage.setItem("vehicleBrand", selectedBrand);
+      await AsyncStorage.setItem("vehicleModel", selectedModel);
+      await AsyncStorage.setItem("vehicleCapacity", batteryCapacity ? `${batteryCapacity}` : "Standard");
+      await AsyncStorage.setItem("vehicleYear", manufactureYear || "Unknown");
+
+      // Using replace to prevent the user from "back-buttoning" into the setup screen
+      router.replace("/(client)/home");
+    } catch (error) {
+      console.error("Error saving vehicle details:", error);
+      Alert.alert("Error", "Could not save your vehicle details.");
+    }
   };
 
   return (
