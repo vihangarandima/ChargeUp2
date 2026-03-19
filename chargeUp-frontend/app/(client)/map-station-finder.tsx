@@ -55,8 +55,8 @@ export default function MapScreen() {
   useEffect(() => {
     const fetchStationsAndLocation = async () => {
       try {
-        // 🚨 REPLACE 192.168.X.X WITH YOUR EXACT WI-FI IP ADDRESS
-        const response = await fetch("http://10.159.92.178 :5000/api/chargers");
+        // 1. Get stations from your backend
+        const response = await fetch("http://10.159.92.178:5000/api/chargers");
         const data = await response.json();
         const dbStations: any[] = data.chargers || data;
 
@@ -100,7 +100,28 @@ export default function MapScreen() {
     fetchStationsAndLocation();
   }, []);
 
-  // 🌟 NEW: Show a loading spinner while waiting for GPS and Database
+  // 🌟 Function to fly the map back to the user when they press the Target button
+  const centerOnUser = () => {
+    if (userLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        },
+        1000,
+      );
+    }
+  };
+
+  // 🌟 NEW: Function to handle when user presses "Search" on keyboard
+  const handleSearchSubmit = () => {
+    Keyboard.dismiss(); // Hides the keyboard
+    console.log("Searching for:", searchQuery);
+    // You can add your actual search filtering logic here later!
+  };
+
   if (loading) {
     return (
       <View
@@ -181,6 +202,50 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
+      {/* 🌟 Top Search Bar Overlay */}
+      <View style={styles.searchOverlay}>
+        <View style={styles.searchBox}>
+          <TouchableOpacity>
+            <Ionicons name="menu" size={24} color="#333" />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search here"
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search" // 🌟 Changes "Return" key to "Search"
+            onSubmitEditing={handleSearchSubmit} // 🌟 Closes keyboard on submit
+            autoCorrect={false}
+          />
+          <TouchableOpacity style={{ marginRight: 15 }}>
+            <Ionicons name="mic" size={20} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSearchSubmit}>
+            <Ionicons name="search" size={20} color="#333" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 🌟 Right Side Map Controls (Directions & Locate) */}
+      <View style={styles.rightControls}>
+        <TouchableOpacity
+          style={styles.controlBtn}
+          onPress={() => console.log("Directions pressed")}
+        >
+          <Ionicons
+            name="navigate"
+            size={22}
+            color="#007AFF"
+            style={{ transform: [{ rotate: "45deg" }] }}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.controlBtn} onPress={centerOnUser}>
+          <Ionicons name="locate" size={22} color="#666" />
+        </TouchableOpacity>
+      </View>
+
+      {/* 🌟 THE MAP */}
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -241,6 +306,16 @@ export default function MapScreen() {
               </View>
             </TouchableOpacity>
           ))}
+
+          {/* Show this if no stations are in the radius */}
+          {stations.length === 0 && (
+            <View style={styles.stationCard}>
+              <Text style={styles.cardTitle}>No chargers nearby</Text>
+              <Text style={styles.cardDistance}>
+                Try expanding your search.
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </View>
     </View>
@@ -249,7 +324,56 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  map: { width: "100%", height: "100%" },
+  map: { width: "100%", height: "100%", position: "absolute" },
+
+  // 🌟 OVERLAY STYLES
+  searchOverlay: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 60 : 40,
+    width: "100%",
+    paddingHorizontal: 15,
+    zIndex: 10,
+  },
+  searchBox: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    borderRadius: 25,
+    height: 50,
+    alignItems: "center",
+    paddingHorizontal: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 15,
+    fontSize: 16,
+    color: "#333",
+  },
+  rightControls: {
+    position: "absolute",
+    right: 15,
+    top: 110,
+    zIndex: 10,
+    alignItems: "center",
+  },
+  controlBtn: {
+    backgroundColor: "white",
+    width: 45,
+    height: 45,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+
+  // Existing Styles
   stationMarker: {
     backgroundColor: "#E74C3C",
     width: 28,
@@ -266,8 +390,9 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     position: "absolute",
-    bottom:  100,
+    bottom: 100,
     paddingLeft: 20,
+    zIndex: 10,
   },
   stationCard: {
     backgroundColor: "#1C2E33",
@@ -324,24 +449,4 @@ const styles = StyleSheet.create({
     borderColor: "white",
   },
   destMarker: { shadowColor: "#E74C3C", shadowOpacity: 0.4, shadowRadius: 6 },
-  routeBottomBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-  },
-  routeInfoCard: { flex: 1, flexDirection: "row", alignItems: "center" },
-  routeInfoTitle: { fontSize: 15, fontWeight: "600", color: "#333" },
-  routeInfoSub: { fontSize: 12, color: "#888", marginTop: 2 },
-  routeStartBtn: {
-    backgroundColor: "#00D1FF",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
 });
