@@ -264,7 +264,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  cardWrapper: { position: "absolute", bottom: 100, paddingLeft: 20 },
+  cardWrapper: {
+    position: "absolute",
+    bottom:  100,
+    paddingLeft: 20,
+  },
   stationCard: {
     backgroundColor: "#1C2E33",
     width: width * 0.7,
