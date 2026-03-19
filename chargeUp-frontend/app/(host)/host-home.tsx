@@ -21,29 +21,42 @@ export default function HostHomeScreen() {
   // 🌟 NEW: 1. Create a safe state for the name. It starts blank so it doesn't crash!
   const [userName, setUserName] = useState("");
   const [chargerType, setChargerType] = useState("No Charger Added");
-  const [chargerImage, setChargerImage] = useState(
-    "https://cdn-icons-png.flaticon.com/512/8643/8643034.png",
-  );
+  const [chargerImage, setChargerImage] = useState({
+    uri: "https://cdn-icons-png.flaticon.com/512/8643/8643034.png",
+  });
 
   // 🌟 NEW: Our dictionary that matches the name to the picture!
   const getChargerImage = (type: string) => {
     switch (type) {
-      case "Standard 3-Pin Plug (13A)": // Must match what is in your database!
-        return "https://cdn-icons-png.flaticon.com/512/5968/5968925.png";
+      case "Standard 3-Pin Plug (13A)":
+        return require("../../assets/images/host/Charger_types/Standard 3-Pin Plug (13A).png");
+
       case "Commando Socket (16A/32A)":
-        return "https://cdn-icons-png.flaticon.com/512/8643/8643034.png";
+        return require("../../assets/images/host/Charger_types/Commando Socket (16A32A).png");
+
       case "Type 1 (J1772) - AC":
-        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";
+        return require("../../assets/images/host/Charger_types/Type 1 (J1772) - AC.png");
+
       case "Type 2 (Mennekes) - AC":
-        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";
+        return require("../../assets/images/host/Charger_types/Type 2 (Mennekes) - AC.png");
+
       case "CHAdeMO - DC Fast":
-        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";    
+        return require("../../assets/images/host/Charger_types/CHAdeMO - DC Fast.png");
+
       case "CCS2 - DC Fast":
-        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png"; 
+        return require("../../assets/images/host/Charger_types/CCS2 - DC Fast.png");
+
       case "Tesla Proprietary":
-        return "https://cdn-icons-png.flaticon.com/512/2933/2933994.png";         
+        return require("../../assets/images/host/Charger_types/Tesla Proprietary.png");
+
+      case "Other":
+        return require("../../assets/images/host/Charger_types/Other.png");
+
       default:
-        return "https://cdn-icons-png.flaticon.com/512/8643/8643034.png"; // Backup image
+        // For the default, we return the web URL object
+        return {
+          uri: "https://cdn-icons-png.flaticon.com/512/8643/8643034.png",
+        };
     }
   };
 
@@ -64,7 +77,7 @@ export default function HostHomeScreen() {
         // Step B: Ask the backend for the newest charger
         // IMPORTANT: Make sure this IP address matches your computer's current IP!
         const response = await fetch(
-          "http://10.84.44.178:5000/api/chargers/latest",
+          "http://10.159.92.178:5000/api/chargers/latest",
         );
 
         if (response.ok) {
@@ -161,7 +174,7 @@ export default function HostHomeScreen() {
                 Replace the uri with require('../../assets/images/charger_model.png') if you have it locally downloaded
               */}
               <Image
-                source={{ uri: chargerImage }}
+                source={chargerImage}
                 style={styles.chargerImage}
                 resizeMode="contain"
               />

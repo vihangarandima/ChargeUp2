@@ -41,7 +41,7 @@ export default function ProfileScreen() {
         // Hit your Node.js backend to get the full profile (email, phone, etc.)
         // ⚠️ Make sure this endpoint matches your actual backend route!
         const response = await fetch(
-          "http://10.84.44.178:5000/api/auth/profile",
+          "http://10.159.92.178:5000/api/auth/profile",
           {
             method: "GET",
             headers: {
@@ -53,6 +53,8 @@ export default function ProfileScreen() {
 
         if (response.ok) {
           const data = await response.json();
+
+          console.log("📦 PROFILE DATA FROM BACKEND:", data);
           // 3. Update the screen with the backend data
           // Adjust 'data.email', 'data.phone', etc. based on what your backend actually sends back
           if (data.name || data.userName)
