@@ -18,12 +18,74 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
+// 1. Moved InputField OUTSIDE so it doesn't re-render and hide the keyboard
+const InputField = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  keyboardType,
+  autoCapitalize,
+  isPassword,
+  isFocused,
+  onFocus,
+  onBlur,
+}: any) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const hasValue = value.length > 0;
+
+  return (
+    <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+      <View style={styles.inputIconBox}>
+        <Ionicons
+          name={icon}
+          size={17}
+          color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+        />
+      </View>
+      <View style={styles.inputBody}>
+        {(isFocused || hasValue) && (
+          <Text
+            style={[styles.floatLabel, isFocused && styles.floatLabelActive]}
+          >
+            {placeholder}
+          </Text>
+        )}
+        <TextInput
+          style={styles.textInput}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={!isFocused && !hasValue ? placeholder : ""}
+          placeholderTextColor="rgba(255,255,255,0.28)"
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize || "none"}
+          secureTextEntry={isPassword && !showPassword}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          selectionColor="#5ECFDA"
+        />
+      </View>
+      {isPassword && (
+        <Pressable
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.eyeBtn}
+        >
+          <Ionicons
+            name={showPassword ? "eye-outline" : "eye-off-outline"}
+            size={18}
+            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+          />
+        </Pressable>
+      )}
+    </View>
+  );
+};
+
 export default function LoginScreen() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -122,66 +184,6 @@ export default function LoginScreen() {
     }
   };
 
-  const InputField = ({
-    icon,
-    placeholder,
-    value,
-    onChangeText,
-    keyboardType,
-    autoCapitalize,
-    isPassword,
-    fieldKey,
-  }: any) => {
-    const isFocused = focusedField === fieldKey;
-    const hasValue = value.length > 0;
-
-    return (
-      <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
-        <View style={styles.inputIconBox}>
-          <Ionicons
-            name={icon}
-            size={17}
-            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
-          />
-        </View>
-        <View style={styles.inputBody}>
-          {(isFocused || hasValue) && (
-            <Text
-              style={[styles.floatLabel, isFocused && styles.floatLabelActive]}
-            >
-              {placeholder}
-            </Text>
-          )}
-          <TextInput
-            style={styles.textInput}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={!isFocused && !hasValue ? placeholder : ""}
-            placeholderTextColor="rgba(255,255,255,0.28)"
-            keyboardType={keyboardType}
-            autoCapitalize={autoCapitalize || "none"}
-            secureTextEntry={isPassword && !showPassword}
-            onFocus={() => setFocusedField(fieldKey)}
-            onBlur={() => setFocusedField(null)}
-            selectionColor="#5ECFDA"
-          />
-        </View>
-        {isPassword && (
-          <Pressable
-            onPress={() => setShowPassword(!showPassword)}
-            style={styles.eyeBtn}
-          >
-            <Ionicons
-              name={showPassword ? "eye-outline" : "eye-off-outline"}
-              size={18}
-              color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
-            />
-          </Pressable>
-        )}
-      </View>
-    );
-  };
-
   return (
     <LinearGradient
       colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
@@ -265,7 +267,9 @@ export default function LoginScreen() {
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    fieldKey="email"
+                    isFocused={focusedField === "email"}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
                   />
                   <InputField
                     icon="lock-closed-outline"
@@ -273,7 +277,9 @@ export default function LoginScreen() {
                     value={password}
                     onChangeText={setPassword}
                     isPassword
-                    fieldKey="password"
+                    isFocused={focusedField === "password"}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
 
@@ -608,7 +614,7 @@ const styles = StyleSheet.create({
   },
   socialText: { color: "white", fontSize: 14, fontWeight: "600" },
 
-  // Stats row — unique to login page
+  // Stats row
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
