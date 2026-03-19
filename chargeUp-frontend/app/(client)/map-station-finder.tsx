@@ -56,7 +56,7 @@ export default function MapScreen() {
     const fetchStationsAndLocation = async () => {
       try {
         // 🚨 REPLACE 192.168.X.X WITH YOUR EXACT WI-FI IP ADDRESS
-        const response = await fetch("http://10.84.44.178:5000/api/chargers");
+        const response = await fetch("http://10.159.92.178 :5000/api/chargers");
         const data = await response.json();
         const dbStations: any[] = data.chargers || data;
 
@@ -103,7 +103,12 @@ export default function MapScreen() {
   // 🌟 NEW: Show a loading spinner while waiting for GPS and Database
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#00D1FF" />
         <Text style={{ marginTop: 10 }}>Finding nearby chargers...</Text>
       </View>
