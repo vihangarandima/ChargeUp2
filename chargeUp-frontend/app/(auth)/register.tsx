@@ -9,14 +9,14 @@ import {
   StatusBar,
   Alert,
   Animated,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+
+const { width } = Dimensions.get("window");
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -27,31 +27,39 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
+  // Entrance animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const iconAnim = useRef(new Animated.Value(0.6)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+  const logoScale = useRef(new Animated.Value(0.7)).current;
   const btnScale = useRef(new Animated.Value(1)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 11, useNativeDriver: true }),
-      Animated.spring(iconAnim, { toValue: 1, tension: 90, friction: 7, delay: 150, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        tension: 80,
+        friction: 8,
+        delay: 200,
+        useNativeDriver: true,
+      }),
     ]).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.07, duration: 2000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
-      ])
-    ).start();
   }, []);
 
   const animateBtn = () => {
     Animated.sequence([
-      Animated.timing(btnScale, { toValue: 0.96, duration: 70, useNativeDriver: true }),
-      Animated.spring(btnScale, { toValue: 1, tension: 200, friction: 10, useNativeDriver: true }),
+      Animated.timing(btnScale, { toValue: 0.95, duration: 80, useNativeDriver: true }),
+      Animated.timing(btnScale, { toValue: 1, duration: 120, useNativeDriver: true }),
     ]).start();
   };
 
@@ -73,17 +81,20 @@ export default function RegisterScreen() {
         if (data.token) await AsyncStorage.setItem("userToken", data.token);
         await AsyncStorage.setItem("userName", name);
         Alert.alert("Welcome!", "Account created successfully.");
-        router.replace(role === "host" ? "/host-charger-details" : "/vehicle-details");
+        if (role === "host") {
+          router.replace("/host-charger-details");
+        } else {
+          router.replace("/vehicle-details");
+        }
       } else {
         Alert.alert("Signup Failed", data.message || "Could not create account.");
       }
-    } catch {
+    } catch (error) {
       Alert.alert("Connection Error", "Could not reach the server.");
     }
   };
 
   const InputField = ({
-    icon,
     placeholder,
     value,
     onChangeText,
@@ -93,46 +104,39 @@ export default function RegisterScreen() {
     fieldKey,
   }: any) => {
     const isFocused = focusedField === fieldKey;
-    const hasValue = value.length > 0;
-
     return (
-      <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
-        <View style={styles.inputIconBox}>
-          <Ionicons
-            name={icon}
-            size={17}
-            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
-          />
-        </View>
-        <View style={styles.inputBody}>
-          {(isFocused || hasValue) && (
-            <Text style={[styles.floatLabel, isFocused && styles.floatLabelActive]}>
-              {placeholder}
-            </Text>
-          )}
-          <TextInput
-            style={styles.textInput}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={!isFocused && !hasValue ? placeholder : ""}
-            placeholderTextColor="rgba(255,255,255,0.28)"
-            keyboardType={keyboardType}
-            autoCapitalize={autoCapitalize || "sentences"}
-            secureTextEntry={isPassword && !showPassword}
-            onFocus={() => setFocusedField(fieldKey)}
-            onBlur={() => setFocusedField(null)}
-            selectionColor="#5ECFDA"
-          />
-        </View>
-        {isPassword && (
-          <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-            <Ionicons
-              name={showPassword ? "eye-outline" : "eye-off-outline"}
-              size={18}
-              color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+      <View style={[styles.inputContainer, isFocused && styles.inputContainerFocused]}>
+        <View style={styles.inputInner}>
+          <Text style={[styles.inputLabel, (isFocused || value) && styles.inputLabelActive]}>
+            {placeholder}
+          </Text>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.textInput}
+              value={value}
+              onChangeText={onChangeText}
+              keyboardType={keyboardType}
+              autoCapitalize={autoCapitalize || "sentences"}
+              secureTextEntry={isPassword && !showPassword}
+              placeholderTextColor="transparent"
+              onFocus={() => setFocusedField(fieldKey)}
+              onBlur={() => setFocusedField(null)}
+              selectionColor="#5ECFDA"
             />
-          </Pressable>
-        )}
+            {isPassword && (
+              <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                <Ionicons
+                  name={showPassword ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.4)"}
+                />
+              </Pressable>
+            )}
+          </View>
+        </View>
+        {/* Animated bottom border */}
+        <View style={styles.inputBorderBase} />
+        {isFocused && <View style={styles.inputBorderActive} />}
       </View>
     );
   };
@@ -145,151 +149,113 @@ export default function RegisterScreen() {
     >
       <StatusBar barStyle="light-content" />
 
-      {/* Ambient blobs */}
-      <View style={styles.blob1} />
-      <View style={styles.blob2} />
-
-      {/* Top teal accent stripe */}
-      <View style={styles.topAccent} />
+      {/* Decorative background circles */}
+      <View style={styles.bgCircle1} />
+      <View style={styles.bgCircle2} />
+      <View style={styles.bgCircle3} />
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        <Animated.View
+          style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
         >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <View style={styles.logoMark}>
+              <Ionicons name="flash" size={16} color="#101922" />
+            </View>
+            <Text style={styles.headerTitle}>ChargeUp</Text>
+          </View>
 
-              {/* ── TOP BAR ── */}
-              <View style={styles.topBar}>
-                <View style={styles.logoChip}>
-                  <Ionicons name="flash" size={14} color="#0E1F26" />
-                </View>
-                <Text style={styles.brandName}>ChargeUp</Text>
-                <View style={styles.badgePill}>
-                  <View style={styles.badgeDot} />
-                  <Text style={styles.badgeText}>EV Network</Text>
-                </View>
+          {/* Hero Section */}
+          <Animated.View style={[styles.heroSection, { transform: [{ scale: logoScale }] }]}>
+            <LinearGradient
+              colors={["rgba(94,207,218,0.15)", "rgba(94,207,218,0.03)"]}
+              style={styles.iconGlow}
+            >
+              <View style={styles.iconRing}>
+                <Ionicons name="flash" size={52} color="white" />
               </View>
+            </LinearGradient>
+            <Text style={styles.heroTitle}>Create Account</Text>
+            <Text style={styles.heroSub}>Find, book and pay for EV charging</Text>
+          </Animated.View>
 
-              {/* ── HERO ── */}
-              <View style={styles.hero}>
-                <Animated.View style={[styles.iconOuter, { transform: [{ scale: pulseAnim }] }]}>
-                  <LinearGradient
-                    colors={["rgba(94,207,218,0.18)", "rgba(94,207,218,0.04)"]}
-                    style={styles.iconGradient}
-                  >
-                    <Animated.View
-                      style={[styles.iconInner, { transform: [{ scale: iconAnim }] }]}
-                    >
-                      <Ionicons name="flash" size={38} color="white" />
-                    </Animated.View>
-                  </LinearGradient>
-                </Animated.View>
+          {/* Form */}
+          <View style={styles.form}>
+            <InputField
+              placeholder="Full Name"
+              value={name}
+              onChangeText={setName}
+              fieldKey="name"
+            />
+            <InputField
+              placeholder="Email Address"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              fieldKey="email"
+            />
+            <InputField
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              isPassword
+              fieldKey="password"
+            />
+          </View>
 
-                <Text style={styles.heroTitle}>Get Started</Text>
-                <Text style={styles.heroSub}>Create your free ChargeUp account</Text>
-              </View>
-
-              {/* ── GLASS CARD ── */}
-              <View style={styles.card}>
-
-                {/* Form */}
-                <View style={styles.form}>
-                  <InputField
-                    icon="person-outline"
-                    placeholder="Full Name"
-                    value={name}
-                    onChangeText={setName}
-                    fieldKey="name"
-                  />
-                  <InputField
-                    icon="mail-outline"
-                    placeholder="Email Address"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    fieldKey="email"
-                  />
-                  <InputField
-                    icon="lock-closed-outline"
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    isPassword
-                    fieldKey="password"
-                  />
+          {/* Signup Button */}
+          <Animated.View style={{ transform: [{ scale: btnScale }], width: "100%" }}>
+            <Pressable onPress={handleRegister} style={styles.signupBtn}>
+              <LinearGradient
+                colors={["rgba(94,207,218,0.22)", "rgba(94,207,218,0.08)"]}
+                style={styles.signupBtnGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.signupBtnText}>Create Account</Text>
+                <View style={styles.btnArrow}>
+                  <Ionicons name="arrow-forward" size={18} color="#101922" />
                 </View>
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
 
-                {/* CTA */}
-                <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-                  <Pressable onPress={handleRegister} style={styles.ctaBtn}>
-                    <LinearGradient
-                      colors={["#3ABFCC", "#1E9BAA"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.ctaGradient}
-                    >
-                      <Text style={styles.ctaText}>Create Account</Text>
-                      <View style={styles.ctaArrow}>
-                        <Ionicons name="arrow-forward" size={16} color="#0E4548" />
-                      </View>
-                    </LinearGradient>
-                  </Pressable>
-                </Animated.View>
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or sign up with</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-                {/* Divider */}
-                <View style={styles.divider}>
-                  <View style={styles.divLine} />
-                  <Text style={styles.divLabel}>or continue with</Text>
-                  <View style={styles.divLine} />
-                </View>
+          {/* Social Buttons */}
+          <View style={styles.socialRow}>
+            <Pressable style={styles.socialBtn}>
+              <FontAwesome name="apple" size={22} color="white" />
+              <Text style={styles.socialBtnText}>Apple</Text>
+            </Pressable>
+            <Pressable style={[styles.socialBtn, styles.socialBtnGoogle]}>
+              <FontAwesome name="google" size={20} color="#EA4335" />
+              <Text style={[styles.socialBtnText, { color: "#EA4335" }]}>Google</Text>
+            </Pressable>
+          </View>
 
-                {/* Social */}
-                <View style={styles.socialRow}>
-                  <Pressable style={styles.socialBtn}>
-                    <FontAwesome5 name="apple" size={20} color="white" />
-                    <Text style={styles.socialText}>Apple</Text>
-                  </Pressable>
-                  <Pressable style={[styles.socialBtn, styles.googleBtn]}>
-                    <FontAwesome5 name="google" size={17} color="#EA4335" />
-                    <Text style={[styles.socialText, { color: "#EA4335" }]}>Google</Text>
-                  </Pressable>
-                </View>
-              </View>
+          {/* Footer */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <Pressable onPress={() => router.push("/(auth)/login")}>
+              <Text style={styles.loginLink}>Sign In →</Text>
+            </Pressable>
+          </View>
 
-              {/* ── LOGIN LINK ── */}
-              <View style={styles.loginRow}>
-                <Text style={styles.loginText}>Already have an account?</Text>
-                <Pressable onPress={() => router.push("/(auth)/login")}>
-                  <Text style={styles.loginLink}> Sign In →</Text>
-                </Pressable>
-              </View>
-
-              {/* ── LEGAL — fully visible pill ── */}
-              <View style={styles.legalBox}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={14}
-                  color="#5ECFDA"
-                  style={{ marginRight: 8, marginTop: 1 }}
-                />
-                <Text style={styles.legalText}>
-                  By signing up you agree to our{" "}
-                  <Text style={styles.legalLink}>Terms & Conditions</Text>
-                  {" "}and{" "}
-                  <Text style={styles.legalLink}>Privacy Policy</Text>
-                </Text>
-              </View>
-
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          {/* Legal */}
+          <Text style={styles.legalNotice}>
+            By continuing, you agree to our{" "}
+            <Text style={styles.legalLink}>Terms</Text> and{" "}
+            <Text style={styles.legalLink}>Privacy Policy</Text>
+          </Text>
+        </Animated.View>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -298,130 +264,136 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  scroll: {
-    paddingHorizontal: 24,
-    paddingTop: 4,
-    paddingBottom: 28,
-  },
 
-  topAccent: {
+  // Decorative background orbs
+  bgCircle1: {
     position: "absolute",
-    top: 0, left: 0, right: 0,
-    height: 2,
-    backgroundColor: "#5ECFDA",
-    opacity: 0.65,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(94,207,218,0.04)",
+    top: -80,
+    right: -80,
   },
-  blob1: {
+  bgCircle2: {
     position: "absolute",
-    width: 300, height: 300,
-    borderRadius: 150,
-    backgroundColor: "rgba(94,207,218,0.055)",
-    top: -100, right: -80,
-  },
-  blob2: {
-    position: "absolute",
-    width: 220, height: 220,
-    borderRadius: 110,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     backgroundColor: "rgba(94,207,218,0.03)",
-    bottom: 100, left: -70,
+    bottom: 120,
+    left: -60,
+  },
+  bgCircle3: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(255,255,255,0.02)",
+    top: 200,
+    right: 20,
   },
 
-  // Top bar
-  topBar: {
-    flexDirection: "row",
+  content: {
+    flex: 1,
+    paddingHorizontal: 28,
+    paddingTop: 16,
     alignItems: "center",
     marginTop: 10,
     marginBottom: 22,
   },
-  logoChip: {
-    width: 28, height: 28,
+
+  // Header
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    marginBottom: 32,
+    gap: 10,
+  },
+  logoMark: {
+    width: 30,
+    height: 30,
     borderRadius: 8,
     backgroundColor: "#5ECFDA",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
   },
-  brandName: {
+  headerTitle: {
     color: "white",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
-    letterSpacing: 0.4,
-    flex: 1,
-  },
-  badgePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(94,207,218,0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.22)",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    gap: 5,
-  },
-  badgeDot: {
-    width: 6, height: 6,
-    borderRadius: 3,
-    backgroundColor: "#5ECFDA",
-  },
-  badgeText: {
-    color: "#5ECFDA",
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
   },
 
   // Hero
-  hero: {
+  heroSection: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 36,
   },
-  iconOuter: {
-    width: 92, height: 92,
-    borderRadius: 46,
-    marginBottom: 14,
-  },
-  iconGradient: {
-    flex: 1,
-    borderRadius: 46,
+  iconGlow: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 18,
   },
-  iconInner: {
-    width: 72, height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(94,207,218,0.1)",
+  iconRing: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     borderWidth: 1.5,
-    borderColor: "rgba(94,207,218,0.4)",
+    borderColor: "rgba(94,207,218,0.35)",
+    backgroundColor: "rgba(94,207,218,0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
   heroTitle: {
     color: "white",
     fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: -0.8,
-    marginBottom: 5,
+    fontWeight: "700",
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
   heroSub: {
-    color: "rgba(255,255,255,0.38)",
-    fontSize: 13,
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 14,
     letterSpacing: 0.2,
   },
 
-  // Card
-  card: {
+  // Form inputs
+  form: { width: "100%", marginBottom: 28, gap: 4 },
+  inputContainer: {
+    width: "100%",
+    paddingTop: 18,
+    paddingBottom: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 24,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    padding: 18,
-    marginBottom: 18,
+    borderColor: "rgba(255,255,255,0.06)",
+    position: "relative",
+    overflow: "hidden",
   },
-
-  // Inputs
-  form: { gap: 10, marginBottom: 18 },
-  inputWrap: {
+  inputContainerFocused: {
+    backgroundColor: "rgba(94,207,218,0.06)",
+    borderColor: "rgba(94,207,218,0.3)",
+  },
+  inputInner: {},
+  inputLabel: {
+    color: "rgba(255,255,255,0.35)",
+    fontSize: 12,
+    fontWeight: "500",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  inputLabelActive: {
+    color: "#5ECFDA",
+  },
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
@@ -432,115 +404,141 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     gap: 10,
   },
-  inputWrapFocused: {
-    backgroundColor: "rgba(94,207,218,0.07)",
+  textInput: {
+    flex: 1,
+    color: "white",
+    fontSize: 16,
+    fontWeight: "400",
+    paddingVertical: 0,
+    letterSpacing: 0.3,
+  },
+  eyeBtn: {
+    padding: 4,
+  },
+  inputBorderBase: {
+    position: "absolute",
+    bottom: 0,
+    left: 16,
+    right: 16,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  inputBorderActive: {
+    position: "absolute",
+    bottom: 0,
+    left: 16,
+    right: 16,
+    height: 1.5,
+    backgroundColor: "#5ECFDA",
+  },
+
+  // Signup button
+  signupBtn: {
+    width: "100%",
+    borderRadius: 16,
+    overflow: "hidden",
+    marginBottom: 24,
+    borderWidth: 1,
     borderColor: "rgba(94,207,218,0.4)",
   },
-  inputIconBox: { width: 20, alignItems: "center" },
-  inputBody: { flex: 1, justifyContent: "center" },
-  floatLabel: {
-    color: "rgba(255,255,255,0.3)",
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 2,
+  signupBtnGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    gap: 12,
   },
   floatLabelActive: { color: "#5ECFDA" },
   textInput: {
     color: "white",
-    fontSize: 15,
-    paddingVertical: 0,
-  },
-  eyeBtn: { padding: 4 },
-
-  // CTA
-  ctaBtn: {
-    borderRadius: 15,
-    overflow: "hidden",
-    marginBottom: 18,
-  },
-  ctaGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 15,
-    gap: 10,
-  },
-  ctaText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 17,
+    fontWeight: "600",
     letterSpacing: 0.3,
   },
-  ctaArrow: {
-    width: 28, height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.85)",
+  btnArrow: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#5ECFDA",
     alignItems: "center",
     justifyContent: "center",
   },
 
   // Divider
-  divider: {
+  dividerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 14,
+    width: "100%",
+    marginBottom: 20,
     gap: 10,
   },
-  divLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.08)" },
-  divLabel: { color: "rgba(255,255,255,0.28)", fontSize: 12, letterSpacing: 0.4 },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  dividerText: {
+    color: "rgba(255,255,255,0.3)",
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
 
-  // Social
-  socialRow: { flexDirection: "row", gap: 12 },
+  // Social buttons
+  socialRow: {
+    flexDirection: "row",
+    width: "100%",
+    gap: 12,
+    marginBottom: 32,
+  },
   socialBtn: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 9,
-    paddingVertical: 13,
-    borderRadius: 13,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.06)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.09)",
   },
-  googleBtn: {
-    backgroundColor: "rgba(234,67,53,0.05)",
-    borderColor: "rgba(234,67,53,0.18)",
+  socialBtnGoogle: {
+    backgroundColor: "rgba(234,67,53,0.06)",
+    borderColor: "rgba(234,67,53,0.2)",
   },
-  socialText: { color: "white", fontSize: 14, fontWeight: "600" },
+  socialBtnText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "500",
+  },
 
-  // Login row
-  loginRow: {
+  // Footer
+  footerRow: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 20,
   },
-  loginText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
-  loginLink: { color: "#5ECFDA", fontSize: 14, fontWeight: "700" },
+  footerText: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 14,
+  },
+  loginLink: {
+    color: "#5ECFDA",
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
 
-  // Legal — fully visible tinted pill
-  legalBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "rgba(94,207,218,0.07)",
-    borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.14)",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  legalText: {
-    flex: 1,
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 12,
-    lineHeight: 18,
+  // Legal
+  legalNotice: {
+    color: "rgba(255,255,255,0.25)",
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 17,
+    paddingHorizontal: 20,
   },
   legalLink: {
-    color: "#5ECFDA",
-    fontWeight: "700",
+    color: "rgba(255,255,255,0.5)",
     textDecorationLine: "underline",
   },
 });

@@ -57,7 +57,11 @@ export default function RoleSelectScreen() {
           {/* Lender Option */}
           <Pressable style={styles.roleCard} onPress={handleSelectLender}>
             <View style={styles.iconCircle}>
-              <MaterialCommunityIcons name="ev-station" size={30} color="white" />
+              <MaterialCommunityIcons
+                name="ev-station"
+                size={30}
+                color="white"
+              />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.roleTitle}>Lender</Text>
@@ -79,17 +83,17 @@ export default function RoleSelectScreen() {
 
 const styles = StyleSheet.create({
   gradientBackground: {
-    flex: 1
+    flex: 1,
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: 25
+    paddingHorizontal: 25,
   },
   brandHeader: {
     color: "white",
     fontSize: 24,
     fontWeight: "bold",
-    marginTop: 20,
+    marginTop: 60,
   },
   content: { flex: 1, justifyContent: "center" },
   welcomeTitle: {

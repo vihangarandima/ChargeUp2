@@ -30,7 +30,7 @@ export default function LoginScreen() {
     try {
       // 1. Send the email and password to my Node.js backend
       // Make sure this IP address matches my computer's current Wi-Fi IP!
-      const response = await fetch("http://10.159.92.178:5000/api/auth/login", {
+      const response = await fetch("http://10.184.109.178:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

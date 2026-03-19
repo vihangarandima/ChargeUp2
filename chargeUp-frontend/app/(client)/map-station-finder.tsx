@@ -58,7 +58,7 @@ export default function MapScreen() {
     const fetchStationsAndLocation = async () => {
       try {
         // 1. Get stations from your backend
-        const response = await fetch("http://10.84.44.178:5000/api/chargers");
+        const response = await fetch("http://10.159.92.178:5000/api/chargers");
         const data = await response.json();
         const dbStations: any[] = data.chargers || data;
 
@@ -110,12 +110,15 @@ export default function MapScreen() {
 
   const centerOnUser = () => {
     if (userLocation && mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      }, 1000);
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        },
+        1000,
+      );
     }
   };
 
@@ -181,7 +184,12 @@ export default function MapScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#00D1FF" />
         <Text style={{ marginTop: 10 }}>Loading Map Data...</Text>
       </View>
@@ -247,7 +255,6 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-
       {/* 🌟 Top Search Bar Overlay */}
       <View style={styles.searchOverlay}>
         <View style={styles.searchBox}>
@@ -373,23 +380,23 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  map: { width: "100%", height: "100%", position: 'absolute' },
+  map: { width: "100%", height: "100%", position: "absolute" },
 
   searchOverlay: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    width: '100%',
+    position: "absolute",
+    top: Platform.OS === "ios" ? 60 : 40,
+    width: "100%",
     paddingHorizontal: 15,
     zIndex: 10,
   },
   searchBox: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    backgroundColor: "white",
     borderRadius: 25,
     height: 50,
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 5,
@@ -398,24 +405,24 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 15,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   rightControls: {
-    position: 'absolute',
+    position: "absolute",
     right: 15,
     top: 110,
     zIndex: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   controlBtn: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     width: 45,
     height: 45,
     borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 5,
     elevation: 5,
@@ -435,7 +442,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  cardWrapper: { position: "absolute", bottom: 100, paddingLeft: 20, zIndex: 10 },
+  cardWrapper: {
+    position: "absolute",
+    bottom: 100,
+    paddingLeft: 20,
+    zIndex: 10,
+  },
   stationCard: {
     backgroundColor: "#1C2E33",
     width: width * 0.7,
