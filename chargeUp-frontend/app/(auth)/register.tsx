@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,14 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Animated,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-// 1. Import the Gradient component
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function RegisterScreen() {
@@ -21,268 +24,523 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const iconAnim = useRef(new Animated.Value(0.6)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 11, useNativeDriver: true }),
+      Animated.spring(iconAnim, { toValue: 1, tension: 90, friction: 7, delay: 150, useNativeDriver: true }),
+    ]).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.07, duration: 2000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const animateBtn = () => {
+    Animated.sequence([
+      Animated.timing(btnScale, { toValue: 0.96, duration: 70, useNativeDriver: true }),
+      Animated.spring(btnScale, { toValue: 1, tension: 200, friction: 10, useNativeDriver: true }),
+    ]).start();
+  };
 
   const handleRegister = async () => {
+    animateBtn();
     if (!name || !email || !password) {
       Alert.alert("Missing Info", "Please fill in all fields to sign up.");
       return;
     }
     try {
-      // 2. Ask memory what role they picked on the very first screen
-      // If it forgets, we default them to a "client" just in case.
       const role = (await AsyncStorage.getItem("userRole")) || "client";
-      console.log("🚦 THE ROLE IN MEMORY IS:", role);
-
-      // 3. Send the new user's info to your Node.js backend
-      // (Again, make sure this IP matches your current Wi-Fi IP!)
-      const response = await fetch(
-        "http://10.159.92.178:5000/api/auth/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, role }),
-        },
-      );
-
+      const response = await fetch("http://10.184.109.178:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role }),
+      });
       const data = await response.json();
-
-      // 4. If the backend says "User created successfully!"
       if (response.ok) {
-        // Save the VIP token so they are logged in automatically
-        if (data.token) {
-          await AsyncStorage.setItem("userToken", data.token);
-        }
-        // ---> 🌟 ADD THIS NEW LINE RIGHT HERE <---
-        // Lock the name they just typed into the "userName" locker!
+        if (data.token) await AsyncStorage.setItem("userToken", data.token);
         await AsyncStorage.setItem("userName", name);
-
         Alert.alert("Welcome!", "Account created successfully.");
-
-        if (role === "host") {
-          router.replace("/host-charger-details");
-        } else {
-          router.replace("/vehicle-details");
-        }
+        router.replace(role === "host" ? "/host-charger-details" : "/vehicle-details");
       } else {
-        // If the email is already taken or password is too short
-        Alert.alert(
-          "Signup Failed",
-          data.message || "Could not create account.",
-        );
+        Alert.alert("Signup Failed", data.message || "Could not create account.");
       }
-    } catch (error) {
-      console.error("Network error:", error);
-      Alert.alert(
-        "Connection Error",
-        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
-      );
+    } catch {
+      Alert.alert("Connection Error", "Could not reach the server.");
     }
   };
 
+  const InputField = ({
+    icon,
+    placeholder,
+    value,
+    onChangeText,
+    keyboardType,
+    autoCapitalize,
+    isPassword,
+    fieldKey,
+  }: any) => {
+    const isFocused = focusedField === fieldKey;
+    const hasValue = value.length > 0;
+
+    return (
+      <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+        <View style={styles.inputIconBox}>
+          <Ionicons
+            name={icon}
+            size={17}
+            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+          />
+        </View>
+        <View style={styles.inputBody}>
+          {(isFocused || hasValue) && (
+            <Text style={[styles.floatLabel, isFocused && styles.floatLabelActive]}>
+              {placeholder}
+            </Text>
+          )}
+          <TextInput
+            style={styles.textInput}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={!isFocused && !hasValue ? placeholder : ""}
+            placeholderTextColor="rgba(255,255,255,0.28)"
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize || "sentences"}
+            secureTextEntry={isPassword && !showPassword}
+            onFocus={() => setFocusedField(fieldKey)}
+            onBlur={() => setFocusedField(null)}
+            selectionColor="#5ECFDA"
+          />
+        </View>
+        {isPassword && (
+          <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+            <Ionicons
+              name={showPassword ? "eye-outline" : "eye-off-outline"}
+              size={18}
+              color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+            />
+          </Pressable>
+        )}
+      </View>
+    );
+  };
+
   return (
-    // 2. Wrap the whole screen in the LinearGradient
     <LinearGradient
       colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
       locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
       style={styles.container}
     >
+      <StatusBar barStyle="light-content" />
+
+      {/* Ambient blobs */}
+      <View style={styles.blob1} />
+      <View style={styles.blob2} />
+
+      {/* Top teal accent stripe */}
+      <View style={styles.topAccent} />
+
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
 
-        <View style={styles.content}>
-          {/* Brand Header */}
-          <Text style={styles.headerTitle}>ChargeUp</Text>
+              {/* ── TOP BAR ── */}
+              <View style={styles.topBar}>
+                <View style={styles.logoChip}>
+                  <Ionicons name="flash" size={14} color="#0E1F26" />
+                </View>
+                <Text style={styles.brandName}>ChargeUp</Text>
+                <View style={styles.badgePill}>
+                  <View style={styles.badgeDot} />
+                  <Text style={styles.badgeText}>EV Network</Text>
+                </View>
+              </View>
 
-          {/* Hero Branding */}
-          <View style={styles.brandHero}>
-            <Ionicons name="flash" size={80} color="white" />
-            <Text style={styles.tagline}>Find, book and pay</Text>
-          </View>
+              {/* ── HERO ── */}
+              <View style={styles.hero}>
+                <Animated.View style={[styles.iconOuter, { transform: [{ scale: pulseAnim }] }]}>
+                  <LinearGradient
+                    colors={["rgba(94,207,218,0.18)", "rgba(94,207,218,0.04)"]}
+                    style={styles.iconGradient}
+                  >
+                    <Animated.View
+                      style={[styles.iconInner, { transform: [{ scale: iconAnim }] }]}
+                    >
+                      <Ionicons name="flash" size={38} color="white" />
+                    </Animated.View>
+                  </LinearGradient>
+                </Animated.View>
 
-          {/* Signup Form */}
-          <View style={styles.form}>
-            <TextInput
-              placeholder="Full Name"
-              placeholderTextColor="#889"
-              style={styles.inputUnderline}
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              placeholder="Email address"
-              placeholderTextColor="#889"
-              style={styles.inputUnderline}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
+                <Text style={styles.heroTitle}>Get Started</Text>
+                <Text style={styles.heroSub}>Create your free ChargeUp account</Text>
+              </View>
 
-            <View style={styles.passwordWrapper}>
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="#889"
-                secureTextEntry
-                style={[styles.inputUnderline, { flex: 1 }]}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <Ionicons
-                name="eye-off-outline"
-                size={20}
-                color="white"
-                style={styles.eyeIcon}
-              />
-            </View>
-          </View>
+              {/* ── GLASS CARD ── */}
+              <View style={styles.card}>
 
-          {/* Main Action Button */}
-          <Pressable style={styles.signupBtn} onPress={handleRegister}>
-            <Text style={styles.signupBtnText}>Signup</Text>
-          </Pressable>
+                {/* Form */}
+                <View style={styles.form}>
+                  <InputField
+                    icon="person-outline"
+                    placeholder="Full Name"
+                    value={name}
+                    onChangeText={setName}
+                    fieldKey="name"
+                  />
+                  <InputField
+                    icon="mail-outline"
+                    placeholder="Email Address"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    fieldKey="email"
+                  />
+                  <InputField
+                    icon="lock-closed-outline"
+                    placeholder="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    isPassword
+                    fieldKey="password"
+                  />
+                </View>
 
-          <Text style={styles.orText}>or</Text>
+                {/* CTA */}
+                <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+                  <Pressable onPress={handleRegister} style={styles.ctaBtn}>
+                    <LinearGradient
+                      colors={["#3ABFCC", "#1E9BAA"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.ctaGradient}
+                    >
+                      <Text style={styles.ctaText}>Create Account</Text>
+                      <View style={styles.ctaArrow}>
+                        <Ionicons name="arrow-forward" size={16} color="#0E4548" />
+                      </View>
+                    </LinearGradient>
+                  </Pressable>
+                </Animated.View>
 
-          {/* Social Options */}
-          <View style={styles.socialDivider}>
-            <View style={styles.line} />
-            <Text style={styles.socialLabel}>Signup with</Text>
-            <View style={styles.line} />
-          </View>
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.divLine} />
+                  <Text style={styles.divLabel}>or continue with</Text>
+                  <View style={styles.divLine} />
+                </View>
 
-          <View style={styles.socialRow}>
-            <FontAwesome name="apple" size={45} color="white" />
-            <FontAwesome name="google" size={42} color="#EA4335" />
-          </View>
+                {/* Social */}
+                <View style={styles.socialRow}>
+                  <Pressable style={styles.socialBtn}>
+                    <FontAwesome5 name="apple" size={20} color="white" />
+                    <Text style={styles.socialText}>Apple</Text>
+                  </Pressable>
+                  <Pressable style={[styles.socialBtn, styles.googleBtn]}>
+                    <FontAwesome5 name="google" size={17} color="#EA4335" />
+                    <Text style={[styles.socialText, { color: "#EA4335" }]}>Google</Text>
+                  </Pressable>
+                </View>
+              </View>
 
-          {/* Footer Toggle */}
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Already have an Account? </Text>
-            <Pressable onPress={() => router.push("/(auth)/login")}>
-              <Text style={styles.loginLink}>Login</Text>
-            </Pressable>
-          </View>
+              {/* ── LOGIN LINK ── */}
+              <View style={styles.loginRow}>
+                <Text style={styles.loginText}>Already have an account?</Text>
+                <Pressable onPress={() => router.push("/(auth)/login")}>
+                  <Text style={styles.loginLink}> Sign In →</Text>
+                </Pressable>
+              </View>
 
-          {/* Legal Disclaimer */}
-          <Text style={styles.legalNotice}>
-            By continuing, you agree to our{" "}
-            <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
-            <Text style={styles.legalLink}>Privacy Policy</Text>.
-          </Text>
-        </View>
+              {/* ── LEGAL — fully visible pill ── */}
+              <View style={styles.legalBox}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={14}
+                  color="#5ECFDA"
+                  style={{ marginRight: 8, marginTop: 1 }}
+                />
+                <Text style={styles.legalText}>
+                  By signing up you agree to our{" "}
+                  <Text style={styles.legalLink}>Terms & Conditions</Text>
+                  {" "}and{" "}
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </Text>
+              </View>
+
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  scroll: {
+    paddingHorizontal: 24,
+    paddingTop: 4,
+    paddingBottom: 28,
   },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 40,
-    alignItems: "center",
-  },
-  headerTitle: {
-    alignSelf: "flex-start",
-    color: "white",
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 30,
-  },
-  brandHero: {
-    alignItems: "center",
-    marginBottom: 50,
-  },
-  tagline: {
-    color: "white",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  form: {
-    width: "100%",
-    marginBottom: 40,
-  },
-  inputUnderline: {
-    borderBottomWidth: 1,
-    borderBottomColor: "white",
-    color: "white",
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 25,
-  },
-  passwordWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  eyeIcon: {
+
+  topAccent: {
     position: "absolute",
-    right: 0,
-    bottom: 35,
+    top: 0, left: 0, right: 0,
+    height: 2,
+    backgroundColor: "#5ECFDA",
+    opacity: 0.65,
   },
-  signupBtn: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 50,
-    marginBottom: 15,
+  blob1: {
+    position: "absolute",
+    width: 300, height: 300,
+    borderRadius: 150,
+    backgroundColor: "rgba(94,207,218,0.055)",
+    top: -100, right: -80,
   },
-  signupBtnText: {
-    color: "white",
-    fontSize: 18,
+  blob2: {
+    position: "absolute",
+    width: 220, height: 220,
+    borderRadius: 110,
+    backgroundColor: "rgba(94,207,218,0.03)",
+    bottom: 100, left: -70,
   },
-  orText: {
-    color: "white",
-    marginBottom: 15,
-  },
-  socialDivider: {
+
+  // Top bar
+  topBar: {
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    marginBottom: 30,
+    marginTop: 10,
+    marginBottom: 22,
   },
-  line: {
+  logoChip: {
+    width: 28, height: 28,
+    borderRadius: 8,
+    backgroundColor: "#5ECFDA",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  brandName: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "700",
+    letterSpacing: 0.4,
     flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.3)",
   },
-  socialLabel: {
-    color: "white",
-    marginHorizontal: 10,
-    fontSize: 14,
-  },
-  socialRow: {
+  badgePill: {
     flexDirection: "row",
-    gap: 40,
     alignItems: "center",
-    marginBottom: 40,
+    backgroundColor: "rgba(94,207,218,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(94,207,218,0.22)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 5,
   },
-  footerRow: {
-    flexDirection: "row",
-    marginBottom: 30,
+  badgeDot: {
+    width: 6, height: 6,
+    borderRadius: 3,
+    backgroundColor: "#5ECFDA",
   },
-  footerText: {
-    color: "white",
-    fontSize: 14,
-  },
-  loginLink: {
-    color: "#7BB1BA",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  legalNotice: {
-    color: "rgba(255,255,255,0.6)",
+  badgeText: {
+    color: "#5ECFDA",
     fontSize: 11,
-    textAlign: "center",
+    fontWeight: "600",
+    letterSpacing: 0.4,
+  },
+
+  // Hero
+  hero: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  iconOuter: {
+    width: 92, height: 92,
+    borderRadius: 46,
+    marginBottom: 14,
+  },
+  iconGradient: {
+    flex: 1,
+    borderRadius: 46,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconInner: {
+    width: 72, height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(94,207,218,0.1)",
+    borderWidth: 1.5,
+    borderColor: "rgba(94,207,218,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroTitle: {
+    color: "white",
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.8,
+    marginBottom: 5,
+  },
+  heroSub: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 13,
+    letterSpacing: 0.2,
+  },
+
+  // Card
+  card: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    padding: 18,
+    marginBottom: 18,
+  },
+
+  // Inputs
+  form: { gap: 10, marginBottom: 18 },
+  inputWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    gap: 10,
+  },
+  inputWrapFocused: {
+    backgroundColor: "rgba(94,207,218,0.07)",
+    borderColor: "rgba(94,207,218,0.4)",
+  },
+  inputIconBox: { width: 20, alignItems: "center" },
+  inputBody: { flex: 1, justifyContent: "center" },
+  floatLabel: {
+    color: "rgba(255,255,255,0.3)",
+    fontSize: 10,
+    fontWeight: "600",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  floatLabelActive: { color: "#5ECFDA" },
+  textInput: {
+    color: "white",
+    fontSize: 15,
+    paddingVertical: 0,
+  },
+  eyeBtn: { padding: 4 },
+
+  // CTA
+  ctaBtn: {
+    borderRadius: 15,
+    overflow: "hidden",
+    marginBottom: 18,
+  },
+  ctaGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 15,
+    gap: 10,
+  },
+  ctaText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  ctaArrow: {
+    width: 28, height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Divider
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+    gap: 10,
+  },
+  divLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.08)" },
+  divLabel: { color: "rgba(255,255,255,0.28)", fontSize: 12, letterSpacing: 0.4 },
+
+  // Social
+  socialRow: { flexDirection: "row", gap: 12 },
+  socialBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+    paddingVertical: 13,
+    borderRadius: 13,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.09)",
+  },
+  googleBtn: {
+    backgroundColor: "rgba(234,67,53,0.05)",
+    borderColor: "rgba(234,67,53,0.18)",
+  },
+  socialText: { color: "white", fontSize: 14, fontWeight: "600" },
+
+  // Login row
+  loginRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  loginText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
+  loginLink: { color: "#5ECFDA", fontSize: 14, fontWeight: "700" },
+
+  // Legal — fully visible tinted pill
+  legalBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "rgba(94,207,218,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(94,207,218,0.14)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  legalText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
     lineHeight: 18,
   },
   legalLink: {
+    color: "#5ECFDA",
+    fontWeight: "700",
     textDecorationLine: "underline",
   },
 });
