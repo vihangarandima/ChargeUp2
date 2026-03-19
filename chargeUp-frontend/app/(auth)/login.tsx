@@ -169,9 +169,13 @@ export default function LoginScreen() {
         if (data.token) await AsyncStorage.setItem("userToken", data.token);
         if (data.user?.name)
           await AsyncStorage.setItem("userName", data.user.name);
-        const role = data.user?.role || "client";
-        await AsyncStorage.setItem("userRole", role);
-        router.replace(role === "host" ? "/host-home" : "/home");
+
+        // 🛑 FIX: Check both data.role AND data.user.role just in case!
+        const serverRole = data.role || data.user?.role;
+        const finalRole = serverRole ? serverRole : "client";
+
+        await AsyncStorage.setItem("userRole", finalRole); // ✅ Fixed here
+        router.replace(finalRole === "host" ? "/host-home" : "/home"); // ✅ Fixed here
       } else {
         Alert.alert(
           "Login Failed",
