@@ -24,7 +24,6 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // Entrance animations
@@ -71,11 +70,14 @@ export default function RegisterScreen() {
     }
     try {
       const role = (await AsyncStorage.getItem("userRole")) || "client";
-      const response = await fetch("http://10.184.109.178:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
-      });
+      const response = await fetch(
+        "http://10.184.109.178:5000/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role }),
+        },
+      );
       const data = await response.json();
       if (response.ok) {
         if (data.token) await AsyncStorage.setItem("userToken", data.token);
@@ -87,7 +89,10 @@ export default function RegisterScreen() {
           router.replace("/vehicle-details");
         }
       } else {
-        Alert.alert("Signup Failed", data.message || "Could not create account.");
+        Alert.alert(
+          "Signup Failed",
+          data.message || "Could not create account.",
+        );
       }
     } catch (error) {
       Alert.alert("Connection Error", "Could not reach the server.");
