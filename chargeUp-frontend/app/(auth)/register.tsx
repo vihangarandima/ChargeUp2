@@ -12,7 +12,7 @@ import {
   Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -299,6 +299,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingTop: 16,
     alignItems: "center",
+    marginTop: 10,
+    marginBottom: 22,
   },
 
   // Header
@@ -394,6 +396,13 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    gap: 10,
   },
   textInput: {
     flex: 1,
@@ -439,7 +448,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 12,
   },
-  signupBtnText: {
+  floatLabelActive: { color: "#5ECFDA" },
+  textInput: {
     color: "white",
     fontSize: 17,
     fontWeight: "600",
