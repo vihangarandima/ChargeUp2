@@ -18,7 +18,16 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
-// 1. Moved InputField OUTSIDE so it doesn't re-render and hide the keyboard
+// 🔥 Firebase Imports
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig"; // Ensure this path points to your actual config file
+
+/**
+ * 💡 InputField Component
+ * We keep this OUTSIDE the main LoginScreen component.
+ * If it was inside, React would re-create this component every time the user types,
+ * which causes the keyboard to constantly flicker and close automatically!
+ */
 const InputField = ({
   icon,
   placeholder,
@@ -36,6 +45,7 @@ const InputField = ({
 
   return (
     <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+      {/* Icon Area */}
       <View style={styles.inputIconBox}>
         <Ionicons
           name={icon}
@@ -43,7 +53,10 @@ const InputField = ({
           color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
         />
       </View>
+
+      {/* Input Area */}
       <View style={styles.inputBody}>
+        {/* Floating Label: Only shows if focused or if there's text typed */}
         {(isFocused || hasValue) && (
           <Text
             style={[styles.floatLabel, isFocused && styles.floatLabelActive]}
@@ -65,6 +78,8 @@ const InputField = ({
           selectionColor="#5ECFDA"
         />
       </View>
+
+      {/* Show/Hide Password Toggle button */}
       {isPassword && (
         <Pressable
           onPress={() => setShowPassword(!showPassword)}
@@ -84,17 +99,21 @@ const InputField = ({
 export default function LoginScreen() {
   const router = useRouter();
 
+  // ── State Management ──
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
+  // ── Animation Values ──
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const iconAnim = useRef(new Animated.Value(0.6)).current;
   const btnScale = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // ── Initial Mount Animations ──
   useEffect(() => {
+    // Run these UI entrance animations all at once when the screen loads
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -116,6 +135,7 @@ export default function LoginScreen() {
       }),
     ]).start();
 
+    // Subtle breathing/pulsing animation for the main logo
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -132,15 +152,16 @@ export default function LoginScreen() {
     ).start();
   }, []);
 
+  // ── Button Press Animation ──
   const animateBtn = () => {
     Animated.sequence([
       Animated.timing(btnScale, {
-        toValue: 0.96,
+        toValue: 0.96, // Shrink slightly
         duration: 70,
         useNativeDriver: true,
       }),
       Animated.spring(btnScale, {
-        toValue: 1,
+        toValue: 1, // Bounce back to normal
         tension: 200,
         friction: 10,
         useNativeDriver: true,
@@ -148,42 +169,50 @@ export default function LoginScreen() {
     ]).start();
   };
 
+  // ── Handle Firebase Login ──
   const handleLogin = async () => {
-    animateBtn();
+    animateBtn(); // Trigger the button bounce
+
+    // 1. Basic Validation
     if (!email || !password) {
       Alert.alert("Missing Info", "Please enter your email and password.");
       return;
     }
+
     try {
-      const response = await fetch(
-        "http://10.184.109.178:5000/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
+      // 2. Firebase Authentication Request
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
       );
-      const data = await response.json();
-      console.log("SERVER RESPONSE:", JSON.stringify(data, null, 2));
-      if (response.ok) {
-        if (data.token) await AsyncStorage.setItem("userToken", data.token);
-        if (data.user?.name)
-          await AsyncStorage.setItem("userName", data.user.name);
+      const user = userCredential.user;
 
-        // 🛑 FIX: Check both data.role AND data.user.role just in case!
-        const serverRole = data.role || data.user?.role;
-        const finalRole = serverRole ? serverRole : "client";
+      console.log("Logged in user:", user.email);
 
-        await AsyncStorage.setItem("userRole", finalRole); // ✅ Fixed here
-        router.replace(finalRole === "host" ? "/host-home" : "/home"); // ✅ Fixed here
+      // 3. Save Session Data Locally
+      // This helps us know the user is logged in next time they open the app
+      await AsyncStorage.setItem("userToken", user.uid);
+      // Fallback to "User" just in case Firebase doesn't return an email string
+      await AsyncStorage.setItem("userName", user.email || "User");
+
+      // 4. Navigate to Home
+      // NOTE: Because Firebase Auth doesn't store 'roles', we are sending everyone to /home for now.
+      router.replace("/home");
+    } catch (error: any) {
+      // 5. Error Handling
+      console.log(error.code, error.message);
+
+      // Map Firebase specific error codes to user-friendly messages
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        Alert.alert("Login Failed", "Invalid email or password.");
       } else {
-        Alert.alert(
-          "Login Failed",
-          data.message || "Invalid email or password.",
-        );
+        Alert.alert("Error", error.message);
       }
-    } catch {
-      Alert.alert("Connection Error", "Could not reach the server.");
     }
   };
 
@@ -195,14 +224,13 @@ export default function LoginScreen() {
     >
       <StatusBar barStyle="light-content" />
 
-      {/* Ambient blobs */}
+      {/* ── Background Elements ── */}
       <View style={styles.blob1} />
       <View style={styles.blob2} />
-
-      {/* Top teal accent stripe */}
       <View style={styles.topAccent} />
 
       <SafeAreaView style={styles.safeArea}>
+        {/* KeyboardAvoidingView prevents the keyboard from covering the inputs */}
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -212,6 +240,7 @@ export default function LoginScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* Entrance Animation Wrapper */}
             <Animated.View
               style={{
                 opacity: fadeAnim,
@@ -230,7 +259,7 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* ── HERO ── */}
+              {/* ── HERO SECTION ── */}
               <View style={styles.hero}>
                 <Animated.View
                   style={[
@@ -259,9 +288,9 @@ export default function LoginScreen() {
                 </Text>
               </View>
 
-              {/* ── GLASS CARD ── */}
+              {/* ── GLASS CARD FORM ── */}
               <View style={styles.card}>
-                {/* Form */}
+                {/* Inputs */}
                 <View style={styles.form}>
                   <InputField
                     icon="mail-outline"
@@ -286,13 +315,13 @@ export default function LoginScreen() {
                   />
                 </View>
 
-                {/* Forgot password */}
+                {/* Forgot Password Row */}
                 <Pressable style={styles.forgotRow}>
                   <Text style={styles.forgotText}>Forgot your password?</Text>
                   <Text style={styles.forgotLink}> Reset it →</Text>
                 </Pressable>
 
-                {/* CTA */}
+                {/* Sign In CTA Button */}
                 <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                   <Pressable onPress={handleLogin} style={styles.ctaBtn}>
                     <LinearGradient
@@ -313,14 +342,14 @@ export default function LoginScreen() {
                   </Pressable>
                 </Animated.View>
 
-                {/* Divider */}
+                {/* Divider Line */}
                 <View style={styles.divider}>
                   <View style={styles.divLine} />
                   <Text style={styles.divLabel}>or continue with</Text>
                   <View style={styles.divLine} />
                 </View>
 
-                {/* Social */}
+                {/* Social Login Buttons (UI Only for now) */}
                 <View style={styles.socialRow}>
                   <Pressable style={styles.socialBtn}>
                     <FontAwesome5 name="apple" size={20} color="white" />
@@ -368,6 +397,7 @@ export default function LoginScreen() {
   );
 }
 
+// ── STYLES ──
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
@@ -377,6 +407,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
 
+  // Ambient UI elements
   topAccent: {
     position: "absolute",
     top: 0,
@@ -405,7 +436,7 @@ const styles = StyleSheet.create({
     left: -70,
   },
 
-  // Top bar
+  // Top bar styling
   topBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -452,7 +483,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  // Hero
+  // Hero section styling
   hero: {
     alignItems: "center",
     marginBottom: 24,
@@ -492,7 +523,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  // Card
+  // Glassmorphism Card
   card: {
     backgroundColor: "rgba(255,255,255,0.04)",
     borderRadius: 24,
@@ -502,7 +533,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // Inputs
+  // Form Inputs
   form: { gap: 10, marginBottom: 10 },
   inputWrap: {
     flexDirection: "row",
@@ -533,11 +564,11 @@ const styles = StyleSheet.create({
   textInput: {
     color: "white",
     fontSize: 15,
-    paddingVertical: 0,
+    paddingVertical: 0, // Fixes misalignment on Android
   },
   eyeBtn: { padding: 4 },
 
-  // Forgot
+  // Forgot Password
   forgotRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -555,7 +586,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // CTA
+  // CTA Sign-In Button
   ctaBtn: {
     borderRadius: 15,
     overflow: "hidden",
@@ -583,7 +614,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Divider
+  // Social Login Divider
   divider: {
     flexDirection: "row",
     alignItems: "center",
@@ -597,7 +628,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  // Social
+  // Social Buttons
   socialRow: { flexDirection: "row", gap: 12 },
   socialBtn: {
     flex: 1,
@@ -617,7 +648,7 @@ const styles = StyleSheet.create({
   },
   socialText: { color: "white", fontSize: 14, fontWeight: "600" },
 
-  // Stats row
+  // Stats row styling
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -649,7 +680,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.08)",
   },
 
-  // Signup link
+  // Signup link styling
   signupRow: {
     flexDirection: "row",
     justifyContent: "center",
