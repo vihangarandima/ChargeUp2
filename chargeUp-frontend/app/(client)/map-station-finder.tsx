@@ -1,506 +1,308 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  ScrollView,
-  Dimensions,
-  ActivityIndicator,
-  TextInput,
-  Platform,
-  Keyboard,
-} from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import * as Location from "expo-location";
+import React from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
+import MapView, { Marker } from 'react-native-maps';
 
-const { width } = Dimensions.get("window");
-
-// Math Formula to calculate distance between two GPS points in Kilometers
-const calculateDistance = (
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-) => {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-export default function MapScreen() {
+export default function StationDetails() {
+  const { stationName, lat, lng, chargerType } = useLocalSearchParams();
   const router = useRouter();
-  const { mode, destLat, destLng, stationName } = useLocalSearchParams();
 
-  const isRouteMode = mode === "route";
+  const latitude = lat ? parseFloat(lat as string) : 6.9067;
+  const longitude = lng ? parseFloat(lng as string) : 79.8707;
 
-  const mapRef = useRef<MapView>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // 🌟 SEPARATED STATE: All for Map, Displayed for Bottom Cards
-  const [allStations, setAllStations] = useState<any[]>([]);
-  const [displayedCards, setDisplayedCards] = useState<any[]>([]);
-
-  const [userLocation, setUserLocation] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStationsAndLocation = async () => {
-      try {
-        // 1. Get stations from your backend
-        const response = await fetch("http://10.146.186.178:5000/api/chargers");
-        const data = await response.json();
-        const dbStations: any[] = data.chargers || data;
-
-        // 2. Get User GPS
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          console.log("Permission denied");
-          setAllStations(dbStations);
-          setDisplayedCards(dbStations);
-          setLoading(false);
-          return;
-        }
-
-        let location = await Location.getCurrentPositionAsync({});
-        const currentLat = location.coords.latitude;
-        const currentLng = location.coords.longitude;
-        setUserLocation({ latitude: currentLat, longitude: currentLng });
-
-        // 3. Calculate distance for ALL stations
-        const stationsWithDistance = dbStations.map((station: any) => {
-          const distance = calculateDistance(
-            currentLat,
-            currentLng,
-            station.location.latitude,
-            station.location.longitude,
-          );
-          return { ...station, distance };
-        });
-
-        // 4. Set ALL stations for the map markers
-        setAllStations(stationsWithDistance);
-
-        // 5. Filter nearest 15km ONLY for the bottom cards
-        const nearbyStations = stationsWithDistance
-          .filter((station: any) => station.distance <= 15)
-          .sort((a: any, b: any) => a.distance - b.distance);
-
-        setDisplayedCards(nearbyStations);
-
-      } catch (error) {
-        console.error("❌ Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStationsAndLocation();
-  }, []);
-
-  const centerOnUser = () => {
-    if (userLocation && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        },
-        1000,
-      );
-    }
-  };
-
-  // 🌟 SEARCH FUNCTIONALITY
-  const handleSearchSubmit = () => {
-    Keyboard.dismiss();
-
-    // If search is empty, go back to showing Nearby Chargers
-    if (searchQuery.trim() === "") {
-      const nearby = allStations
-        .filter((s) => s.distance <= 15)
-        .sort((a, b) => a.distance - b.distance);
-      setDisplayedCards(nearby);
-      return;
-    }
-
-    // Filter ALL stations by Name or Address based on search
-    const lowerQuery = searchQuery.toLowerCase();
-    const searchResults = allStations.filter((station) =>
-      station.fullName?.toLowerCase().includes(lowerQuery) ||
-      station.address?.toLowerCase().includes(lowerQuery)
-    );
-
-    setDisplayedCards(searchResults);
-
-    // Fly camera to the first matched result
-    if (searchResults.length > 0 && mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: searchResults[0].location.latitude,
-        longitude: searchResults[0].location.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      }, 800);
-    }
-  };
-
-  // 🌟 MARKER CLICK FUNCTIONALITY
-  const handleMarkerPress = (station: any) => {
-    // Show ONLY this station in the bottom card
-    setDisplayedCards([station]);
-
-    // Animate map to zoom exactly on this station
-    if (mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: station.location.latitude,
-        longitude: station.location.longitude,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      }, 600);
-    }
-  };
-
-  // Clear search and reset cards
-  const clearSearch = () => {
-    setSearchQuery("");
-    Keyboard.dismiss();
-    const nearby = allStations
-      .filter((s) => s.distance <= 15)
-      .sort((a, b) => a.distance - b.distance);
-    setDisplayedCards(nearby);
-    centerOnUser();
-  };
-
-  if (loading) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <ActivityIndicator size="large" color="#00D1FF" />
-        <Text style={{ marginTop: 10 }}>Loading Map Data...</Text>
-      </View>
-    );
-  }
-
-  // --- Route Mode Output removed for brevity, keep your original block here ---
-  if (isRouteMode) {
-    // Standard Route Mode Code
-    const destLatNum = parseFloat(destLat as string) || 6.9147;
-    const destLngNum = parseFloat(destLng as string) || 79.8543;
-    const userLat = destLatNum - 0.005;
-    const userLng = destLngNum;
-    const routeCoords = [
-      { latitude: userLat, longitude: userLng },
-      { latitude: userLat + 0.001, longitude: userLng },
-      { latitude: userLat + 0.002, longitude: userLng + 0.0005 },
-      { latitude: userLat + 0.003, longitude: userLng + 0.0005 },
-      { latitude: destLatNum, longitude: destLngNum },
-    ];
-    const midLat = (userLat + destLatNum) / 2;
-    const midLng = (userLng + destLngNum) / 2;
-
-    return (
-      <View style={styles.container}>
-        <View style={styles.routeHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.routeBackBtn}>
-            <Ionicons name="chevron-back" size={26} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.routeHeaderTitle}>Route Preview</Text>
-          <View style={{ width: 26 }} />
-        </View>
-        <View style={styles.directionBar}>
-          <Ionicons name="arrow-up" size={24} color="#333" />
-          <Text style={styles.directionText}>
-            Head toward {stationName || "Charging Station"}
-          </Text>
-        </View>
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: midLat,
-            longitude: midLng,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.015,
-          }}
-        >
-          <Marker coordinate={{ latitude: userLat, longitude: userLng }}>
-            <View style={styles.userMarker}>
-              <View style={styles.userMarkerInner} />
-            </View>
-          </Marker>
-          <Marker coordinate={{ latitude: destLatNum, longitude: destLngNum }}>
-            <View style={styles.destMarker}>
-              <Ionicons name="location" size={32} color="#E74C3C" />
-            </View>
-          </Marker>
-          <Polyline coordinates={routeCoords} strokeColor="#4A5ACB" strokeWidth={6} lineDashPattern={[0]} />
-        </MapView>
-      </View>
-    );
-  }
+  // 🌟 DYNAMIC CHARGER TYPE APPLIED HERE (Fallback to Type 2 if missing)
+  const connectors = [
+    { id: '1', type: chargerType || 'Type 2 (Mennekes / IEC 62196-2)', status: 'available' },
+    { id: '2', type: 'CHAdeMO', status: 'unavailable' },
+    { id: '3', type: 'CCS (Combined Charging System)', status: 'unavailable' },
+  ];
 
   return (
     <View style={styles.container}>
-      {/* 🌟 Top Search Bar Overlay */}
-      <View style={styles.searchOverlay}>
-        <View style={styles.searchBox}>
-          <TouchableOpacity>
-            <Ionicons name="menu" size={24} color="#333" />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search here"
-            placeholderTextColor="#888"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-            onSubmitEditing={handleSearchSubmit}
-            autoCorrect={false}
-          />
-
-          {/* Show Clear (X) icon if typing, otherwise Mic */}
-          {searchQuery.length > 0 ? (
-            <TouchableOpacity style={{ marginRight: 15 }} onPress={clearSearch}>
-              <Ionicons name="close-circle" size={20} color="#888" />
-            </TouchableOpacity>
-          ) : (
-             <TouchableOpacity style={{ marginRight: 15 }}>
-              <Ionicons name="mic" size={20} color="#333" />
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity onPress={handleSearchSubmit}>
-            <Ionicons name="search" size={20} color="#333" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Right Side Map Controls */}
-      <View style={styles.rightControls}>
-        <TouchableOpacity style={styles.controlBtn} onPress={clearSearch}>
-          <Ionicons name="refresh" size={22} color="#007AFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.controlBtn} onPress={centerOnUser}>
-          <Ionicons name="locate" size={22} color="#666" />
-        </TouchableOpacity>
-      </View>
-
-      {/* 🌟 THE MAP */}
+      {/* Map Background */}
       <MapView
-        ref={mapRef}
         style={styles.map}
-        showsUserLocation={true}
-        onPress={() => Keyboard.dismiss()}
-        onPanDrag={() => Keyboard.dismiss()}
         initialRegion={{
-          latitude: userLocation ? userLocation.latitude : 6.9271,
-          longitude: userLocation ? userLocation.longitude : 79.8612,
-          latitudeDelta: 0.15,
-          longitudeDelta: 0.15,
+          latitude,
+          longitude,
+          latitudeDelta: 0.015,
+          longitudeDelta: 0.015,
         }}
       >
-        {/* Render ALL stations on the map */}
-        {allStations.map((station) => (
-          <Marker
-            key={station._id}
-            coordinate={{
-              latitude: station.location.latitude,
-              longitude: station.location.longitude,
-            }}
-            title={station.fullName}
-            description={station.distance ? `${station.distance.toFixed(1)} km away` : ""}
-            onPress={() => handleMarkerPress(station)} // 🌟 Added OnPress Event
-          >
-            <View style={styles.stationMarker}>
-              <Ionicons name="flash" size={14} color="white" />
-            </View>
-          </Marker>
-        ))}
+        <Marker coordinate={{ latitude, longitude }}>
+          <View style={styles.markerDot}>
+            <Ionicons name="flash" size={16} color="white" />
+          </View>
+        </Marker>
       </MapView>
 
-      {/* 🌟 Bottom Station Cards */}
-      <View style={styles.cardWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {/* Render ONLY displayed stations in the cards */}
-          {displayedCards.map((station) => (
-            <TouchableOpacity
-              key={station._id}
-              style={styles.stationCard}
-              onPress={() =>
-                router.push({
-                  pathname: "/station-details",
-                  params: {
-                    lat: String(station.location.latitude),
-                    lng: String(station.location.longitude),
-                    distance: station.distance ? String(station.distance.toFixed(1)) : "0",
-                    stationName: station.fullName
-                  },
-                })
-              }
-            >
-              <Text style={styles.cardTitle}>{station.fullName}</Text>
-              <Text style={styles.cardType}>
-                {station.chargerType || "Standard"} Charger
-              </Text>
-              <View style={styles.cardFooter}>
-                <Ionicons name="location" size={14} color="#00D1FF" />
-                <Text style={styles.cardDistance}>
-                  {station.distance ? station.distance.toFixed(1) : "??"} km away
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+      {/* Top Navigation */}
+      <View style={styles.topNav}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.heartBtn}>
+          <Ionicons name="heart-outline" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
 
-          {/* Show this if search yields nothing or no nearby stations */}
-          {displayedCards.length === 0 && (
-             <View style={styles.stationCard}>
-                <Text style={styles.cardTitle}>No chargers found</Text>
-                <Text style={styles.cardDistance}>Try a different search or clear filter.</Text>
-             </View>
-          )}
-        </ScrollView>
+      {/* Bottom Sheet Details */}
+      <View style={styles.bottomSheet}>
+        <BlurView intensity={80} tint="dark" style={styles.blurContent}>
+          <View style={styles.handle} />
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.mainTitle}>{stationName || "EVOCK Charging Station"}</Text>
+
+            <View style={styles.card}>
+              <View style={styles.infoRow}>
+                <Ionicons name="location-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
+                <Text style={styles.infoText}>123 Green Way, Colombo 03</Text>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.infoRow}>
+                <Ionicons name="navigate-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
+                <Text style={styles.infoText}>2.4 km away from your location</Text>
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Available Connectors</Text>
+
+            {connectors.map((item) => (
+              <View key={item.id} style={styles.connectorCard}>
+                <View style={styles.connectorLeft}>
+                  <Ionicons name="flash" size={24} color="#00D1FF" />
+                  <View style={{ marginLeft: 15 }}>
+                    <Text style={styles.connectorType}>{item.type}</Text>
+                    <Text style={styles.connectorPower}>Max 50 kW</Text>
+                  </View>
+                </View>
+
+                <View style={[styles.statusBadge, item.status === 'unavailable' && styles.statusUnavailable]}>
+                  <Text style={[styles.statusText, item.status === 'unavailable' && { color: '#E74C3C' }]}>
+                    {item.status.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Action Buttons */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity 
+              style={styles.routeBtn}
+              onPress={() => router.push({
+                pathname: "/map",
+                params: {
+                  mode: 'route',
+                  destLat: String(latitude),
+                  destLng: String(longitude),
+                  stationName: stationName as string,
+                }
+              })}
+            >
+              <Ionicons name="navigate" size={20} color="white" />
+              <Text style={styles.routeBtnText}>Route</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.bookBtn}
+              onPress={() => router.push({
+                pathname: "/charger-booking",
+                params: {
+                  stationName: stationName as string,
+                  lat: String(latitude),
+                  lng: String(longitude),
+                }
+              })}
+            >
+              <Text style={styles.bookBtnText}>Book Charger</Text>
+            </TouchableOpacity>
+          </View>
+        </BlurView>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
-  map: { width: "100%", height: "100%", position: "absolute" },
-
-  searchOverlay: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 60 : 40,
-    width: "100%",
-    paddingHorizontal: 15,
-    zIndex: 10,
-  },
-  searchBox: {
-    flexDirection: "row",
-    backgroundColor: "white",
-    borderRadius: 25,
-    height: 50,
-    alignItems: "center",
-    paddingHorizontal: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  searchInput: {
+  container: {
     flex: 1,
-    marginLeft: 15,
-    fontSize: 16,
-    color: "#333",
+    backgroundColor: '#1E1E1E',
   },
-  rightControls: {
-    position: "absolute",
-    right: 15,
-    top: 110,
-    zIndex: 10,
-    alignItems: "center",
+  map: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
   },
-  controlBtn: {
-    backgroundColor: "white",
+  topNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 60,
+  },
+  backBtn: {
     width: 45,
     height: 45,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 5,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
-  stationMarker: {
-    backgroundColor: "#E74C3C",
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "white",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+  heartBtn: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cardWrapper: {
-    position: "absolute",
-    bottom: 100,
-    paddingLeft: 20,
-    zIndex: 10,
+  bottomSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '55%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: 'hidden',
   },
-  stationCard: {
-    backgroundColor: "#1C2E33",
-    width: width * 0.7,
-    marginRight: 15,
+  blurContent: {
+    flex: 1,
     padding: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    paddingTop: 12,
   },
-  cardTitle: { color: "white", fontSize: 16, fontWeight: "bold" },
-  cardType: { color: "#00D1FF", fontSize: 12, marginTop: 5 },
-  cardFooter: { flexDirection: "row", alignItems: "center", marginTop: 10 },
-  cardDistance: { color: "rgba(255,255,255,0.6)", fontSize: 11, marginLeft: 5 },
-
-  // Route Styles
-  routeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 15,
   },
-  routeBackBtn: { padding: 4 },
-  routeHeaderTitle: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  directionBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+  mainTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  directionText: { fontSize: 15, color: "#333", marginLeft: 12 },
-  userMarker: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "rgba(66, 133, 244, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  userMarkerInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#4285F4",
+  markerDot: {
+    backgroundColor: '#E74C3C',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: 'white',
   },
-  destMarker: { shadowColor: "#E74C3C", shadowOpacity: 0.4, shadowRadius: 6 },
+  card: {
+    backgroundColor: 'rgba(28, 46, 51, 0.85)',
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
+    flex: 1,
+    marginLeft: 5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginVertical: 12,
+  },
+  sectionTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  connectorCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  connectorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  connectorType: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  connectorPower: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 12,
+  },
+  statusBadge: {
+    backgroundColor: 'rgba(46, 204, 113, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(46, 204, 113, 0.5)',
+  },
+  statusUnavailable: {
+    backgroundColor: 'rgba(231, 76, 60, 0.2)',
+    borderColor: 'rgba(231, 76, 60, 0.5)',
+  },
+  statusText: {
+    color: '#2ECC71',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 15,
+    marginTop: 10,
+  },
+  routeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: '#00D1FF',
+    height: 50,
+    borderRadius: 25,
+    gap: 8,
+  },
+  routeBtnText: {
+    color: '#00D1FF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  bookBtn: {
+    flex: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00D1FF',
+    height: 50,
+    borderRadius: 25,
+  },
+  bookBtnText: {
+    color: '#1E1E1E',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
