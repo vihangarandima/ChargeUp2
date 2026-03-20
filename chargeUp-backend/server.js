@@ -75,9 +75,7 @@ app.post("/api/host-details", async (req, res) => {
   }
 });
 
-// ==========================================
-// VIVA DEMO ROUTE: Verify Charger & Start Session
-// ==========================================
+
 app.post('/api/sessions/start', (req, res) => {
   try {
     const { chargerId } = req.body;
@@ -104,9 +102,7 @@ app.post('/api/sessions/start', (req, res) => {
   }
 });
 
-// ==========================================
-// VIVA DEMO: PAYMENT SPLIT & STOP CHARGING
-// ==========================================
+
 app.post('/api/complete-charging-session', async (req, res) => {
   try {
     const { sessionId, totalAmount, hostId, status } = req.body;
@@ -115,7 +111,6 @@ app.post('/api/complete-charging-session', async (req, res) => {
     console.log(`[HARDWARE LOG] 🛑 STOP SIGNAL RECEIVED`);
     console.log(`[HARDWARE LOG] Turning off Relay for Session: ${sessionId}`);
 
-    // --- THE VIVA MONEY SPLIT LOGIC ---
     // Ensure amount is a number (fallback to 0 if something goes wrong)
     const amount = parseFloat(totalAmount) || 0; 
     const commissionRate = 0.10; // 10% ChargeUp Platform Fee

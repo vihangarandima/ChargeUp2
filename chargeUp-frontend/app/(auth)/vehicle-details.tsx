@@ -28,10 +28,12 @@ const BRANDS = [
   "Hyundai",
   "Nissan",
   "Tesla",
-  "Browns (TAFE)",
-  "Vegamite",
-  "DFSK",
-  "JAC",
+  "Wuling",
+  "Riddara",
+  "IM",
+  "AVATR",
+  "XPENG",
+
 ];
 const MODELS = {
   BYD: ["Atto 3", "Dolphin", "Seal", "e6"],
@@ -39,6 +41,11 @@ const MODELS = {
   Hyundai: ["Kona Electric", "IONIQ 5", "IONIQ 6"],
   Nissan: ["Leaf", "Ariya"],
   Tesla: ["Model 3", "Model Y", "Model S", "Model X"],
+  Wuling:["Binguo"],
+  Riddara: ["RD6"],
+  IM: ["5","6"],
+  AVATR: ["11"],
+  XPENG: ["G6"]
 };
 const PORTS = ["Type 2", "CCS2", "CHAdeMO", "GB/T"];
 
