@@ -8,19 +8,64 @@ import {
   Animated,
   Alert,
   Text,
+  TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import Svg, { Path } from "react-native-svg";
+
+const { width } = Dimensions.get("window");
+
+const TAB_BAR_HEIGHT = Platform.OS === "ios" ? 90 : 72;
+const NOTCH_RADIUS = 38;
+const NOTCH_WIDTH = 88;
+
+// ── SVG Notched Background ────────────────────────────────────────────────────
+function NotchedBackground() {
+  const h = TAB_BAR_HEIGHT;
+  const w = width;
+  const cx = w / 2;
+  const nr = NOTCH_RADIUS;
+  const nw = NOTCH_WIDTH;
+
+  // Draw a rounded rect with a smooth circular notch cut out at the top center
+  const path = `
+    M 30 0
+    L ${cx - nw / 2} 0
+    Q ${cx - nw / 2 + 6} 0 ${cx - nw / 2 + 10} ${8}
+    A ${nr} ${nr} 0 0 0 ${cx + nw / 2 - 10} ${8}
+    Q ${cx + nw / 2 - 6} 0 ${cx + nw / 2} 0
+    L ${w - 30} 0
+    Q ${w} 0 ${w} 30
+    L ${w} ${h}
+    L 0 ${h}
+    L 0 30
+    Q 0 0 30 0
+    Z
+  `;
+
+  return (
+    <Svg
+      width={w}
+      height={h}
+      style={StyleSheet.absoluteFill}
+    >
+      {/* Shadow layer */}
+      <Path
+        d={path}
+        fill="rgba(10,24,32,0.98)"
+        stroke="rgba(94,207,218,0.25)"
+        strokeWidth={1.5}
+      />
+    </Svg>
+  );
+}
 
 // ── Regular Tab Icon ──────────────────────────────────────────────────────────
-function TabIcon({
-  name,
-  focused,
-}: {
-  name: any;
-  focused: boolean;
-}) {
+function TabIcon({ name, focused }: { name: any; focused: boolean }) {
   return (
     <View style={styles.iconWrapper}>
       {focused && <View style={styles.activeDot} />}
@@ -29,13 +74,12 @@ function TabIcon({
   );
 }
 
-// ── Center Switch Role Button ─────────────────────────────────────────────────
-function SwitchRoleButton({ focused }: { focused: boolean }) {
+// ── Custom Tab Bar ────────────────────────────────────────────────────────────
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const router = useRouter();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0.6)).current;
 
-  // Start glow loop
   Animated.loop(
     Animated.sequence([
       Animated.timing(glowAnim, { toValue: 1, duration: 1400, useNativeDriver: true }),
@@ -45,7 +89,6 @@ function SwitchRoleButton({ focused }: { focused: boolean }) {
 
   const handlePressIn = () =>
     Animated.spring(scaleAnim, { toValue: 0.88, useNativeDriver: true, speed: 60 }).start();
-
   const handlePressOut = () =>
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 30 }).start();
 
@@ -66,30 +109,98 @@ function SwitchRoleButton({ focused }: { focused: boolean }) {
     );
   };
 
-  return (
-    <View style={styles.switchWrapper}>
-      {/* Outer animated glow ring */}
-      <Animated.View style={[styles.switchGlowRing, { opacity: glowAnim }]} />
+  const iconMap: Record<string, string> = {
+    home: "home-outline",
+    "map-station-finder": "map-outline",
+    "scan-qr-screen": "qr-code-outline",
+    "client-profile": "person-outline",
+  };
 
-      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-        <Pressable
-          onPress={handleSwitchRole}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          style={styles.switchPressable}
-        >
-          <LinearGradient
-            colors={["#3ABFCC", "#1A9BAA", "#0E7080"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.switchBtn}
+  const leftTabs = ["home", "map-station-finder"];
+  const rightTabs = ["scan-qr-screen", "client-profile"];
+
+  return (
+    <View style={styles.container}>
+
+      {/* ── Floating Switch Button ── */}
+      <View style={styles.floatingBtnWrapper}>
+        {/* White circle backdrop that fills the notch gap */}
+        <View style={styles.btnBackdrop} />
+
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <Pressable
+            onPress={handleSwitchRole}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={styles.switchPressable}
           >
-            <Ionicons name="swap-horizontal" size={22} color="white" />
-          </LinearGradient>
-          {/* Label below */}
-          <Text style={styles.switchLabel}>Switch</Text>
-        </Pressable>
-      </Animated.View>
+            <LinearGradient
+              colors={["#3ABFCC", "#1A9BAA", "#0E7080"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.switchBtn}
+            >
+              <Ionicons name="swap-horizontal" size={26} color="white" />
+            </LinearGradient>
+          </Pressable>
+        </Animated.View>
+
+        <Text style={styles.switchLabel}>Switch</Text>
+      </View>
+
+      {/* ── Notched Bar ── */}
+      <View style={styles.navBar}>
+        <NotchedBackground />
+
+        {/* Left tabs */}
+        {leftTabs.map((routeName) => {
+          const index = state.routes.findIndex((r) => r.name === routeName);
+          const focused = state.index === index;
+          return (
+            <TouchableOpacity
+              key={routeName}
+              style={styles.tabBtn}
+              onPress={() => navigation.navigate(routeName)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconWrapper}>
+                {focused && <View style={styles.activeDot} />}
+                <Ionicons
+                  name={iconMap[routeName] as any}
+                  size={22}
+                  color={focused ? "#5ECFDA" : "#556570"}
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Center gap */}
+        <View style={styles.centerGap} />
+
+        {/* Right tabs */}
+        {rightTabs.map((routeName) => {
+          const index = state.routes.findIndex((r) => r.name === routeName);
+          const focused = state.index === index;
+          return (
+            <TouchableOpacity
+              key={routeName}
+              style={styles.tabBtn}
+              onPress={() => navigation.navigate(routeName)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconWrapper}>
+                {focused && <View style={styles.activeDot} />}
+                <Ionicons
+                  name={iconMap[routeName] as any}
+                  size={22}
+                  color={focused ? "#5ECFDA" : "#556570"}
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -98,100 +209,16 @@ function SwitchRoleButton({ focused }: { focused: boolean }) {
 export default function TabLayout() {
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: "#5ECFDA",
-        tabBarInactiveTintColor: "#556570",
-
-        tabBarStyle: {
-          // Shape
-          borderTopLeftRadius: 30,
-          borderTopRightRadius: 30,
-          overflow: "hidden",
-
-          // Background
-          backgroundColor: "rgba(10,24,32,0.98)",
-
-          // Borders
-          borderTopWidth: 1,
-          borderTopColor: "rgba(94,207,218,0.2)",
-          borderLeftWidth: 1,
-          borderLeftColor: "rgba(94,207,218,0.1)",
-          borderRightWidth: 1,
-          borderRightColor: "rgba(94,207,218,0.1)",
-
-          // Size — taller to give the center button room to float
-          height: Platform.OS === "ios" ? 90 : 72,
-          paddingBottom: Platform.OS === "ios" ? 24 : 8,
-          paddingTop: 10,
-
-          // Position
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-
-          // Shadow
-          shadowColor: "#5ECFDA",
-          shadowOpacity: 0.18,
-          shadowRadius: 22,
-          shadowOffset: { width: 0, height: -4 },
-          elevation: 26,
-        },
-      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      {/* ── 1. HOME ── */}
-      <Tabs.Screen
-        name="home"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="home-outline" focused={focused} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="map-station-finder" />
+      <Tabs.Screen name="scan-qr" options={{ href: null }} />
+      <Tabs.Screen name="scan-qr-screen" />
+      <Tabs.Screen name="client-profile" />
 
-      {/* ── 2. MAP ── */}
-      <Tabs.Screen
-        name="map-station-finder"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="map-outline" focused={focused} />
-          ),
-        }}
-      />
-
-      {/* ── 3. SWITCH ROLE — bold center button ── */}
-      <Tabs.Screen
-        name="scan-qr"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <SwitchRoleButton focused={focused} />
-          ),
-        }}
-      />
-
-      {/* ── 4. QR SCAN ── */}
-      <Tabs.Screen
-        name="scan-qr-screen"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="qr-code-outline" focused={focused} />
-          ),
-        }}
-      />
-
-      {/* ── 5. PROFILE ── */}
-      <Tabs.Screen
-        name="client-profile"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="person-outline" focused={focused} />
-          ),
-        }}
-      />
-
-      {/* ── HIDDEN PAGES ── */}
+      {/* Hidden pages */}
       <Tabs.Screen name="station-details"      options={{ href: null }} />
       <Tabs.Screen name="booking-confirmation" options={{ href: null }} />
       <Tabs.Screen name="charger-booking"      options={{ href: null }} />
@@ -204,8 +231,92 @@ export default function TabLayout() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: TAB_BAR_HEIGHT + 36,   // extra space for floating button above
+    alignItems: "center",
+    overflow: "visible",
+  },
 
-  // Regular icon slot
+  // ── Floating button ──────────────────────────────────────────────────────
+  floatingBtnWrapper: {
+    position: "absolute",
+    top: 0,
+    alignSelf: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  btnBackdrop: {
+    position: "absolute",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#0D1F23",    // matches app background, fills notch gap
+  },
+  glowRing: {
+    position: "absolute",
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    borderWidth: 1.5,
+    borderColor: "#5ECFDA",
+    shadowColor: "#5ECFDA",
+    shadowOpacity: 0.7,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  switchPressable: {
+    alignItems: "center",
+  },
+  switchBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2.5,
+    borderColor: "rgba(255,255,255,0.2)",
+    shadowColor: "#5ECFDA",
+    shadowOpacity: 0.8,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 20,
+  },
+  switchLabel: {
+    color: "#5ECFDA",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
+
+  // ── Nav bar ──────────────────────────────────────────────────────────────
+  navBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: TAB_BAR_HEIGHT,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: Platform.OS === "ios" ? 20 : 6,
+    paddingTop: 10,
+    overflow: "visible",
+  },
+
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  centerGap: {
+    width: NOTCH_WIDTH + 10,
+  },
+
   iconWrapper: {
     alignItems: "center",
     justifyContent: "center",
@@ -223,51 +334,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 0 },
-  },
-
-  // Switch role button — floats above the bar
-  switchWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: -32,
-    width: 72,
-    height: 72,
-  },
-  switchGlowRing: {
-    position: "absolute",
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    borderWidth: 2,
-    borderColor: "#5ECFDA",
-    backgroundColor: "transparent",
-    shadowColor: "#5ECFDA",
-    shadowOpacity: 0.6,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  switchPressable: {
-    alignItems: "center",
-  },
-  switchBtn: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.25)",
-    shadowColor: "#5ECFDA",
-    shadowOpacity: 0.7,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 14,
-  },
-  switchLabel: {
-    color: "#5ECFDA",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    marginTop: 4,
   },
 });

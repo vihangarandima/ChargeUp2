@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
-  ImageBackground,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,16 +36,47 @@ const calculateDistance = (
   return R * c;
 };
 
+// 🌟 FIX: Static top-level map — correct path is ../../assets/images/
+const VEHICLE_IMAGES: Record<string, any> = {
+  // BYD
+  "Atto 3":  require("../../assets/images/Atto-3.png"),
+  Seal:      require("../../assets/images/BYD-Seal.png"),
+  Dolphin:   require("../../assets/images/Dolphine.png"),
+  E6:        require("../../assets/images/E6.png"),
+  // AVATR
+  "11":      require("../../assets/images/AVATR_11.png"),
+  // Binguo
+  Binguo:    require("../../assets/images/Binguo.png"),
+  // IM Motors
+  "6":       require("../../assets/images/IM-6.png"),
+  "5":       require("../../assets/images/IM5.png"),
+  // Hyundai
+  Kona:      require("../../assets/images/Kona.png"),
+  // MG
+  MG4:       require("../../assets/images/MG4.png"),
+  MG5:       require("../../assets/images/MG5.png"),
+  ZS:        require("../../assets/images/ZS.png"),
+  // Tesla
+  "Model Y": require("../../assets/images/Model_Y.png"),
+  "Model 3": require("../../assets/images/Model-3.png"),
+  // Riddara
+  RD6:       require("../../assets/images/Riddara-RD6.png"),
+  // XPENG
+  G6:        require("../../assets/images/XPENG_G6.png"),
+  // Nissan
+  Leaf:      require("../../assets/images/leaf.png"),
+  Ariya:     require("../../assets/images/Ariya.png"),
+};
+
+const getVehicleImage = (model: string) => VEHICLE_IMAGES[model] ?? null;
+
 export default function Dashboard() {
   const router = useRouter();
 
   const [userName, setUserName] = useState("");
-
-  // 🌟 NEW STATE: Vehicle Details from AsyncStorage
   const [vehicleName, setVehicleName] = useState("Loading Vehicle...");
   const [vehicleCapacity, setVehicleCapacity] = useState("--");
-
-  // 🌟 DYNAMIC STATE: Holds the real stations from your MongoDB Backend
+  const [vehicleImageSource, setVehicleImageSource] = useState<any>(null);
   const [nearbyStations, setNearbyStations] = useState<any[]>([]);
   const [loadingStations, setLoadingStations] = useState(true);
 
@@ -64,17 +94,20 @@ export default function Dashboard() {
         const capacity = await AsyncStorage.getItem("vehicleCapacity");
 
         if (brand && model) {
-          setVehicleName(`${brand} ${model}`); // Ex: "BYD Atto 3"
+          setVehicleName(`${brand} ${model}`);
+          setVehicleImageSource(getVehicleImage(model));
         } else {
-          setVehicleName("BYD Seal"); // Fallback if nothing was saved
+          setVehicleName("BYD Seal");
+          setVehicleImageSource(getVehicleImage("Seal"));
         }
 
         if (capacity && capacity !== "Standard") {
-          // If they typed "45", add "kWh". If they typed "45kWh", use it.
-          const formattedCapacity = capacity.toLowerCase().includes("kw") ? capacity : `${capacity}kWh`;
+          const formattedCapacity = capacity.toLowerCase().includes("kw")
+            ? capacity
+            : `${capacity}kWh`;
           setVehicleCapacity(formattedCapacity);
         } else {
-          setVehicleCapacity("85%"); // Fallback default
+          setVehicleCapacity("85%");
         }
       } catch (error) {
         console.error("Failed to load vehicle details", error);
@@ -86,7 +119,6 @@ export default function Dashboard() {
     // 3. Fetch Backend Stations & Calculate Radius
     const fetchNearbyStations = async () => {
       try {
-        // A. Ask user for GPS Permission
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           console.log("Permission denied for location");
@@ -94,22 +126,15 @@ export default function Dashboard() {
           return;
         }
 
-        // B. Get User's Exact Location
         let location = await Location.getCurrentPositionAsync({});
         const currentLat = location.coords.latitude;
         const currentLng = location.coords.longitude;
 
-        // C. Fetch all stations from your Backend Controller
-        // NOTE: Ensure this IP matches your actual backend server IP!
-        const response = await fetch("http://10.146.186.178:5000/api/chargers");
+        const response = await fetch("http://10.159.92.178:5000/api/chargers");
         const data = await response.json();
 
-        // Ensure we are working with an array
-        const dbStations: any[] = Array.isArray(data)
-          ? data
-          : data.chargers || [];
+        const dbStations: any[] = Array.isArray(data) ? data : data.chargers || [];
 
-        // D. Calculate exact distance for every station in the database
         const stationsWithDistance = dbStations.map((station: any) => {
           const distance = calculateDistance(
             currentLat,
@@ -120,7 +145,6 @@ export default function Dashboard() {
           return { ...station, distance };
         });
 
-        // E. Filter stations within 15km, sort by closest, and keep the top 3
         const filteredStations = stationsWithDistance
           .filter((station: any) => station.distance <= 15)
           .sort((a: any, b: any) => a.distance - b.distance)
@@ -138,11 +162,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <ImageBackground
-      source={require("../../assets/images/car_charging.jpg")}
-      style={styles.background}
-      imageStyle={{ opacity: 0.3 }}
-    >
+    <View style={styles.background}>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -174,19 +194,23 @@ export default function Dashboard() {
           <View style={styles.vehicleHeader}>
             <View style={styles.vehicleLabel}>
               <Ionicons name="flash" size={16} color="#00D1FF" />
-              {/* 🌟 DYNAMIC VEHICLE NAME */}
               <Text style={styles.vehicleLabelText}>{vehicleName}</Text>
             </View>
-            {/* 🌟 DYNAMIC BATTERY CAPACITY */}
             <Text style={styles.batteryPercentage}>{vehicleCapacity}</Text>
           </View>
-          <Image
-            source={{
-              uri: "https://www.byd.com/content/dam/byd-site/overseas/products/seal/seal-white.png",
-            }}
-            style={styles.vehicleImage}
-            resizeMode="contain"
-          />
+
+          {/* 🌟 Uniform fixed container — every car gets the exact same 160px black box */}
+          <View style={styles.vehicleImageContainer}>
+            {vehicleImageSource ? (
+              <Image
+                source={vehicleImageSource}
+                style={styles.vehicleImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Ionicons name="car-outline" size={60} color="#00D1FF" />
+            )}
+          </View>
         </View>
 
         {/* ── 3. QUICK SEARCH ── */}
@@ -215,7 +239,6 @@ export default function Dashboard() {
           </View>
         ) : nearbyStations.length > 0 ? (
           nearbyStations.map((station, index) => {
-            // Rough time estimate to drive there (~40km/h average city speed)
             const timeMins = Math.max(
               1,
               Math.round((station.distance / 40) * 60),
@@ -227,8 +250,6 @@ export default function Dashboard() {
                   <Text style={styles.stationName} numberOfLines={1}>
                     {station.fullName}
                   </Text>
-
-                  {/* Assuming newly created stations are Available by default */}
                   <View style={styles.statusBadge}>
                     <View style={styles.dot} />
                     <Text style={styles.statusText}>Available</Text>
@@ -239,8 +260,7 @@ export default function Dashboard() {
                   <Ionicons name="location" size={14} color="#00D1FF" />
                   <Text style={styles.detailText}>
                     {" "}
-                    {station.distance ? station.distance.toFixed(1) : "0"} km
-                    away
+                    {station.distance ? station.distance.toFixed(1) : "0"} km away
                   </Text>
 
                   <Ionicons
@@ -263,7 +283,6 @@ export default function Dashboard() {
                   </Text>
                 </View>
 
-                {/* Fallback to fake rating since backend doesn't support reviews yet */}
                 <Text style={styles.ratingText}>⭐ 4.8 (New Station)</Text>
 
                 <View style={styles.cardActions}>
@@ -300,7 +319,7 @@ export default function Dashboard() {
           </View>
         )}
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -392,10 +411,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
+
+  // 🌟 Uniform container — every car gets the exact same 160px black box
+  vehicleImageContainer: {
+    width: "100%",
+    height: 160,
+    marginTop: 14,
+    borderRadius: 12,
+    backgroundColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
   vehicleImage: {
     width: "100%",
-    height: 140,
-    marginVertical: 10,
+    height: "100%",
   },
 
   // ── QUICK SEARCH ────────────────────────────
