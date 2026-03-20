@@ -24,12 +24,15 @@ const { width, height } = Dimensions.get("window");
 export default function ProfileScreen() {
   const router = useRouter();
 
+  // ── STATE VARIABLES ──
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userPhone, setUserPhone] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [userPhoto, setUserPhoto] = useState(null); // Fixed: Now inside the component
   const [isLoading, setIsLoading] = useState(true);
 
+  // ── ANIMATION REFS ──
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
   const avatarScale = useRef(new Animated.Value(0.6)).current;
@@ -39,7 +42,7 @@ export default function ProfileScreen() {
   const glowAnim = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
-    // Staggered entrance
+    // Entrance Animations
     Animated.stagger(80, [
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -73,7 +76,7 @@ export default function ProfileScreen() {
       ]),
     ]).start();
 
-    // Glow pulse
+    // Loop Animations
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
@@ -89,7 +92,6 @@ export default function ProfileScreen() {
       ]),
     ).start();
 
-    // Avatar breathe
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -120,11 +122,11 @@ export default function ProfileScreen() {
           return;
         }
 
-        const response = await fetch(API_BASE + "/api/auth/profile", {
+        const response = await fetch(`${API_BASE}/api/auth/profile`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -135,6 +137,7 @@ export default function ProfileScreen() {
           if (data.email) setUserEmail(data.email);
           if (data.phone) setUserPhone(data.phone);
           if (data.role) setUserRole(data.role);
+          if (data.profileImage) setUserPhoto(data.profileImage);
         }
       } catch (error) {
         console.error("Profile fetch error:", error);
@@ -231,7 +234,7 @@ export default function ProfileScreen() {
         backgroundColor="transparent"
       />
 
-      {/* Base gradient */}
+      {/* Base Gradient Background */}
       <LinearGradient
         colors={["#060E14", "#101922", "#15252E", "#0E4548"]}
         locations={[0, 0.3, 0.65, 1]}
@@ -246,12 +249,10 @@ export default function ProfileScreen() {
         ]}
         pointerEvents="none"
       >
-        
-        {/* Glow under the car */}
         <Animated.View style={[styles.carGlow, { opacity: glowAnim }]} />
       </Animated.View>
 
-      {/* Dark overlay so text stays readable */}
+      {/* Dark readable overlay */}
       <LinearGradient
         colors={[
           "rgba(6,14,20,0.65)",
@@ -264,7 +265,6 @@ export default function ProfileScreen() {
         pointerEvents="none"
       />
 
-      {/* Teal top stripe */}
       <View style={styles.topAccent} />
 
       <SafeAreaView style={styles.safeArea}>
@@ -290,7 +290,6 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* ── SPACER so car image is visible ── */}
             <View style={styles.heroSpacer} />
 
             {/* ── PROFILE IDENTITY BLOCK ── */}
@@ -300,7 +299,6 @@ export default function ProfileScreen() {
                 { transform: [{ scale: avatarScale }] },
               ]}
             >
-              {/* Big Avatar */}
               <Animated.View
                 style={[
                   styles.avatarRing,
@@ -311,25 +309,29 @@ export default function ProfileScreen() {
                   colors={["#3ABFCC", "#1A9BAA", "#0E7080"]}
                   style={styles.avatarGradient}
                 >
-                  <Text style={styles.avatarInitials}>
-                    {getInitials(userName)}
-                  </Text>
+                  {userPhoto ? (
+                    <Image
+                      source={{ uri: userPhoto }}
+                      style={styles.avatarImage}
+                    />
+                  ) : (
+                    <Text style={styles.avatarInitials}>
+                      {getInitials(userName)}
+                    </Text>
+                  )}
                 </LinearGradient>
               </Animated.View>
 
-              {/* Camera edit button */}
               <Pressable style={styles.editAvatarBtn}>
                 <Ionicons name="camera" size={14} color="white" />
               </Pressable>
 
-              {/* Name */}
               <Text style={styles.profileName}>
                 {isLoading && !userName
                   ? "Loading..."
                   : userName || "Your Name"}
               </Text>
 
-              {/* Role chip */}
               <View style={[styles.roleChip, isHost && styles.roleChipGold]}>
                 <MaterialCommunityIcons
                   name={isHost ? "ev-station" : "car-electric"}
@@ -343,9 +345,8 @@ export default function ProfileScreen() {
                 </Text>
               </View>
 
-              {/* Email & phone */}
               <View style={styles.contactRow}>
-                {userEmail ? (
+                {userEmail && (
                   <View style={styles.contactItem}>
                     <Ionicons
                       name="mail-outline"
@@ -354,8 +355,8 @@ export default function ProfileScreen() {
                     />
                     <Text style={styles.contactText}>{userEmail}</Text>
                   </View>
-                ) : null}
-                {userPhone ? (
+                )}
+                {userPhone && (
                   <View style={styles.contactItem}>
                     <Ionicons
                       name="call-outline"
@@ -364,7 +365,7 @@ export default function ProfileScreen() {
                     />
                     <Text style={styles.contactText}>{userPhone}</Text>
                   </View>
-                ) : null}
+                )}
               </View>
             </Animated.View>
 
@@ -395,94 +396,61 @@ export default function ProfileScreen() {
               ))}
             </View>
 
-            {/* ── MENU SECTION ── */}
             <View style={styles.sectionHeader}>
               <View style={styles.sectionLine} />
               <Text style={styles.sectionTitle}>Account</Text>
               <View style={styles.sectionLine} />
             </View>
 
+            {/* ── MENU LIST ── */}
             <View style={styles.menuList}>
-              {menuItems.map((item, index) => {
-                const itemScale = useRef(new Animated.Value(1)).current;
-                return (
-                  <Animated.View
-                    key={index}
-                    style={{ transform: [{ scale: itemScale }] }}
+              {menuItems.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={item.onPress}
+                  style={[
+                    styles.menuItem,
+                    item.danger && styles.menuItemDanger,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.menuIconWrap,
+                      {
+                        backgroundColor: item.color + "15",
+                        borderColor: item.color + "28",
+                      },
+                    ]}
                   >
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={item.onPress}
-                      onPressIn={() =>
-                        Animated.timing(itemScale, {
-                          toValue: 0.97,
-                          duration: 60,
-                          useNativeDriver: true,
-                        }).start()
-                      }
-                      onPressOut={() =>
-                        Animated.spring(itemScale, {
-                          toValue: 1,
-                          tension: 200,
-                          friction: 10,
-                          useNativeDriver: true,
-                        }).start()
-                      }
+                    <Ionicons name={item.icon} size={19} color={item.color} />
+                  </View>
+                  <View style={styles.menuTextWrap}>
+                    <Text
                       style={[
-                        styles.menuItem,
-                        (item as any).danger && styles.menuItemDanger,
+                        styles.menuLabel,
+                        item.danger && { color: "#FF6B6B" },
                       ]}
                     >
-                      {/* Left icon */}
-                      <View
-                        style={[
-                          styles.menuIconWrap,
-                          {
-                            backgroundColor: item.color + "15",
-                            borderColor: item.color + "28",
-                          },
-                        ]}
-                      >
-                        <Ionicons
-                          name={item.icon}
-                          size={19}
-                          color={item.color}
-                        />
-                      </View>
-
-                      {/* Text block */}
-                      <View style={styles.menuTextWrap}>
-                        <Text
-                          style={[
-                            styles.menuLabel,
-                            (item as any).danger && { color: "#FF6B6B" },
-                          ]}
-                        >
-                          {item.label}
-                        </Text>
-                        <Text style={styles.menuDesc}>{item.desc}</Text>
-                      </View>
-
-                      {/* Right chevron */}
-                      <View
-                        style={[
-                          styles.menuChevronBox,
-                          { backgroundColor: item.color + "12" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="chevron-forward"
-                          size={14}
-                          color={(item as any).danger ? "#FF6B6B" : item.color}
-                        />
-                      </View>
-                    </TouchableOpacity>
-                  </Animated.View>
-                );
-              })}
+                      {item.label}
+                    </Text>
+                    <Text style={styles.menuDesc}>{item.desc}</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.menuChevronBox,
+                      { backgroundColor: item.color + "12" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="chevron-forward"
+                      size={14}
+                      color={item.danger ? "#FF6B6B" : item.color}
+                    />
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
 
-            {/* ── VERSION FOOTER ── */}
             <View style={styles.footer}>
               <Ionicons name="flash" size={10} color="rgba(94,207,218,0.3)" />
               <Text style={styles.footerText}>
@@ -500,7 +468,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   scrollContent: { paddingHorizontal: 22, paddingBottom: 120 },
-
   topAccent: {
     position: "absolute",
     top: 0,
@@ -511,8 +478,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     zIndex: 10,
   },
-
-  // EV Background
   evBgContainer: {
     position: "absolute",
     top: -height * 0.1,
@@ -521,11 +486,7 @@ const styles = StyleSheet.create({
     height: height * 0.52,
     zIndex: 0,
   },
-  evBgImage: {
-    width: "100%",
-    height: "100%",
-    opacity: 0.28,
-  },
+  evBgImage: { width: "100%", height: "100%", opacity: 0.28 },
   carGlow: {
     position: "absolute",
     bottom: -8,
@@ -537,16 +498,12 @@ const styles = StyleSheet.create({
     shadowColor: "#5ECFDA",
     shadowOpacity: 1,
     shadowRadius: 32,
-    shadowOffset: { width: 0, height: 0 },
     elevation: 14,
   },
-
-  // Top bar
   topBar: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,
-    marginBottom: 0,
     zIndex: 5,
   },
   logoChip: {
@@ -558,13 +515,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 8,
   },
-  brandName: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "700",
-    letterSpacing: 0.4,
-    flex: 1,
-  },
+  brandName: { color: "white", fontSize: 20, fontWeight: "700", flex: 1 },
   badgePill: {
     flexDirection: "row",
     alignItems: "center",
@@ -583,16 +534,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#5ECFDA",
   },
   badgeText: { color: "#5ECFDA", fontSize: 11, fontWeight: "600" },
-
-  // Hero spacer — let the car show
   heroSpacer: { height: height * 0.12 },
-
-  // Identity block
-  identityBlock: {
-    alignItems: "center",
-    marginBottom: 20,
-    zIndex: 5,
-  },
+  identityBlock: { alignItems: "center", marginBottom: 20, zIndex: 5 },
   avatarRing: {
     width: 150,
     height: 150,
@@ -601,10 +544,6 @@ const styles = StyleSheet.create({
     borderColor: "rgba(94,207,218,0.6)",
     padding: 4,
     marginBottom: 4,
-    shadowColor: "#5ECFDA",
-    shadowOpacity: 0.7,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 0 },
     elevation: 16,
   },
   avatarGradient: {
@@ -613,12 +552,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarInitials: {
-    color: "white",
-    fontSize: 52,
-    fontWeight: "900",
-    letterSpacing: -3,
-  },
+  avatarInitials: { color: "white", fontSize: 52, fontWeight: "900" },
+  avatarImage: { width: "100%", height: "100%", borderRadius: 75 },
   editAvatarBtn: {
     width: 32,
     height: 32,
@@ -632,16 +567,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     zIndex: 10,
   },
-
   profileName: {
     color: "white",
     fontSize: 26,
     fontWeight: "800",
-    letterSpacing: -0.8,
     marginBottom: 10,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
   },
   roleChip: {
     flexDirection: "row",
@@ -660,12 +590,9 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,200,80,0.35)",
   },
   roleChipText: { color: "#5ECFDA", fontSize: 13, fontWeight: "700" },
-
   contactRow: { gap: 6, alignItems: "center" },
   contactItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   contactText: { color: "rgba(255,255,255,0.5)", fontSize: 13 },
-
-  // Stats
   statsRow: {
     flexDirection: "row",
     backgroundColor: "rgba(255,255,255,0.04)",
@@ -674,23 +601,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 16,
     marginBottom: 28,
-    zIndex: 5,
   },
   statItem: { flex: 1, alignItems: "center" },
-  statNum: {
-    color: "#5ECFDA",
-    fontSize: 15,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-  statLabel: {
-    color: "rgba(255,255,255,0.35)",
-    fontSize: 10,
-    textAlign: "center",
-  },
+  statNum: { color: "#5ECFDA", fontSize: 15, fontWeight: "800" },
+  statLabel: { color: "rgba(255,255,255,0.35)", fontSize: 10 },
   statsSep: { width: 1, backgroundColor: "rgba(255,255,255,0.07)" },
-
-  // Section divider
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -706,11 +621,8 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.35)",
     fontSize: 11,
     fontWeight: "700",
-    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
-
-  // Menu
   menuList: { gap: 10, marginBottom: 30 },
   menuItem: {
     flexDirection: "row",
@@ -736,13 +648,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   menuTextWrap: { flex: 1 },
-  menuLabel: {
-    color: "white",
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  menuDesc: { color: "rgba(255,255,255,0.35)", fontSize: 12, lineHeight: 16 },
+  menuLabel: { color: "white", fontSize: 15, fontWeight: "600" },
+  menuDesc: { color: "rgba(255,255,255,0.35)", fontSize: 12 },
   menuChevronBox: {
     width: 28,
     height: 28,
@@ -750,8 +657,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // Footer
   footer: {
     flexDirection: "row",
     alignItems: "center",
