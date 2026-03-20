@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from "expo-location"; // 🌟 Required to get user's GPS
+import * as Location from "expo-location";
 
 const { width } = Dimensions.get("window");
 
@@ -42,6 +42,10 @@ export default function Dashboard() {
 
   const [userName, setUserName] = useState("");
 
+  // 🌟 NEW STATE: Vehicle Details from AsyncStorage
+  const [vehicleName, setVehicleName] = useState("Loading Vehicle...");
+  const [vehicleCapacity, setVehicleCapacity] = useState("--");
+
   // 🌟 DYNAMIC STATE: Holds the real stations from your MongoDB Backend
   const [nearbyStations, setNearbyStations] = useState<any[]>([]);
   const [loadingStations, setLoadingStations] = useState(true);
@@ -52,7 +56,34 @@ export default function Dashboard() {
       if (name) setUserName(name);
     });
 
-    // 🌟 2. Fetch Backend Stations & Calculate Radius
+    // 2. Load Vehicle Details
+    const loadVehicleDetails = async () => {
+      try {
+        const brand = await AsyncStorage.getItem("vehicleBrand");
+        const model = await AsyncStorage.getItem("vehicleModel");
+        const capacity = await AsyncStorage.getItem("vehicleCapacity");
+
+        if (brand && model) {
+          setVehicleName(`${brand} ${model}`); // Ex: "BYD Atto 3"
+        } else {
+          setVehicleName("BYD Seal"); // Fallback if nothing was saved
+        }
+
+        if (capacity && capacity !== "Standard") {
+          // If they typed "45", add "kWh". If they typed "45kWh", use it.
+          const formattedCapacity = capacity.toLowerCase().includes("kw") ? capacity : `${capacity}kWh`;
+          setVehicleCapacity(formattedCapacity);
+        } else {
+          setVehicleCapacity("85%"); // Fallback default
+        }
+      } catch (error) {
+        console.error("Failed to load vehicle details", error);
+      }
+    };
+
+    loadVehicleDetails();
+
+    // 3. Fetch Backend Stations & Calculate Radius
     const fetchNearbyStations = async () => {
       try {
         // A. Ask user for GPS Permission
@@ -68,11 +99,12 @@ export default function Dashboard() {
         const currentLat = location.coords.latitude;
         const currentLng = location.coords.longitude;
 
-        // C. Fetch all stations from your Backend Controller (getAllChargers)
-        const response = await fetch("http://10.146.186.178:5000/api/chargers");
+        // C. Fetch all stations from your Backend Controller
+        // NOTE: Ensure this IP matches your actual backend server IP!
+        const response = await fetch("http://10.159.92.178:5000/api/chargers");
         const data = await response.json();
 
-        // Ensure we are working with an array (matches your controller setup)
+        // Ensure we are working with an array
         const dbStations: any[] = Array.isArray(data)
           ? data
           : data.chargers || [];
@@ -142,9 +174,11 @@ export default function Dashboard() {
           <View style={styles.vehicleHeader}>
             <View style={styles.vehicleLabel}>
               <Ionicons name="flash" size={16} color="#00D1FF" />
-              <Text style={styles.vehicleLabelText}>BYD Seal</Text>
+              {/* 🌟 DYNAMIC VEHICLE NAME */}
+              <Text style={styles.vehicleLabelText}>{vehicleName}</Text>
             </View>
-            <Text style={styles.batteryPercentage}>85%</Text>
+            {/* 🌟 DYNAMIC BATTERY CAPACITY */}
+            <Text style={styles.batteryPercentage}>{vehicleCapacity}</Text>
           </View>
           <Image
             source={{
