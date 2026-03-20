@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   content: { paddingHorizontal: 25, paddingTop: 20, paddingBottom: 40 },
   brandHeader: { marginBottom: 12 },
-  brandTitle: { color: 'white', fontSize: 28, fontWeight: 'bold' },
+  brandTitle: { color: 'white', fontSize: 24, fontWeight: 'bold' },
   controlRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   notificationBtn: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 20 },
   badge: { position: 'absolute', top: 6, right: 6, backgroundColor: '#555', width: 14, height: 14, borderRadius: 7, justifyContent: 'center', alignItems: 'center' },
