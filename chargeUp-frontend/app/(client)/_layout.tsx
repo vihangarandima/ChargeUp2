@@ -22,3 +22,11 @@ const { width } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = Platform.OS === "ios" ? 90 : 72;
 const NOTCH_RADIUS = 38;
 const NOTCH_WIDTH = 88;
+
+// ── SVG Notched Background ────────────────────────────────────────────────────
+function NotchedBackground() {
+  const h = TAB_BAR_HEIGHT;
+  const w = width;
+  const cx = w / 2;
+  const nr = NOTCH_RADIUS;
+  const nw = NOTCH_WIDTH;
