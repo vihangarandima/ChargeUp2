@@ -63,3 +63,13 @@ function NotchedBackground() {
       </Svg>
     );
   }
+
+// ── Regular Tab Icon ──────────────────────────────────────────────────────────
+function TabIcon({ name, focused }: { name: any; focused: boolean }) {
+  return (
+    <View style={styles.iconWrapper}>
+      {focused && <View style={styles.activeDot} />}
+      <Ionicons name={name} size={22} color={focused ? "#5ECFDA" : "#556570"} />
+    </View>
+  );
+}
