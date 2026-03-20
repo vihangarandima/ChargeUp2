@@ -19,12 +19,13 @@ import md5 from "md5";
 
 const MERCHANT_ID = "1234373";
 const MERCHANT_SECRET = "NjkyNzU0MjMwMjk5NTIyNDYxNTM3MTcyMjU1NjQzNzcxMjAxODU2";
-const BACKEND_URL = "http://10.184.109.178:5000";
+const BACKEND_URL = "http://192.168.8.158:5000";
 
 export default function PaymentPage() {
   const router = useRouter();
 
-  const { amount, sessionId, date, time, duration } = useLocalSearchParams();
+  // Added chargerId here to link the payment to the host
+  const { amount, sessionId, date, time, duration, chargerId } = useLocalSearchParams();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPayHere, setShowPayHere] = useState(false);
@@ -80,10 +81,16 @@ export default function PaymentPage() {
       setIsProcessing(true);
 
       try {
-        await fetch(`${BACKEND_URL}/api/stop-charging`, {
+        // Updated fetch request to talk to our new Split Payment logic
+        await fetch(`${BACKEND_URL}/api/complete-charging-session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId: safeSessionId, status: "paid" }),
+          body: JSON.stringify({ 
+            sessionId: safeSessionId, 
+            totalAmount: displayAmount, 
+            hostId: chargerId || "HOST_123", // Links payment to Host
+            status: "paid" 
+          }),
         });
       } catch (error) {
         console.error("Hardware Stop Request Failed:", error);
@@ -314,3 +321,4 @@ const styles = StyleSheet.create({
   },
   modalTitle: { color: "white", marginLeft: 15, fontSize: 18, fontWeight: "bold" },
 });
+

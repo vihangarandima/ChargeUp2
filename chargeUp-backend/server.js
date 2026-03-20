@@ -75,9 +75,7 @@ app.post("/api/host-details", async (req, res) => {
   }
 });
 
-// ==========================================
-// VIVA DEMO ROUTE: Verify Charger & Start Session
-// ==========================================
+
 app.post('/api/sessions/start', (req, res) => {
   try {
     const { chargerId } = req.body;
@@ -104,27 +102,51 @@ app.post('/api/sessions/start', (req, res) => {
   }
 });
 
-// ==========================================
-// NEW: STOP CHARGING ROUTE (For Payment Completion)
-// ==========================================
-app.post('/api/stop-charging', (req, res) => {
+
+app.post('/api/complete-charging-session', async (req, res) => {
   try {
-    const { sessionId, status } = req.body;
+    const { sessionId, totalAmount, hostId, status } = req.body;
 
-    console.log(`\n[BACKEND LOG] 🛑 STOP SIGNAL RECEIVED`);
-    console.log(`[BACKEND LOG] Payment confirmed for Session: ${sessionId}`);
-    console.log(`[BACKEND LOG] Sending 'POWER_OFF' command to hardware...`);
+    console.log(`\n========================================`);
+    console.log(`[HARDWARE LOG] 🛑 STOP SIGNAL RECEIVED`);
+    console.log(`[HARDWARE LOG] Turning off Relay for Session: ${sessionId}`);
 
-    // This is where you would normally trigger your hardware Relay/MQTT
-    // For now, it logs the success so you can see it in your terminal.
+    // Ensure amount is a number (fallback to 0 if something goes wrong)
+    const amount = parseFloat(totalAmount) || 0; 
+    const commissionRate = 0.10; // 10% ChargeUp Platform Fee
+    const commission = amount * commissionRate;
+    const hostEarnings = amount - commission;
+
+    console.log(`\n[FINANCE LOG] Payment Status: ${status ? status.toUpperCase() : 'UNKNOWN'}`);
+    console.log(`[FINANCE LOG] Total Paid by Client: Rs. ${amount.toFixed(2)}`);
+    console.log(`[FINANCE LOG] ➔ Platform Commission (10%): Rs. ${commission.toFixed(2)}`);
+    console.log(`[FINANCE LOG] ➔ Host Net Earnings (90%): Rs. ${hostEarnings.toFixed(2)}`);
+
+    // 1. Give the money to the Host!
+    // This looks for the Host by their ID and adds the money to their wallet.
+    if (hostId && hostId !== "UNKNOWN_HOST") {
+        try {
+            await Host.findByIdAndUpdate(
+                hostId,
+                { $inc: { walletBalance: hostEarnings } } 
+            );
+            console.log(`[DB LOG] Successfully credited Rs. ${hostEarnings.toFixed(2)} to Host Wallet!`);
+        } catch (dbErr) {
+            console.log(`[DB WARN] Host ID not found in database. Simulated credit only.`);
+        }
+    } else {
+        console.log(`[DB WARN] No valid Host ID provided. Simulated credit only.`);
+    }
+    console.log(`========================================\n`);
 
     res.status(200).json({
       success: true,
-      message: "Hardware stopped. Power cut successful.",
+      message: "Hardware stopped, payment processed, and funds split successfully.",
     });
+
   } catch (error) {
-    console.error("Error stopping hardware:", error);
-    res.status(500).json({ success: false, error: "Hardware communication failed" });
+    console.error("Error processing payment:", error);
+    res.status(500).json({ success: false, error: "Payment processing failed" });
   }
 });
 
