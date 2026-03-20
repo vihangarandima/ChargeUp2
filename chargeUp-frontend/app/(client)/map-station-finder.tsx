@@ -6,17 +6,19 @@ import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 
 export default function StationDetails() {
+  // 🌟 1. Grab chargerType from the URL params passed by the Map Screen
   const { stationName, lat, lng, chargerType } = useLocalSearchParams();
   const router = useRouter();
 
   const latitude = lat ? parseFloat(lat as string) : 6.9067;
   const longitude = lng ? parseFloat(lng as string) : 79.8707;
 
-  // 🌟 DYNAMIC CHARGER TYPE APPLIED HERE (Fallback to Type 2 if missing)
+  // 🌟 2. Dynamically set the connector type from the database (fallback to Type 2)
+  const dynamicChargerType = chargerType ? (chargerType as string) : 'Type 2 / Unknown';
+
+  // 🌟 3. Replace the hardcoded list with the real database data
   const connectors = [
-    { id: '1', type: chargerType || 'Type 2 (Mennekes / IEC 62196-2)', status: 'available' },
-    { id: '2', type: 'CHAdeMO', status: 'unavailable' },
-    { id: '3', type: 'CCS (Combined Charging System)', status: 'unavailable' },
+    { id: '1', type: dynamicChargerType, status: 'available' },
   ];
 
   return (
@@ -38,89 +40,46 @@ export default function StationDetails() {
         </Marker>
       </MapView>
 
-      {/* Top Navigation */}
-      <View style={styles.topNav}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.heartBtn}>
-          <Ionicons name="heart-outline" size={24} color="white" />
-        </TouchableOpacity>
+      {/* ChargeUp Header over map */}
+      <View style={styles.topHeader}>
+        <Text style={styles.brandTitle}>ChargeUp</Text>
       </View>
 
-      {/* Bottom Sheet Details */}
+      {/* Bottom Sheet */}
       <View style={styles.bottomSheet}>
         <BlurView intensity={80} tint="dark" style={styles.blurContent}>
           <View style={styles.handle} />
+          <Text style={styles.mainTitle}>{stationName || "Charging Station"}</Text>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.mainTitle}>{stationName || "EVOCK Charging Station"}</Text>
-
-            <View style={styles.card}>
-              <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
-                <Text style={styles.infoText}>123 Green Way, Colombo 03</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.infoRow}>
-                <Ionicons name="navigate-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
-                <Text style={styles.infoText}>2.4 km away from your location</Text>
-              </View>
-            </View>
-
-            <Text style={styles.sectionTitle}>Available Connectors</Text>
-
+          <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
             {connectors.map((item) => (
-              <View key={item.id} style={styles.connectorCard}>
-                <View style={styles.connectorLeft}>
-                  <Ionicons name="flash" size={24} color="#00D1FF" />
-                  <View style={{ marginLeft: 15 }}>
-                    <Text style={styles.connectorType}>{item.type}</Text>
-                    <Text style={styles.connectorPower}>Max 50 kW</Text>
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                onPress={() => router.push({
+                  pathname: "/charger-booking",
+                  params: { 
+                    stationName, 
+                    connectorType: item.type, // Passes the dynamic type to booking screen!
+                    lat: String(latitude), 
+                    lng: String(longitude) 
+                  }
+                })}
+              >
+                <Text style={styles.cardType}>{item.type}</Text>
+                <View style={styles.footer}>
+                  <View style={[styles.badge, { borderColor: item.status === 'available' ? '#2ECC71' : '#E74C3C' }]}>
+                    <Text style={[styles.badgeText, { color: item.status === 'available' ? '#2ECC71' : '#E74C3C' }]}>
+                      {item.status}
+                    </Text>
+                  </View>
+                  <View style={styles.infoButton}>
+                    <Text style={styles.infoText}>Info</Text>
                   </View>
                 </View>
-
-                <View style={[styles.statusBadge, item.status === 'unavailable' && styles.statusUnavailable]}>
-                  <Text style={[styles.statusText, item.status === 'unavailable' && { color: '#E74C3C' }]}>
-                    {item.status.toUpperCase()}
-                  </Text>
-                </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
-
-          {/* Action Buttons */}
-          <View style={styles.actionRow}>
-            <TouchableOpacity 
-              style={styles.routeBtn}
-              onPress={() => router.push({
-                pathname: "/map",
-                params: {
-                  mode: 'route',
-                  destLat: String(latitude),
-                  destLng: String(longitude),
-                  stationName: stationName as string,
-                }
-              })}
-            >
-              <Ionicons name="navigate" size={20} color="white" />
-              <Text style={styles.routeBtnText}>Route</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.bookBtn}
-              onPress={() => router.push({
-                pathname: "/charger-booking",
-                params: {
-                  stationName: stationName as string,
-                  lat: String(latitude),
-                  lng: String(longitude),
-                }
-              })}
-            >
-              <Text style={styles.bookBtnText}>Book Charger</Text>
-            </TouchableOpacity>
-          </View>
         </BlurView>
       </View>
     </View>
@@ -128,36 +87,21 @@ export default function StationDetails() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E1E',
-  },
-  map: {
-    width: '100%',
-    height: '100%',
+  container: { flex: 1, backgroundColor: '#0B1D21' },
+  map: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  topHeader: {
     position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
   },
-  topNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 60,
-  },
-  backBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  heartBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  brandTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   bottomSheet: {
     position: 'absolute',
@@ -207,102 +151,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    flex: 1,
-    marginLeft: 5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginVertical: 12,
-  },
-  sectionTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  connectorCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  connectorLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  connectorType: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  connectorPower: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 12,
-  },
-  statusBadge: {
-    backgroundColor: 'rgba(46, 204, 113, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  cardType: { color: 'white', fontSize: 15, marginBottom: 15 },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  badge: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 10 },
+  badgeText: { fontSize: 11, fontWeight: 'bold' },
+  infoButton: {
+    backgroundColor: 'rgba(58, 75, 78, 0.8)',
+    paddingHorizontal: 25,
+    paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(46, 204, 113, 0.5)',
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  statusUnavailable: {
-    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-    borderColor: 'rgba(231, 76, 60, 0.5)',
-  },
-  statusText: {
-    color: '#2ECC71',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 15,
-    marginTop: 10,
-  },
-  routeBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: '#00D1FF',
-    height: 50,
-    borderRadius: 25,
-    gap: 8,
-  },
-  routeBtnText: {
-    color: '#00D1FF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  bookBtn: {
-    flex: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#00D1FF',
-    height: 50,
-    borderRadius: 25,
-  },
-  bookBtnText: {
-    color: '#1E1E1E',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  infoText: { color: 'white', fontSize: 12 },
 });
