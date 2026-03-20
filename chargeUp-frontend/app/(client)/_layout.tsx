@@ -204,3 +204,135 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     </View>
   );
 }
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+export default function TabLayout() {
+  return (
+    <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="map-station-finder" />
+      <Tabs.Screen name="scan-qr" options={{ href: null }} />
+      <Tabs.Screen name="scan-qr-screen" />
+      <Tabs.Screen name="client-profile" />
+
+      {/* Hidden pages */}
+      <Tabs.Screen name="station-details"      options={{ href: null }} />
+      <Tabs.Screen name="booking-confirmation" options={{ href: null }} />
+      <Tabs.Screen name="charger-booking"      options={{ href: null }} />
+      <Tabs.Screen name="payment-success"      options={{ href: null }} />
+      <Tabs.Screen name="payment"              options={{ href: null }} />
+      <Tabs.Screen name="charging-session"     options={{ href: null }} />
+    </Tabs>
+  );
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: TAB_BAR_HEIGHT + 36,   // extra space for floating button above
+    alignItems: "center",
+    overflow: "visible",
+  },
+
+  // ── Floating button ──────────────────────────────────────────────────────
+  floatingBtnWrapper: {
+    position: "absolute",
+    top: 0,
+    alignSelf: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  btnBackdrop: {
+    position: "absolute",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#0D1F23",    // matches app background, fills notch gap
+  },
+  glowRing: {
+    position: "absolute",
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    borderWidth: 1.5,
+    borderColor: "#5ECFDA",
+    shadowColor: "#5ECFDA",
+    shadowOpacity: 0.7,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  switchPressable: {
+    alignItems: "center",
+  },
+  switchBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2.5,
+    borderColor: "rgba(255,255,255,0.2)",
+    shadowColor: "#5ECFDA",
+    shadowOpacity: 0.8,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 20,
+  },
+  switchLabel: {
+    color: "#5ECFDA",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
+
+  // ── Nav bar ──────────────────────────────────────────────────────────────
+  navBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: TAB_BAR_HEIGHT,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: Platform.OS === "ios" ? 20 : 6,
+    paddingTop: 10,
+    overflow: "visible",
+  },
+
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  centerGap: {
+    width: NOTCH_WIDTH + 10,
+  },
+
+  iconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 48,
+    height: 40,
+  },
+  activeDot: {
+    position: "absolute",
+    top: 0,
+    width: 28,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "#5ECFDA",
+    shadowColor: "#5ECFDA",
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+  },
+});
