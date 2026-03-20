@@ -13,7 +13,6 @@ export default function ScanQRScreen() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanningLocked, setScanningLocked] = useState(false); 
 
-  // FIXED: Ensure this path matches your file structure exactly
   const handleNavigate = (id: string) => {
     router.replace({
       pathname: "/charging-session", 
@@ -77,7 +76,6 @@ export default function ScanQRScreen() {
           </View>
 
           <View style={styles.emulatorBypassContainer}>
-            {/* The arrow icon is now inside this button for easier emulator navigation */}
             <TouchableOpacity onPress={() => handleNavigate("latest")} style={styles.bypassBtn}>
                 <Text style={styles.bypassText}>QUICK CONNECT</Text>
                 <Ionicons name="arrow-forward-circle" size={20} color="#00D1FF" />
@@ -93,7 +91,8 @@ export default function ScanQRScreen() {
                   onBarcodeScanned={scanningLocked ? undefined : onBarCodeScanned}
                   barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                 >
-                  <div style={styles.overlay}>
+                  {/* FIXED: Changed <div> to <View> */}
+                  <View style={styles.overlay}>
                     <View style={styles.unfocusedContainer} />
                     <View style={styles.focusedContainer}>
                       <View style={[styles.corner, styles.topLeft]} />
@@ -103,7 +102,7 @@ export default function ScanQRScreen() {
                       <Text style={styles.overlayText}>ALIGN QR CODE</Text>
                     </View>
                     <View style={styles.unfocusedContainer} />
-                  </div>
+                  </View>
                 </CameraView>
                 <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsScanning(false)}>
                   <Text style={styles.cancelText}>CANCEL SCAN</Text>
