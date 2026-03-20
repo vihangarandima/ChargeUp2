@@ -18,8 +18,15 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
+// 🔥 Firebase Imports
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig"; // Ensure this path points to your actual config file
+
 /**
- * InputField Component
+ * 💡 InputField Component
+ * We keep this OUTSIDE the main LoginScreen component.
+ * If it was inside, React would re-create this component every time the user types,
+ * which causes the keyboard to constantly flicker and close automatically!
  */
 const InputField = ({
   icon,
@@ -46,6 +53,7 @@ const InputField = ({
         />
       </View>
 
+      {/* Input Area */}
       <View style={styles.inputBody}>
         {(isFocused || hasValue) && (
           <Text
@@ -69,6 +77,7 @@ const InputField = ({
         />
       </View>
 
+      {/* Show/Hide Password Toggle button */}
       {isPassword && (
         <Pressable
           onPress={() => setShowPassword(!showPassword)}
@@ -99,6 +108,7 @@ export default function LoginScreen() {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    // Run these UI entrance animations all at once when the screen loads
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -152,23 +162,24 @@ export default function LoginScreen() {
     ]).start();
   };
 
+  // ── Handle Firebase Login ──
   const handleLogin = async () => {
-    animateBtn();
+    animateBtn(); // Trigger the button bounce
 
+    // 1. Basic Validation
     if (!email || !password) {
       Alert.alert("Missing Info", "Please enter your email and password.");
       return;
     }
 
     try {
-      const response = await fetch(
-        "http://10.184.109.178:5000/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
+      // 1. Send the email and password to my Node.js backend
+      // Make sure this IP address matches my computer's current Wi-Fi IP!
+      const response = await fetch("http://10.184.109.178:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
 
@@ -196,13 +207,37 @@ export default function LoginScreen() {
       console.error("Network error:", error);
       Alert.alert(
         "Connection Error",
-        "Could not reach server. Check your backend IP.",
+        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!",
       );
+      const user = userCredential.user;
+
+      console.log("Logged in user:", user.email);
+
+      // 3. Save Session Data Locally
+      // This helps us know the user is logged in next time they open the app
+      await AsyncStorage.setItem("userToken", user.uid);
+      // Fallback to "User" just in case Firebase doesn't return an email string
+      await AsyncStorage.setItem("userName", user.email || "User");
+
+      // 4. Navigate to Home
+      // NOTE: Because Firebase Auth doesn't store 'roles', we are sending everyone to /home for now.
+      router.replace("/home");
+    } catch (error: any) {
+      // 5. Error Handling
+      console.log(error.code, error.message);
+
+      // Map Firebase specific error codes to user-friendly messages
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        Alert.alert("Login Failed", "Invalid email or password.");
+      } else {
+        Alert.alert("Error", error.message);
+      }
     }
   };
-
-  const handleGoogleLogin = () =>
-    Alert.alert("Coming Soon", "Google Sign-in integrated soon.");
 
   return (
     <LinearGradient
@@ -211,6 +246,8 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <StatusBar barStyle="light-content" />
+
+      {/* ── Background Elements ── */}
       <View style={styles.blob1} />
       <View style={styles.blob2} />
       <View style={styles.topAccent} />
@@ -329,10 +366,7 @@ export default function LoginScreen() {
                     <FontAwesome5 name="apple" size={20} color="white" />
                     <Text style={styles.socialText}>Apple</Text>
                   </Pressable>
-                  <Pressable
-                    onPress={handleGoogleLogin}
-                    style={[styles.socialBtn, styles.googleBtn]}
-                  >
+                  <Pressable style={[styles.socialBtn, styles.googleBtn]}>
                     <FontAwesome5 name="google" size={17} color="#EA4335" />
                     <Text style={[styles.socialText, { color: "#EA4335" }]}>
                       Google
@@ -529,45 +563,58 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 15,
-    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 15,
   },
+
   ctaText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    letterSpacing: 0.3,
+    marginRight: 8,
   },
+
   ctaArrow: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.85)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 4,
   },
+
+  // Social Login Divider
   divider: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 14,
-    gap: 10,
+    justifyContent: "center",
+    marginVertical: 15,
   },
-  divLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.08)" },
+
+  divLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+
   divLabel: {
-    color: "rgba(255,255,255,0.28)",
+    marginHorizontal: 10,
+    color: "rgba(255,255,255,0.5)",
     fontSize: 12,
-    letterSpacing: 0.4,
   },
+
+  // Social Buttons
   socialRow: { flexDirection: "row", gap: 12 },
   socialBtn: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 9,
-    paddingVertical: 13,
-    borderRadius: 13,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    flex: 1,
+  },
+
+  googleBtn: {
+    borderColor: "#EA4335",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.09)",
   },
@@ -576,41 +623,57 @@ const styles = StyleSheet.create({
     borderColor: "rgba(234,67,53,0.18)",
   },
   socialText: { color: "white", fontSize: 14, fontWeight: "600" },
+
+  // Stats row styling
   statsRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(94,207,218,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.12)",
-    borderRadius: 16,
-    paddingVertical: 14,
-    marginBottom: 18,
+    marginTop: 10,
   },
-  statItem: { flex: 1, alignItems: "center" },
+
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+
   statNumber: {
-    color: "#5ECFDA",
+    color: "white",
     fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: -0.4,
-    marginBottom: 2,
+    fontWeight: "700",
   },
+
   statLabel: {
-    color: "rgba(255,255,255,0.38)",
-    fontSize: 11,
-    fontWeight: "500",
-    letterSpacing: 0.3,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 12,
   },
   statDivider: {
     width: 1,
     height: 32,
     backgroundColor: "rgba(255,255,255,0.08)",
   },
+
+  // Signup link styling
   signupRow: {
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
+    marginTop: 16,
   },
-  signupText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
-  signupLink: { color: "#5ECFDA", fontSize: 14, fontWeight: "700" },
+
+  signupText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 13,
+  },
+
+  signupLink: {
+    color: "#5ECFDA",
+    fontSize: 13,
+    fontWeight: "600",
+  },
 });
