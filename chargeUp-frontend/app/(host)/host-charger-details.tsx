@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,18 +6,19 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  Platform,
   StatusBar,
-  ImageBackground,
-  Modal, // <-- Added Modal
+  Modal,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-// 🌟 NEW: Import AsyncStorage to save the user's name
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// List of available charger types
 const CHARGER_TYPES = [
   "Standard 3-Pin Plug (13A)",
   "Commando Socket (16A/32A)",
@@ -29,346 +30,485 @@ const CHARGER_TYPES = [
   "Other",
 ];
 
+// Icon map for charger types
+const CHARGER_ICONS: Record<string, string> = {
+  "Standard 3-Pin Plug (13A)": "power-socket-uk",
+  "Commando Socket (16A/32A)": "power-plug",
+  "Type 1 (J1772) - AC": "ev-plug-type1",
+  "Type 2 (Mennekes) - AC": "ev-plug-type2",
+  "CHAdeMO - DC Fast": "ev-plug-chademo",
+  "CCS2 - DC Fast": "ev-plug-ccs2",
+  "Tesla Proprietary": "ev-plug-tesla",
+  "Other": "power-plug-outline",
+};
+
 export default function HostDetailsScreen() {
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [chargerType, setChargerType] = useState("");
-
-  // State to control the dropdown modal
   const [isModalVisible, setModalVisible] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const router = useRouter();
 
+  // Entrance animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(35)).current;
+  const iconAnim = useRef(new Animated.Value(0.6)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 11, useNativeDriver: true }),
+      Animated.spring(iconAnim, { toValue: 1, tension: 90, friction: 7, delay: 150, useNativeDriver: true }),
+    ]).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.07, duration: 2000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const animateBtn = () => {
+    Animated.sequence([
+      Animated.timing(btnScale, { toValue: 0.96, duration: 70, useNativeDriver: true }),
+      Animated.spring(btnScale, { toValue: 1, tension: 200, friction: 10, useNativeDriver: true }),
+    ]).start();
+  };
+
+  // Progress
+  const filled = [fullName, address, idNumber, phone, chargerType].filter(Boolean).length;
+
+  // Field component
+  const Field = ({
+    label, icon, value, onChangeText, keyboardType, fieldKey, placeholder
+  }: any) => {
+    const isFocused = focusedField === fieldKey;
+    const hasValue = value.length > 0;
+    return (
+      <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+        <View style={styles.inputIconBox}>
+          <Ionicons name={icon} size={17} color={isFocused ? "#FFC850" : "rgba(255,255,255,0.3)"} />
+        </View>
+        <View style={styles.inputBody}>
+          {(isFocused || hasValue) && (
+            <Text style={[styles.floatLabel, isFocused && styles.floatLabelActive]}>{label}</Text>
+          )}
+          <TextInput
+            style={styles.textInput}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={!isFocused && !hasValue ? placeholder || label : ""}
+            placeholderTextColor="rgba(255,255,255,0.28)"
+            keyboardType={keyboardType}
+            autoCapitalize="sentences"
+            onFocus={() => setFocusedField(fieldKey)}
+            onBlur={() => setFocusedField(null)}
+            selectionColor="#FFC850"
+          />
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <ImageBackground
-      source={require("../../assets/images/host/host-charger-details.png")}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      <LinearGradient
+        colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
+        locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
+        style={StyleSheet.absoluteFillObject}
+      />
+
+      {/* Ambient blobs */}
+      <View style={styles.blob1} />
+      <View style={styles.blob2} />
+
+      {/* Gold top accent for host screens */}
+      <View style={styles.topAccent} />
+
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          {/* Top Brand Header */}
-          <View style={styles.topHeader}>
-            <Text style={styles.brandTitle}>ChargeUp</Text>
-          </View>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
 
-          {/* Icon & Title Section */}
-          <View style={styles.titleSection}>
-            <MaterialCommunityIcons name="ev-station" size={60} color="white" />
-            <Text style={styles.pageTitle}>Share & Earn</Text>
-          </View>
+              {/* ── TOP BAR ── */}
+              <View style={styles.topBar}>
+                <View style={styles.logoChip}>
+                  <Ionicons name="flash" size={13} color="#0E1F26" />
+                </View>
+                <Text style={styles.brandName}>ChargeUp</Text>
+                <View style={styles.badgePill}>
+                  <View style={styles.badgeDot} />
+                  <Text style={styles.badgeText}>Host Portal</Text>
+                </View>
+              </View>
 
-          {/* Subtitle */}
-          <Text style={styles.subtitle}>Add your details here.</Text>
+              {/* ── HERO ── */}
+              <View style={styles.hero}>
+                <Animated.View style={[styles.iconOuter, { transform: [{ scale: pulseAnim }] }]}>
+                  <LinearGradient
+                    colors={["rgba(255,200,80,0.2)", "rgba(255,200,80,0.05)"]}
+                    style={styles.iconGradient}
+                  >
+                    <Animated.View style={[styles.iconInner, { transform: [{ scale: iconAnim }] }]}>
+                      <MaterialCommunityIcons name="ev-station" size={38} color="white" />
+                    </Animated.View>
+                  </LinearGradient>
+                </Animated.View>
+                <Text style={styles.heroTitle}>Share & Earn</Text>
+                <Text style={styles.heroSub}>Fill in your details to list your charger</Text>
+              </View>
 
-          {/* Main Form Box */}
-          <View style={styles.formContainer}>
-            {/* Full Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Name</Text>
-              <TextInput
-                style={styles.input}
-                value={fullName}
-                onChangeText={setFullName}
-                selectionColor="white"
-              />
-            </View>
+              {/* ── PROGRESS ── */}
+              <View style={styles.progressWrap}>
+                <View style={styles.progressRow}>
+                  <Text style={styles.progressLabel}>Profile completion</Text>
+                  <Text style={styles.progressCount}>{filled} / 5</Text>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: ((filled / 5) * 100) + "%" as any }]} />
+                </View>
+              </View>
 
-            {/* Address */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Address</Text>
-              <TextInput
-                style={styles.input}
-                value={address}
-                onChangeText={setAddress}
-                selectionColor="white"
-              />
-            </View>
+              {/* ── FORM CARD ── */}
+              <View style={styles.card}>
 
-            {/* ID/Passport */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>ID/Passport number</Text>
-              <TextInput
-                style={styles.input}
-                value={idNumber}
-                onChangeText={setIdNumber}
-                selectionColor="white"
-              />
-            </View>
+                <View style={styles.sectionHeader}>
+                  <MaterialCommunityIcons name="card-account-details-outline" size={14} color="#FFC850" />
+                  <Text style={styles.sectionTitle}>Personal Information</Text>
+                </View>
 
-            {/* Telephone */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Telephone number</Text>
-              <TextInput
-                style={styles.input}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                selectionColor="white"
-              />
-            </View>
+                <View style={styles.form}>
+                  <Field
+                    label="Full Name"
+                    icon="person-outline"
+                    value={fullName}
+                    onChangeText={setFullName}
+                    fieldKey="name"
+                    placeholder="Your legal full name"
+                  />
+                  <Field
+                    label="Address"
+                    icon="home-outline"
+                    value={address}
+                    onChangeText={setAddress}
+                    fieldKey="address"
+                    placeholder="Charger location address"
+                  />
+                  <Field
+                    label="ID / Passport Number"
+                    icon="id-card-outline"
+                    value={idNumber}
+                    onChangeText={setIdNumber}
+                    fieldKey="id"
+                    placeholder="For identity verification"
+                  />
+                  <Field
+                    label="Telephone Number"
+                    icon="call-outline"
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                    fieldKey="phone"
+                    placeholder="+94 77 000 0000"
+                  />
 
-            {/* Charging Unit Type (Custom Dropdown UI) */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Charging unit type</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                style={styles.dropdownInput}
-                onPress={() => setModalVisible(true)} // <-- Opens the modal
-              >
-                <Text
-                  style={[
-                    styles.dropdownPlaceholder,
-                    chargerType && { color: "white" },
-                  ]}
-                >
-                  {chargerType ? chargerType : "Ex : Fast charger"}
+                  {/* Charger Type Dropdown */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setModalVisible(true)}
+                    style={[styles.inputWrap, chargerType && styles.inputWrapFocused]}
+                  >
+                    <View style={styles.inputIconBox}>
+                      <MaterialCommunityIcons
+                        name="ev-plug-type2"
+                        size={17}
+                        color={chargerType ? "#FFC850" : "rgba(255,255,255,0.3)"}
+                      />
+                    </View>
+                    <View style={styles.inputBody}>
+                      {chargerType && (
+                        <Text style={styles.floatLabelActive}>Charging Unit Type</Text>
+                      )}
+                      <Text style={chargerType ? styles.dropdownValue : styles.dropdownPlaceholder}>
+                        {chargerType || "Select charger type"}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-down"
+                      size={18}
+                      color={chargerType ? "#FFC850" : "rgba(255,255,255,0.3)"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* ── CONTINUE BTN ── */}
+                <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+                  <Pressable
+                    onPress={() => {
+                      animateBtn();
+                      router.push({
+                        pathname: "/(host)/location-picker",
+                        params: { fullName, address, idNumber, phone, chargerType },
+                      });
+                    }}
+                    style={styles.ctaBtn}
+                  >
+                    <LinearGradient
+                      colors={["#D4A017", "#FFC850", "#D4A017"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.ctaGradient}
+                    >
+                      <Text style={styles.ctaText}>Continue</Text>
+                      <View style={styles.ctaArrow}>
+                        <Ionicons name="arrow-forward" size={16} color="#5A3800" />
+                      </View>
+                    </LinearGradient>
+                  </Pressable>
+                </Animated.View>
+
+              </View>
+
+              {/* ── TRUST BADGE ── */}
+              <View style={styles.trustBox}>
+                <Ionicons name="shield-checkmark-outline" size={14} color="#FFC850" style={{ marginRight: 7 }} />
+                <Text style={styles.trustText}>
+                  Your details are encrypted and used only for verification purposes.
                 </Text>
-                <Ionicons
-                  name="chevron-down-circle"
-                  size={20}
-                  color="#E0E0E0"
-                />
-              </TouchableOpacity>
-            </View>
+              </View>
 
-            {/* Continue Button */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                style={styles.continueButton}
-                onPress={() => {
-                  // Just pass the data to the next screen, no local storage saving!
-                  router.push({
-                    pathname: "/(host)/location-picker",
-                    params: { fullName, address, idNumber, phone, chargerType },
-                  });
-                }}
-              >
-                <Text style={styles.continueButtonText}>continue</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
 
-      {/* --- ADDED DROPDOWN MODAL --- */}
+      {/* ── CHARGER TYPE MODAL ── */}
       <Modal
         visible={isModalVisible}
-        transparent={true}
+        transparent
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setModalVisible(false)}>
+          <View style={styles.modalSheet}>
+            <LinearGradient
+              colors={["#15252E", "#193038", "#1D3B42"]}
+              style={StyleSheet.absoluteFillObject}
+            />
+            {/* Handle */}
+            <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Select Charger Type</Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {CHARGER_TYPES.map((type, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.modalOption}
-                  onPress={() => {
-                    setChargerType(type);
-                    setModalVisible(false); // Close modal after selection
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      chargerType === type && {
-                        color: "#7BB1BA",
-                        fontWeight: "bold",
-                      }, // Highlight selected
-                    ]}
+              {CHARGER_TYPES.map((type, index) => {
+                const isSelected = chargerType === type;
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[styles.modalOption, isSelected && styles.modalOptionSelected]}
+                    onPress={() => { setChargerType(type); setModalVisible(false); }}
                   >
-                    {type}
-                  </Text>
-                  {chargerType === type && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color="#7BB1BA"
-                    />
-                  )}
-                </TouchableOpacity>
-              ))}
+                    <View style={[styles.modalOptionIcon, isSelected && styles.modalOptionIconSelected]}>
+                      <MaterialCommunityIcons
+                        name={(CHARGER_ICONS[type] || "power-plug") as any}
+                        size={20}
+                        color={isSelected ? "#FFC850" : "rgba(255,255,255,0.5)"}
+                      />
+                    </View>
+                    <Text style={[styles.modalOptionText, isSelected && styles.modalOptionTextSelected]}>
+                      {type}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={20} color="#FFC850" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
 
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalCloseText}>Cancel</Text>
-            </TouchableOpacity>
+            <Pressable style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </Pressable>
           </View>
-        </View>
+        </Pressable>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0A1114",
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  scroll: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 40 },
+
+  topAccent: {
+    position: "absolute", top: 0, left: 0, right: 0,
+    height: 2, backgroundColor: "#FFC850", opacity: 0.7, zIndex: 10,
   },
-  safeArea: {
-    flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  blob1: {
+    position: "absolute", width: 300, height: 300, borderRadius: 150,
+    backgroundColor: "rgba(255,200,80,0.05)", top: -100, right: -80,
   },
-  scrollContent: {
-    paddingHorizontal: 25,
-    paddingTop: 15,
-    paddingBottom: 40,
+  blob2: {
+    position: "absolute", width: 220, height: 220, borderRadius: 110,
+    backgroundColor: "rgba(255,200,80,0.03)", bottom: 100, left: -70,
   },
 
-  // Header
-  topHeader: {
-    marginBottom: 20,
+  // Top bar
+  topBar: { flexDirection: "row", alignItems: "center", marginTop: 10, marginBottom: 22 },
+  logoChip: {
+    width: 26, height: 26, borderRadius: 7, backgroundColor: "#FFC850",
+    alignItems: "center", justifyContent: "center", marginRight: 8,
   },
-  brandTitle: {
-    color: "white",
-    fontSize: 24,
-    fontWeight: "bold",
+  brandName: { color: "white", fontSize: 20, fontWeight: "700", letterSpacing: 0.4, flex: 1 },
+  badgePill: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "rgba(255,200,80,0.12)", borderWidth: 1,
+    borderColor: "rgba(255,200,80,0.3)", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4, gap: 5,
   },
+  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#FFC850" },
+  badgeText: { color: "#FFC850", fontSize: 11, fontWeight: "600" },
 
-  // Title Section
-  titleSection: {
-    alignItems: "center",
-    marginBottom: 30,
+  // Hero
+  hero: { alignItems: "center", marginBottom: 20 },
+  iconOuter: { width: 92, height: 92, borderRadius: 46, marginBottom: 14 },
+  iconGradient: { flex: 1, borderRadius: 46, alignItems: "center", justifyContent: "center" },
+  iconInner: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: "rgba(255,200,80,0.12)",
+    borderWidth: 1.5, borderColor: "rgba(255,200,80,0.45)",
+    alignItems: "center", justifyContent: "center",
   },
-  pageTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 10,
-  },
+  heroTitle: { color: "white", fontSize: 28, fontWeight: "800", letterSpacing: -0.8, marginBottom: 5 },
+  heroSub: { color: "rgba(255,255,255,0.4)", fontSize: 13 },
 
-  // Subtitle
-  subtitle: {
-    color: "white",
-    fontSize: 14,
-    marginBottom: 10,
-    marginLeft: 5,
-  },
+  // Progress
+  progressWrap: { width: "100%", marginBottom: 16 },
+  progressRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  progressLabel: { color: "rgba(255,255,255,0.4)", fontSize: 12 },
+  progressCount: { color: "#FFC850", fontSize: 12, fontWeight: "700" },
+  progressTrack: { height: 4, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" },
+  progressFill: { height: "100%", backgroundColor: "#FFC850", borderRadius: 2 },
 
-  // Form Container
-  formContainer: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.03)", // Slight tint to see the box better
+  // Card
+  card: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 24, borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.07)",
+    padding: 18, marginBottom: 16,
+  },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 16 },
+  sectionTitle: {
+    color: "rgba(255,255,255,0.5)", fontSize: 11,
+    fontWeight: "700", letterSpacing: 1.0, textTransform: "uppercase",
   },
 
   // Inputs
-  inputGroup: {
-    marginBottom: 20,
+  form: { gap: 10, marginBottom: 20 },
+  inputWrap: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 13, borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 14, paddingVertical: 13, gap: 10,
   },
-  label: {
-    color: "white",
-    fontSize: 14,
-    marginBottom: 8,
-    fontWeight: "500",
+  inputWrapFocused: {
+    backgroundColor: "rgba(255,200,80,0.07)",
+    borderColor: "rgba(255,200,80,0.4)",
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 8,
-    height: 45,
-    paddingHorizontal: 15,
-    color: "white",
-    backgroundColor: "rgba(10, 17, 20, 0.5)",
+  inputIconBox: { width: 20, alignItems: "center" },
+  inputBody: { flex: 1 },
+  floatLabel: {
+    color: "rgba(255,255,255,0.3)", fontSize: 10,
+    fontWeight: "600", letterSpacing: 0.8,
+    textTransform: "uppercase", marginBottom: 2,
+  },
+  floatLabelActive: { color: "#FFC850", fontSize: 10, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 },
+  textInput: { color: "white", fontSize: 15, paddingVertical: 0 },
+  dropdownValue: { color: "white", fontSize: 15 },
+  dropdownPlaceholder: { color: "rgba(255,255,255,0.28)", fontSize: 15 },
+
+  // CTA
+  ctaBtn: { borderRadius: 15, overflow: "hidden" },
+  ctaGradient: {
+    flexDirection: "row", alignItems: "center",
+    justifyContent: "center", paddingVertical: 15, gap: 10,
+  },
+  ctaText: { color: "#3A2000", fontSize: 16, fontWeight: "800", letterSpacing: 0.3 },
+  ctaArrow: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: "rgba(58,32,0,0.2)",
+    alignItems: "center", justifyContent: "center",
   },
 
-  // Custom Dropdown
-  dropdownInput: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 8,
-    height: 45,
-    paddingHorizontal: 15,
-    backgroundColor: "rgba(10, 17, 20, 0.5)",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  // Trust badge
+  trustBox: {
+    flexDirection: "row", alignItems: "flex-start",
+    backgroundColor: "rgba(255,200,80,0.06)",
+    borderWidth: 1, borderColor: "rgba(255,200,80,0.15)",
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11,
   },
-  dropdownPlaceholder: {
-    color: "#8A9A9D", // Matches the faded text in your screenshot
-    fontSize: 14,
-  },
+  trustText: { flex: 1, color: "rgba(255,255,255,0.5)", fontSize: 12, lineHeight: 18 },
 
-  // Button
-  buttonRow: {
-    alignItems: "flex-end",
-    marginTop: 10,
-    marginBottom: 10,
+  // Modal
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
+  modalSheet: {
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    overflow: "hidden", padding: 20, paddingBottom: 36, maxHeight: "65%",
   },
-  continueButton: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 25,
-    backgroundColor: "rgba(10, 17, 20, 0.5)",
-  },
-  continueButtonText: {
-    color: "white",
-    fontSize: 14,
-  },
-
-  // --- Modal Styles ---
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end", // Slides up from bottom
-  },
-  modalContent: {
-    backgroundColor: "#11262F",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 25,
-    maxHeight: "60%",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.2)",
+  modalHandle: {
+    width: 36, height: 4, borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignSelf: "center", marginBottom: 16,
   },
   modalTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
+    color: "white", fontSize: 17, fontWeight: "700",
+    letterSpacing: 0.3, marginBottom: 16, textAlign: "center",
   },
   modalOption: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
+    flexDirection: "row", alignItems: "center",
+    paddingVertical: 13,
+    borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)",
+    gap: 12,
   },
-  modalOptionText: {
-    color: "white",
-    fontSize: 16,
+  modalOptionSelected: {
+    backgroundColor: "rgba(255,200,80,0.07)",
+    borderRadius: 10, paddingHorizontal: 8,
   },
-  modalCloseBtn: {
-    marginTop: 20,
-    alignItems: "center",
-    paddingVertical: 12,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+  modalOptionIcon: {
+    width: 38, height: 38, borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center", justifyContent: "center",
   },
-  modalCloseText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+  modalOptionIconSelected: {
+    backgroundColor: "rgba(255,200,80,0.15)",
+    borderWidth: 1, borderColor: "rgba(255,200,80,0.35)",
   },
+  modalOptionText: { flex: 1, color: "rgba(255,255,255,0.7)", fontSize: 14 },
+  modalOptionTextSelected: { color: "#FFC850", fontWeight: "600" },
+  modalCancelBtn: {
+    marginTop: 16, alignItems: "center",
+    paddingVertical: 13,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 13, borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  modalCancelText: { color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: "600" },
 });
