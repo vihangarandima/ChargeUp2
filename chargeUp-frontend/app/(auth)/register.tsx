@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -13,10 +12,21 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+
+// --- FIREBASE IMPORTS ---
+import { auth, db } from "../Config/firebaseConfig"; 
+import { 
+  createUserWithEmailAndPassword, 
+  updateProfile, 
+  GoogleAuthProvider, 
+  signInWithPopup 
+} from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 // --- REUSABLE INPUT COMPONENT ---
 const InputField = ({
@@ -129,31 +139,78 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
-    animateBtn();
-    if (!name || !email || !password) {
-      Alert.alert("Missing Info", "Please fill in all fields to sign up.");
-      return;
+  animateBtn();
+  
+  if (!name || !email || !password) {
+    Alert.alert("Missing Info", "Please fill in all fields.");
+    return;
+  }
+
+  try {
+    // 1. Get the role you saved earlier (Host or Client)
+    const role = (await AsyncStorage.getItem("userRole")) || "client";
+
+    // 2. Send the data to your Node.js/Express server
+    const response = await fetch("http://10.184.109.178:5000/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        name, 
+        email, 
+        password, 
+        role 
+      }),
+    });
+
+    const data = await response.json();
+
+    // 3. Check if the server accepted the request
+    if (response.ok) {
+      // Save user details locally
+      if (data.token) await AsyncStorage.setItem("userToken", data.token);
+      await AsyncStorage.setItem("userName", name);
+
+      Alert.alert("Welcome!", "Account created successfully.");
+      
+      // 4. Navigate based on the role
+      router.replace(role === "host" ? "/host-charger-details" : "/vehicle-details");
+    } else {
+      // Show the specific error message from your backend
+      Alert.alert("Signup Failed", data.message || "Could not create account.");
     }
-    try {
-      const role = (await AsyncStorage.getItem("userRole")) || "client";
-      const response = await fetch("http://10.184.109.178:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        if (data.token) await AsyncStorage.setItem("userToken", data.token);
-        await AsyncStorage.setItem("userName", name);
-        Alert.alert("Welcome!", "Account created successfully.");
-        router.replace(role === "host" ? "/host-charger-details" : "/vehicle-details");
-      } else {
-        Alert.alert("Signup Failed", data.message || "Could not create account.");
-      }
-    } catch (error) {
-      Alert.alert("Connection Error", "Could not reach the server.");
-    }
-  };
+  } catch (error) {
+    // This catches network issues (like if the IP address changed)
+    Alert.alert("Connection Error", "Could not reach the server. Make sure your backend is running.");
+    console.error(error);
+  }
+};
+
+const handleGoogleSignup = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const role = (await AsyncStorage.getItem("userRole")) || "client";
+
+    // ⚡ SYNC WITH BACKEND: Tell your Node server a Google user joined
+    await fetch("http://10.184.109.178:5000/api/auth/google-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        uid: user.uid,
+        email: user.email, 
+        name: user.displayName, 
+        role 
+      }),
+    });
+
+    await AsyncStorage.setItem("userName", user.displayName || "");
+    router.replace(role === "host" ? "/host-charger-details" : "/vehicle-details");
+    
+  } catch (error: any) {
+    Alert.alert("Google Error", "Check your Firebase configuration.");
+  }
+};
 
   return (
     <LinearGradient
@@ -269,7 +326,7 @@ export default function RegisterScreen() {
                     <FontAwesome5 name="apple" size={20} color="white" />
                     <Text style={styles.socialText}>Apple</Text>
                   </Pressable>
-                  <Pressable style={[styles.socialBtn, styles.googleBtn]}>
+                  <Pressable style={[styles.socialBtn, styles.googleBtn]}onPress={handleGoogleSignup}>
                     <FontAwesome5 name="google" size={17} color="#EA4335" />
                     <Text style={[styles.socialText, { color: "#EA4335" }]}>Google</Text>
                   </Pressable>
