@@ -77,7 +77,7 @@ export default function HostHomeScreen() {
         // Step B: Ask the backend for the newest charger
         // IMPORTANT: Make sure this IP address matches your computer's current IP!
         const response = await fetch(
-          "http://10.184.109.178:5000/api/chargers/latest",
+          "http://10.146.186.178:5000/api/chargers/latest",
         );
 
         if (response.ok) {

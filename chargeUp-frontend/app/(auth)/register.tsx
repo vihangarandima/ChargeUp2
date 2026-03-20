@@ -151,7 +151,7 @@ export default function RegisterScreen() {
     const role = (await AsyncStorage.getItem("userRole")) || "client";
 
     // 2. Send the data to your Node.js/Express server
-    const response = await fetch("http://10.184.109.178:5000/api/auth/register", {
+    const response = await fetch("http://10.146.186.178:5000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
