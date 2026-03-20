@@ -101,7 +101,7 @@ export default function Dashboard() {
 
         // C. Fetch all stations from your Backend Controller
         // NOTE: Ensure this IP matches your actual backend server IP!
-        const response = await fetch("http://10.159.92.178:5000/api/chargers");
+        const response = await fetch("http://10.146.186.178:5000/api/chargers");
         const data = await response.json();
 
         // Ensure we are working with an array
