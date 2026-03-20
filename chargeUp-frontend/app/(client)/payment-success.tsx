@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     paddingTop: 30 
   },
   brandHeader: { marginBottom: 5 },
-  brandTitle: { color: 'white', fontSize: 28, fontWeight: 'bold', letterSpacing: 0.5 },
+  brandTitle: { color: 'white', fontSize: 24, fontWeight: 'bold', letterSpacing: 0.5 },
   controlRow: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 

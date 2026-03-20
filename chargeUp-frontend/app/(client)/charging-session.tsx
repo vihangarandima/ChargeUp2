@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   brandHeader: { marginBottom: 5 },
   brandTitle: {
     color: "white",
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
     letterSpacing: 0.5,
   },
