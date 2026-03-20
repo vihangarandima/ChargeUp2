@@ -31,38 +31,38 @@ function NotchedBackground() {
   const nr = NOTCH_RADIUS;
   const nw = NOTCH_WIDTH;
 
-   // Draw a rounded rect with a smooth circular notch cut out at the top center
-    const path = `
-      M 30 0
-      L ${cx - nw / 2} 0
-      Q ${cx - nw / 2 + 6} 0 ${cx - nw / 2 + 10} ${8}
-      A ${nr} ${nr} 0 0 0 ${cx + nw / 2 - 10} ${8}
-      Q ${cx + nw / 2 - 6} 0 ${cx + nw / 2} 0
-      L ${w - 30} 0
-      Q ${w} 0 ${w} 30
-      L ${w} ${h}
-      L 0 ${h}
-      L 0 30
-      Q 0 0 30 0
-      Z
-    `;
+  // Draw a rounded rect with a smooth circular notch cut out at the top center
+  const path = `
+    M 30 0
+    L ${cx - nw / 2} 0
+    Q ${cx - nw / 2 + 6} 0 ${cx - nw / 2 + 10} ${8}
+    A ${nr} ${nr} 0 0 0 ${cx + nw / 2 - 10} ${8}
+    Q ${cx + nw / 2 - 6} 0 ${cx + nw / 2} 0
+    L ${w - 30} 0
+    Q ${w} 0 ${w} 30
+    L ${w} ${h}
+    L 0 ${h}
+    L 0 30
+    Q 0 0 30 0
+    Z
+  `;
 
-    return (
-      <Svg
-        width={w}
-        height={h}
-        style={StyleSheet.absoluteFill}
-      >
-        {/* Shadow layer */}
-        <Path
-          d={path}
-          fill="rgba(10,24,32,0.98)"
-          stroke="rgba(94,207,218,0.25)"
-          strokeWidth={1.5}
-        />
-      </Svg>
-    );
-  }
+  return (
+    <Svg
+      width={w}
+      height={h}
+      style={StyleSheet.absoluteFill}
+    >
+      {/* Shadow layer */}
+      <Path
+        d={path}
+        fill="rgba(10,24,32,0.98)"
+        stroke="rgba(94,207,218,0.25)"
+        strokeWidth={1.5}
+      />
+    </Svg>
+  );
+}
 
 // ── Regular Tab Icon ──────────────────────────────────────────────────────────
 function TabIcon({ name, focused }: { name: any; focused: boolean }) {
@@ -73,6 +73,7 @@ function TabIcon({ name, focused }: { name: any; focused: boolean }) {
     </View>
   );
 }
+
 // ── Custom Tab Bar ────────────────────────────────────────────────────────────
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const router = useRouter();
@@ -146,4 +147,60 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
         <Text style={styles.switchLabel}>Switch</Text>
       </View>
- 
+
+      {/* ── Notched Bar ── */}
+      <View style={styles.navBar}>
+        <NotchedBackground />
+
+        {/* Left tabs */}
+        {leftTabs.map((routeName) => {
+          const index = state.routes.findIndex((r) => r.name === routeName);
+          const focused = state.index === index;
+          return (
+            <TouchableOpacity
+              key={routeName}
+              style={styles.tabBtn}
+              onPress={() => navigation.navigate(routeName)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconWrapper}>
+                {focused && <View style={styles.activeDot} />}
+                <Ionicons
+                  name={iconMap[routeName] as any}
+                  size={22}
+                  color={focused ? "#5ECFDA" : "#556570"}
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Center gap */}
+        <View style={styles.centerGap} />
+
+        {/* Right tabs */}
+        {rightTabs.map((routeName) => {
+          const index = state.routes.findIndex((r) => r.name === routeName);
+          const focused = state.index === index;
+          return (
+            <TouchableOpacity
+              key={routeName}
+              style={styles.tabBtn}
+              onPress={() => navigation.navigate(routeName)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconWrapper}>
+                {focused && <View style={styles.activeDot} />}
+                <Ionicons
+                  name={iconMap[routeName] as any}
+                  size={22}
+                  color={focused ? "#5ECFDA" : "#556570"}
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
