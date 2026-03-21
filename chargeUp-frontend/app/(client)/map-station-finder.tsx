@@ -31,9 +31,9 @@ const calculateDistance = (
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
@@ -77,8 +77,9 @@ export default function MapScreen() {
         const currentLng = location.coords.longitude;
         setUserLocation({ latitude: currentLat, longitude: currentLng });
 
-        // 3. Calculate distance for ALL stations
-        const stationsWithDistance = dbStations.map((station: any) => {
+        // 3. Calculate distance for ALL valid stations
+        const validStations = dbStations.filter((s: any) => s.location && s.location.latitude && s.location.longitude);
+        const stationsWithDistance = validStations.map((station: any) => {
           const distance = calculateDistance(
             currentLat,
             currentLng,
@@ -278,7 +279,7 @@ export default function MapScreen() {
               <Ionicons name="close-circle" size={20} color="#888" />
             </TouchableOpacity>
           ) : (
-             <TouchableOpacity style={{ marginRight: 15 }}>
+            <TouchableOpacity style={{ marginRight: 15 }}>
               <Ionicons name="mic" size={20} color="#333" />
             </TouchableOpacity>
           )}
@@ -342,14 +343,7 @@ export default function MapScreen() {
               style={styles.stationCard}
               onPress={() =>
                 router.push({
-                  pathname: "/station-details",
-                  params: {
-                    chargerId: station._id,
-                    lat: String(station.location.latitude),
-                    lng: String(station.location.longitude),
-                    distance: station.distance ? String(station.distance.toFixed(1)) : "0",
-                    stationName: station.fullName
-                  },
+                  pathname: "/scan-qr",
                 })
               }
             >
@@ -368,10 +362,10 @@ export default function MapScreen() {
 
           {/* Show this if search yields nothing or no nearby stations */}
           {displayedCards.length === 0 && (
-             <View style={styles.stationCard}>
-                <Text style={styles.cardTitle}>No chargers found</Text>
-                <Text style={styles.cardDistance}>Try a different search or clear filter.</Text>
-             </View>
+            <View style={styles.stationCard}>
+              <Text style={styles.cardTitle}>No chargers found</Text>
+              <Text style={styles.cardDistance}>Try a different search or clear filter.</Text>
+            </View>
           )}
         </ScrollView>
       </View>

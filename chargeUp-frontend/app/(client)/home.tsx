@@ -29,9 +29,9 @@ const calculateDistance = (
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
@@ -39,33 +39,33 @@ const calculateDistance = (
 // 🌟 FIX: Static top-level map — correct path is ../../assets/images/
 const VEHICLE_IMAGES: Record<string, any> = {
   // BYD
-  "Atto 3":  require("../../assets/images/Atto-3.png"),
-  Seal:      require("../../assets/images/BYD-Seal.png"),
-  Dolphin:   require("../../assets/images/Dolphine.png"),
-  E6:        require("../../assets/images/E6.png"),
+  "Atto 3": require("../../assets/images/Atto-3.png"),
+  Seal: require("../../assets/images/BYD-Seal.png"),
+  Dolphin: require("../../assets/images/Dolphine.png"),
+  E6: require("../../assets/images/E6.png"),
   // AVATR
-  "11":      require("../../assets/images/AVATR_11.png"),
+  "11": require("../../assets/images/AVATR_11.png"),
   // Binguo
-  Binguo:    require("../../assets/images/Binguo.png"),
+  Binguo: require("../../assets/images/Binguo.png"),
   // IM Motors
-  "6":       require("../../assets/images/IM-6.png"),
-  "5":       require("../../assets/images/IM5.png"),
+  "6": require("../../assets/images/IM-6.png"),
+  "5": require("../../assets/images/IM5.png"),
   // Hyundai
-  Kona:      require("../../assets/images/Kona.png"),
+  Kona: require("../../assets/images/Kona.png"),
   // MG
-  MG4:       require("../../assets/images/MG4.png"),
-  MG5:       require("../../assets/images/MG5.png"),
-  ZS:        require("../../assets/images/ZS.png"),
+  MG4: require("../../assets/images/MG4.png"),
+  MG5: require("../../assets/images/MG5.png"),
+  ZS: require("../../assets/images/ZS.png"),
   // Tesla
   "Model Y": require("../../assets/images/Model_Y.png"),
   "Model 3": require("../../assets/images/Model-3.png"),
   // Riddara
-  RD6:       require("../../assets/images/Riddara-RD6.png"),
+  RD6: require("../../assets/images/Riddara-RD6.png"),
   // XPENG
-  G6:        require("../../assets/images/XPENG_G6.png"),
+  G6: require("../../assets/images/XPENG_G6.png"),
   // Nissan
-  Leaf:      require("../../assets/images/leaf.png"),
-  Ariya:     require("../../assets/images/Ariya.png"),
+  Leaf: require("../../assets/images/leaf.png"),
+  Ariya: require("../../assets/images/Ariya.png"),
 };
 
 const getVehicleImage = (model: string) => VEHICLE_IMAGES[model] ?? null;
@@ -135,7 +135,9 @@ export default function Dashboard() {
 
         const dbStations: any[] = Array.isArray(data) ? data : data.chargers || [];
 
-        const stationsWithDistance = dbStations.map((station: any) => {
+        const validStations = dbStations.filter((s: any) => s.location && s.location.latitude && s.location.longitude);
+
+        const stationsWithDistance = validStations.map((station: any) => {
           const distance = calculateDistance(
             currentLat,
             currentLng,
@@ -290,16 +292,11 @@ export default function Dashboard() {
                     style={styles.viewDetailsBtn}
                     onPress={() =>
                       router.push({
-                        pathname: "/station-details",
-                        params: {
-                          stationName: station.fullName,
-                          lat: String(station.location?.latitude),
-                          lng: String(station.location?.longitude),
-                        },
+                        pathname: "/scan-qr",
                       })
                     }
                   >
-                    <Text style={styles.viewDetailsText}>View Details</Text>
+                    <Text style={styles.viewDetailsText}>Scan to Connect</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.bookBtn}>
                     <Text style={styles.bookText}>Book</Text>
