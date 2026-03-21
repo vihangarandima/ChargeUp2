@@ -130,7 +130,7 @@ export default function Dashboard() {
         const currentLat = location.coords.latitude;
         const currentLng = location.coords.longitude;
 
-        const response = await fetch("http://10.126.159.178:5000/api/chargers");
+        const response = await fetch("https://chargeup2.onrender.com/api/chargers");
         const data = await response.json();
 
         const dbStations: any[] = Array.isArray(data) ? data : data.chargers || [];

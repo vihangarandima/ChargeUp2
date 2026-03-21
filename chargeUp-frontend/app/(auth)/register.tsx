@@ -109,10 +109,10 @@ export default function RegisterScreen() {
 
   // ✅ Google Auth Setup — same as login
   const [request, response, promptAsync] = Google.useAuthRequest({
-  webClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
-  androidClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com", // same ID, both lines
-  iosClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
-});
+    webClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
+    androidClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com", // same ID, both lines
+    iosClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
+  });
 
   // ✅ Handle Google response automatically
   useEffect(() => {
@@ -209,7 +209,7 @@ export default function RegisterScreen() {
       const role = (await AsyncStorage.getItem("userRole")) || "client";
 
       const response = await fetch(
-        "http://192.168.8.158:5000/api/auth/register",
+        "https://chargeup2.onrender.com/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

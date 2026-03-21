@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─────────────────────────────────────────────────────────────────────────────
-const API_BASE = "http://10.126.159.178:5000";
+const API_BASE = "https://chargeup2.onrender.com";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function HostHomeScreen() {

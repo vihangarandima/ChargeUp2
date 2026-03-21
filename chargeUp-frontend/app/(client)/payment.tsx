@@ -19,7 +19,7 @@ import md5 from "md5";
 
 const MERCHANT_ID = "1234373";
 const MERCHANT_SECRET = "NjkyNzU0MjMwMjk5NTIyNDYxNTM3MTcyMjU1NjQzNzcxMjAxODU2";
-const BACKEND_URL = "http://10.126.159.178:5000";
+const BACKEND_URL = "https://chargeup2.onrender.com";
 
 export default function PaymentPage() {
   const router = useRouter();

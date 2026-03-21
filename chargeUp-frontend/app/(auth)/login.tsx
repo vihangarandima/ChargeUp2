@@ -211,7 +211,7 @@ export default function LoginScreen() {
 
     try {
       const response = await fetch(
-        "http://10.126.159.178:5000/api/auth/login",
+        "https://chargeup2.onrender.com/api/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

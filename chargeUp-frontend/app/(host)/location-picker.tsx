@@ -9,7 +9,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, MapPressEvent } from "react-native-maps";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -75,7 +75,7 @@ export default function LocationPicker() {
     Alert.alert("Search", `Searching for: ${searchQuery}`);
   };
 
-  const handleMapPress = (event) => {
+  const handleMapPress = (event: MapPressEvent) => {
     setSelectedLocation({
       ...selectedLocation,
       latitude: event.nativeEvent.coordinate.latitude,
@@ -104,7 +104,7 @@ export default function LocationPicker() {
 
     try {
       // 2. The API Call! (Replace YOUR_IP_ADDRESS with your computer's actual Wi-Fi IP and 5000 with your server port)
-      const response = await fetch("http://10.126.159.178:5000/api/chargers", {
+      const response = await fetch("https://chargeup2.onrender.com/api/chargers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
