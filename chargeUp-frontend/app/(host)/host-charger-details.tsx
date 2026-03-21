@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -111,6 +112,20 @@ export default function HostDetailsScreen() {
       Animated.timing(btnScale, { toValue: 0.96, duration: 70, useNativeDriver: true }),
       Animated.spring(btnScale, { toValue: 1, tension: 200, friction: 10, useNativeDriver: true }),
     ]).start();
+  };
+
+  const handleContinue = () => {
+    animateBtn();
+
+    if (!fullName || !address || !idNumber || !phone || !chargerType) {
+      Alert.alert("Missing Info", "Please fill in all the details to continue.");
+      return;
+    }
+
+    router.push({
+      pathname: "/(host)/location-picker",
+      params: { fullName, address, idNumber, phone, chargerType },
+    });
   };
 
   // Progress
@@ -267,13 +282,7 @@ export default function HostDetailsScreen() {
                 {/* ── CONTINUE BTN ── */}
                 <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                   <Pressable
-                    onPress={() => {
-                      animateBtn();
-                      router.push({
-                        pathname: "/(host)/location-picker",
-                        params: { fullName, address, idNumber, phone, chargerType },
-                      });
-                    }}
+                    onPress={handleContinue}
                     style={styles.ctaBtn}
                   >
                     <LinearGradient
