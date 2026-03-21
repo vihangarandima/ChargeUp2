@@ -292,13 +292,30 @@ export default function Dashboard() {
                     style={styles.viewDetailsBtn}
                     onPress={() =>
                       router.push({
-                        pathname: "/scan-qr",
+                        pathname: "/charger-booking",
+                        params: {
+                          stationName: station.fullName,
+                          lat: String(station.location?.latitude),
+                          lng: String(station.location?.longitude),
+                        },
                       })
                     }
                   >
-                    <Text style={styles.viewDetailsText}>Scan to Connect</Text>
+                    <Text style={styles.viewDetailsText}>Book Now</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.bookBtn}>
+                  <TouchableOpacity 
+                    style={styles.bookBtn}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/charger-booking",
+                        params: {
+                          stationName: station.fullName,
+                          lat: String(station.location?.latitude),
+                          lng: String(station.location?.longitude),
+                        },
+                      })
+                    }
+                  >
                     <Text style={styles.bookText}>Book</Text>
                   </TouchableOpacity>
                 </View>

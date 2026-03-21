@@ -1,5 +1,4 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView, Platform, StatusBar, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,15 +23,8 @@ export default function BookingConfirmation() {
   };
 
   const handleNavigate = () => {
-    router.push({
-      pathname: "/map",
-      params: {
-        mode: 'route',
-        destLat: String(latitude),
-        destLng: String(longitude),
-        stationName: stationName as string,
-      }
-    });
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
   };
 
   return (

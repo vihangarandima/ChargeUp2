@@ -343,7 +343,12 @@ export default function MapScreen() {
               style={styles.stationCard}
               onPress={() =>
                 router.push({
-                  pathname: "/scan-qr",
+                  pathname: "/charger-booking",
+                  params: {
+                    stationName: station.fullName,
+                    lat: String(station.location?.latitude),
+                    lng: String(station.location?.longitude),
+                  },
                 })
               }
             >
