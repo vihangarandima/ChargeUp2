@@ -111,6 +111,7 @@ export default function RegisterScreen() {
   const [request, response, promptAsync] = Google.useAuthRequest({
   webClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
   androidClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com", // same ID, both lines
+  iosClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
 });
 
   // ✅ Handle Google response automatically
@@ -204,28 +205,11 @@ export default function RegisterScreen() {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (emailRegex.test(name)) {
-      Alert.alert("Invalid Name", "Please enter your actual name, not an email address.");
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert("Weak Password", "Password must be at least 6 characters.");
-      return;
-    }
-
     try {
       const role = (await AsyncStorage.getItem("userRole")) || "client";
 
       const response = await fetch(
-        "http://10.126.159.178:5000/api/auth/register",
+        "http://192.168.8.158:5000/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
