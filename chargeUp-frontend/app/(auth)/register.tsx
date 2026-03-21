@@ -184,7 +184,7 @@ export default function RegisterScreen() {
 
       // 2. Send the data to your Node.js/Express server
       const response = await fetch(
-        "http://10.129.159.178:5000/api/auth/register",
+        "http://10.126.159.178:5000/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

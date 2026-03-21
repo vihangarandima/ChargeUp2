@@ -31,7 +31,6 @@ function NotchedBackground() {
   const nr = NOTCH_RADIUS;
   const nw = NOTCH_WIDTH;
 
-  // Draw a rounded rect with a smooth circular notch cut out at the top center
   const path = `
     M 30 0
     L ${cx - nw / 2} 0
@@ -48,12 +47,7 @@ function NotchedBackground() {
   `;
 
   return (
-    <Svg
-      width={w}
-      height={h}
-      style={StyleSheet.absoluteFill}
-    >
-      {/* Shadow layer */}
+    <Svg width={w} height={h} style={StyleSheet.absoluteFill}>
       <Path
         d={path}
         fill="rgba(10,24,32,0.98)"
@@ -89,6 +83,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   const handlePressIn = () =>
     Animated.spring(scaleAnim, { toValue: 0.88, useNativeDriver: true, speed: 60 }).start();
+
   const handlePressOut = () =>
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 30 }).start();
 
@@ -109,22 +104,22 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     );
   };
 
+  // ✅ FIXED: "scan-qr" matches the actual registered route name
   const iconMap: Record<string, string> = {
-    home: "home-outline",
+    "home": "home-outline",
     "map-station-finder": "map-outline",
-    "scan-qr-screen": "qr-code-outline",
+    "scan-qr": "qr-code-outline",       // ✅ was "scan-qr-screen" — now matches Tabs.Screen name
     "client-profile": "person-outline",
   };
 
   const leftTabs = ["home", "map-station-finder"];
-  const rightTabs = ["scan-qr-screen", "client-profile"];
+  const rightTabs = ["scan-qr", "client-profile"];   // ✅ was "scan-qr-screen"
 
   return (
     <View style={styles.container}>
 
       {/* ── Floating Switch Button ── */}
       <View style={styles.floatingBtnWrapper}>
-        {/* White circle backdrop that fills the notch gap */}
         <View style={styles.btnBackdrop} />
 
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -152,7 +147,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       <View style={styles.navBar}>
         <NotchedBackground />
 
-        {/* Left tabs */}
+        {/* Left tabs: Home, Map */}
         {leftTabs.map((routeName) => {
           const index = state.routes.findIndex((r) => r.name === routeName);
           const focused = state.index === index;
@@ -175,10 +170,10 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           );
         })}
 
-        {/* Center gap */}
+        {/* Center gap — space for the floating switch button */}
         <View style={styles.centerGap} />
 
-        {/* Right tabs */}
+        {/* Right tabs: QR Scan, Profile */}
         {rightTabs.map((routeName) => {
           const index = state.routes.findIndex((r) => r.name === routeName);
           const focused = state.index === index;
@@ -214,8 +209,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="home" />
       <Tabs.Screen name="map-station-finder" />
-      <Tabs.Screen name="scan-qr" options={{ href: null }} />
-      <Tabs.Screen name="scan-qr-screen" />
+      <Tabs.Screen name="scan-qr" />          {/* ✅ this is the real QR screen file */}
       <Tabs.Screen name="client-profile" />
 
       {/* Hidden pages */}
@@ -236,12 +230,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: TAB_BAR_HEIGHT + 36,   // extra space for floating button above
+    height: TAB_BAR_HEIGHT + 36,
     alignItems: "center",
     overflow: "visible",
   },
 
-  // ── Floating button ──────────────────────────────────────────────────────
   floatingBtnWrapper: {
     position: "absolute",
     top: 0,
@@ -254,19 +247,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#0D1F23",    // matches app background, fills notch gap
-  },
-  glowRing: {
-    position: "absolute",
-    width: 82,
-    height: 82,
-    borderRadius: 41,
-    borderWidth: 1.5,
-    borderColor: "#5ECFDA",
-    shadowColor: "#5ECFDA",
-    shadowOpacity: 0.7,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 0 },
+    backgroundColor: "#0D1F23",
   },
   switchPressable: {
     alignItems: "center",
@@ -293,7 +274,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // ── Nav bar ──────────────────────────────────────────────────────────────
   navBar: {
     position: "absolute",
     bottom: 0,
@@ -323,6 +303,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 40,
   },
+
   activeDot: {
     position: "absolute",
     top: 0,
