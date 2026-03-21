@@ -22,3 +22,6 @@ const auth = initializeAuth(app, {
 const db = getFirestore(app);
 
 export { auth, db };
+
+// ✅ FIX: Stops Expo Router from treating this as a screen
+export default {};

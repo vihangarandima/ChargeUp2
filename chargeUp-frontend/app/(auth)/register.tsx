@@ -17,16 +17,12 @@ import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../Config/firebaseConfig";
 
-// --- FIREBASE IMPORTS ---
-import { auth, db } from "../Config/firebaseConfig";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+WebBrowser.maybeCompleteAuthSession();
 
 // --- REUSABLE INPUT COMPONENT ---
 const InputField = ({
@@ -43,8 +39,6 @@ const InputField = ({
 }: any) => {
   const isFocused = focusedField === fieldKey;
   const hasValue = value && value.length > 0;
-
-  // Local state for toggling password visibility per field
   const [localShowPassword, setLocalShowPassword] = useState(false);
 
   return (
@@ -58,7 +52,6 @@ const InputField = ({
       </View>
 
       <View style={styles.inputBody}>
-        {/* pointerEvents="none" allows touches to pass through the label to the input */}
         {(isFocused || hasValue) && (
           <Text
             pointerEvents="none"
@@ -103,18 +96,51 @@ const InputField = ({
 export default function RegisterScreen() {
   const router = useRouter();
 
-  // Form State
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const iconAnim = useRef(new Animated.Value(0.6)).current;
   const btnScale = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // ✅ Google Auth Setup — same as login
+  const [request, response, promptAsync] = Google.useAuthRequest({
+  webClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
+  androidClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com", // same ID, both lines
+});
+
+  // ✅ Handle Google response automatically
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      handleFirebaseGoogle(id_token);
+    }
+  }, [response]);
+
+  const handleFirebaseGoogle = async (idToken: string) => {
+    try {
+      const credential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, credential);
+      const user = userCredential.user;
+
+      const role = (await AsyncStorage.getItem("userRole")) || "client";
+
+      await AsyncStorage.setItem("userName", user.displayName || "");
+      await AsyncStorage.setItem("userId", user.uid);
+      await AsyncStorage.setItem("userRole", role);
+
+      router.replace(
+        role === "host" ? "/host-charger-details" : "/vehicle-details",
+      );
+    } catch (error) {
+      console.error("Firebase Google error:", error);
+      Alert.alert("Error", "Google sign-up failed. Try again.");
+    }
+  };
 
   useEffect(() => {
     Animated.parallel([
@@ -179,47 +205,35 @@ export default function RegisterScreen() {
     }
 
     try {
-      // 1. Get the role you saved earlier (Host or Client)
       const role = (await AsyncStorage.getItem("userRole")) || "client";
 
-      // 2. Send the data to your Node.js/Express server
       const response = await fetch(
         "http://10.126.159.178:5000/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-            role,
-          }),
+          body: JSON.stringify({ name, email, password, role }),
         },
       );
 
       const data = await response.json();
 
-      // 3. Check if the server accepted the request
       if (response.ok) {
-        // Save user details locally
         if (data.token) await AsyncStorage.setItem("userToken", data.token);
         await AsyncStorage.setItem("userName", name);
 
         Alert.alert("Welcome!", "Account created successfully.");
 
-        // 4. Navigate based on the role
         router.replace(
           role === "host" ? "/host-charger-details" : "/vehicle-details",
         );
       } else {
-        // Show the specific error message from your backend
         Alert.alert(
           "Signup Failed",
           data.message || "Could not create account.",
         );
       }
     } catch (error) {
-      // This catches network issues (like if the IP address changed)
       Alert.alert(
         "Connection Error",
         "Could not reach the server. Make sure your backend is running.",
@@ -228,31 +242,13 @@ export default function RegisterScreen() {
     }
   };
 
+  // ✅ Google button now triggers real flow
   const handleGoogleSignup = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const role = (await AsyncStorage.getItem("userRole")) || "client";
-
-      // ⚡ SYNC WITH BACKEND: Tell your Node server a Google user joined
-      await fetch("http://10.184.109.178:5000/api/auth/google-sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          name: user.displayName,
-          role,
-        }),
-      });
-
-      await AsyncStorage.setItem("userName", user.displayName || "");
-      router.replace(
-        role === "host" ? "/host-charger-details" : "/vehicle-details",
-      );
-    } catch (error: any) {
-      Alert.alert("Google Error", "Check your Firebase configuration.");
+      await promptAsync();
+    } catch (error) {
+      console.error("Google prompt error:", error);
+      Alert.alert("Error", "Could not open Google sign-in.");
     }
   };
 
@@ -393,6 +389,7 @@ export default function RegisterScreen() {
                   <Pressable
                     style={[styles.socialBtn, styles.googleBtn]}
                     onPress={handleGoogleSignup}
+                    disabled={!request}
                   >
                     <FontAwesome5 name="google" size={17} color="#EA4335" />
                     <Text style={[styles.socialText, { color: "#EA4335" }]}>
