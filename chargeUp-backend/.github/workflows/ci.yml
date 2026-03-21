@@ -1,0 +1,27 @@
+name: Node.js CI Robot
+
+# 1. When should the robot wake up?
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    # 2. What kind of computer should the robot use?
+    runs-on: ubuntu-latest
+
+    steps:
+    # 3. Grab the code from your GitHub vault
+    - name: Get the code
+      uses: actions/checkout@v3
+
+    # 4. Put on the Node.js hat
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x' 
+
+    # 5. The Build Check: Do the pieces fit together?
+    - name: Install the packages
+      working-directory: ./chargeUp-backend  # ⚠️ CHANGE 'backend' TO YOUR EXACT FOLDER NAME!
+      run: npm install
