@@ -17,5 +17,7 @@ jobs:
       with:
         node-version: '18.x' 
 
+    # 5. The Build Check: Do the pieces fit together?
     - name: Install the packages
+      working-directory: ./chargeUp-backend  # ⚠️ CHANGE 'backend' TO YOUR EXACT FOLDER NAME!
       run: npm install
