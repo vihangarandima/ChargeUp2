@@ -62,8 +62,47 @@ const login = async (req, res) => {
 
 const Charger = require("../models/Charger");
 
+const getProfile = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+    
+    const user = await User.findById(token).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
+const updateProfile = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+    
+    const { name, email, phone } = req.body;
+    let user = await User.findById(token);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
 
+    // Handle uploaded file from Multer
+    if (req.file) {
+      user.profileImage = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    }
 
-module.exports = { register, login };
+    await user.save();
+    
+    const updatedUser = await User.findById(token).select("-password");
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error during update" });
+  }
+};
+
+module.exports = { register, login, getProfile, updateProfile };

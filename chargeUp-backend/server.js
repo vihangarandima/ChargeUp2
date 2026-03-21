@@ -15,9 +15,14 @@ const authRoutes = require("./src/routes/authRoutes");
 
 const app = express();
 
+const path = require("path");
+
 // 2. Middleware
 app.use(cors()); // Allows Frontend to connect
 app.use(express.json()); // Allows server to read JSON data
+
+// Expose the 'uploads' folder for profile pictures!
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // 3. Database Connection
 mongoose

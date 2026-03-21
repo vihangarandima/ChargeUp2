@@ -158,10 +158,16 @@ export default function HostHomeScreen() {
 
               {/* Action icons */}
               <View style={styles.headerIcons}>
-                <Pressable style={styles.iconCircle}>
+                <Pressable 
+                  style={styles.iconCircle}
+                  onPress={() => alert("Search functionality coming soon!")}
+                >
                   <Ionicons name="search" size={18} color="white" />
                 </Pressable>
-                <Pressable style={styles.iconCircle}>
+                <Pressable 
+                  style={styles.iconCircle}
+                  onPress={() => router.push("/(host)/host-notifications")}
+                >
                   <Ionicons name="notifications-outline" size={18} color="white" />
                   <View style={styles.notifBadge}>
                     <Text style={styles.notifText}>4</Text>
@@ -252,7 +258,10 @@ export default function HostHomeScreen() {
               </View>
             </Pressable>
 
-            <Pressable style={styles.listItem}>
+            <Pressable 
+              style={styles.listItem}
+              onPress={() => router.push("/(host)/location-picker")}
+            >
               <View style={[styles.listIconWrap, { borderColor: "rgba(94,207,218,0.3)", backgroundColor: "rgba(94,207,218,0.1)" }]}>
                 <Ionicons name="add" size={20} color="#5ECFDA" />
               </View>

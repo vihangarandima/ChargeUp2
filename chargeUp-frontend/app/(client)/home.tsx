@@ -179,10 +179,16 @@ export default function Dashboard() {
             <Text style={styles.headerSub}>Ready to charge your EV?</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconCircle}>
+            <TouchableOpacity 
+              style={styles.iconCircle}
+              onPress={() => router.push("/(client)/map-station-finder")}
+            >
               <Ionicons name="search" size={20} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconCircle}>
+            <TouchableOpacity 
+              style={styles.iconCircle}
+              onPress={() => router.push("/(client)/notifications")}
+            >
               <Ionicons name="notifications-outline" size={20} color="white" />
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>4</Text>
@@ -303,7 +309,7 @@ export default function Dashboard() {
                   >
                     <Text style={styles.viewDetailsText}>Book Now</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.bookBtn}
                     onPress={() =>
                       router.push({

@@ -16,7 +16,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // We can add extra things later, like "carModel" or "phoneNumber"
+  role: {
+    type: String,
+    default: "client",
+  },
+  phone: {
+    type: String,
+    default: "",
+  },
+  profileImage: {
+    type: String,
+    default: "",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
