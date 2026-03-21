@@ -9,7 +9,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE, MapPressEvent } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, MapPressEvent, MarkerDragStartEndEvent } from "react-native-maps";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -173,7 +173,7 @@ export default function LocationPicker() {
               longitude: selectedLocation.longitude,
             }}
             draggable
-            onDragEnd={(e) => {
+            onDragEnd={(e: MarkerDragStartEndEvent) => {
               setSelectedLocation({
                 ...selectedLocation,
                 latitude: e.nativeEvent.coordinate.latitude,
