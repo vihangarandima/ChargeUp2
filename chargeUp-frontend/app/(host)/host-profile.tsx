@@ -158,7 +158,7 @@ export default function HostProfileScreen() {
         style: "destructive",
         onPress: async () => {
           await AsyncStorage.clear();
-          router.replace("/(auth)/login");
+          router.replace("/");
         },
       },
     ]);

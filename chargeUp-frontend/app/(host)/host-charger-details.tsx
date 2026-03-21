@@ -42,6 +42,37 @@ const CHARGER_ICONS: Record<string, string> = {
   "Other": "power-plug-outline",
 };
 
+const Field = ({
+  label, icon, value, onChangeText, keyboardType, fieldKey, placeholder, focusedField, setFocusedField
+}: any) => {
+  const isFocused = focusedField === fieldKey;
+  const hasValue = value.length > 0;
+  return (
+    <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+      <View style={styles.inputIconBox}>
+        <Ionicons name={icon} size={17} color={isFocused ? "#FFC850" : "rgba(255,255,255,0.3)"} />
+      </View>
+      <View style={styles.inputBody}>
+        {(isFocused || hasValue) && (
+          <Text style={[styles.floatLabel, isFocused && styles.floatLabelActive]}>{label}</Text>
+        )}
+        <TextInput
+          style={styles.textInput}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={!isFocused && !hasValue ? placeholder || label : ""}
+          placeholderTextColor="rgba(255,255,255,0.28)"
+          keyboardType={keyboardType}
+          autoCapitalize="sentences"
+          onFocus={() => setFocusedField(fieldKey)}
+          onBlur={() => setFocusedField(null)}
+          selectionColor="#FFC850"
+        />
+      </View>
+    </View>
+  );
+};
+
 export default function HostDetailsScreen() {
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
@@ -84,38 +115,6 @@ export default function HostDetailsScreen() {
 
   // Progress
   const filled = [fullName, address, idNumber, phone, chargerType].filter(Boolean).length;
-
-  // Field component
-  const Field = ({
-    label, icon, value, onChangeText, keyboardType, fieldKey, placeholder
-  }: any) => {
-    const isFocused = focusedField === fieldKey;
-    const hasValue = value.length > 0;
-    return (
-      <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
-        <View style={styles.inputIconBox}>
-          <Ionicons name={icon} size={17} color={isFocused ? "#FFC850" : "rgba(255,255,255,0.3)"} />
-        </View>
-        <View style={styles.inputBody}>
-          {(isFocused || hasValue) && (
-            <Text style={[styles.floatLabel, isFocused && styles.floatLabelActive]}>{label}</Text>
-          )}
-          <TextInput
-            style={styles.textInput}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={!isFocused && !hasValue ? placeholder || label : ""}
-            placeholderTextColor="rgba(255,255,255,0.28)"
-            keyboardType={keyboardType}
-            autoCapitalize="sentences"
-            onFocus={() => setFocusedField(fieldKey)}
-            onBlur={() => setFocusedField(null)}
-            selectionColor="#FFC850"
-          />
-        </View>
-      </View>
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -201,6 +200,8 @@ export default function HostDetailsScreen() {
                     onChangeText={setFullName}
                     fieldKey="name"
                     placeholder="Your legal full name"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
                   />
                   <Field
                     label="Address"
@@ -209,6 +210,8 @@ export default function HostDetailsScreen() {
                     onChangeText={setAddress}
                     fieldKey="address"
                     placeholder="Charger location address"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
                   />
                   <Field
                     label="ID / Passport Number"
@@ -217,6 +220,8 @@ export default function HostDetailsScreen() {
                     onChangeText={setIdNumber}
                     fieldKey="id"
                     placeholder="For identity verification"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
                   />
                   <Field
                     label="Telephone Number"
@@ -226,6 +231,8 @@ export default function HostDetailsScreen() {
                     keyboardType="phone-pad"
                     fieldKey="phone"
                     placeholder="+94 77 000 0000"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
                   />
 
                   {/* Charger Type Dropdown */}
