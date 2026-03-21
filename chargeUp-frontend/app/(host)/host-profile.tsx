@@ -186,28 +186,38 @@ export default function HostProfileScreen() {
       icon: "flash-outline" as const,
       desc: "View and manage your stations",
       color: "#FFC850",
-      onPress: () => {},
+      onPress: () => router.push("/(host)/manage-charger"),
     },
     {
       label: "Earnings History",
       icon: "wallet-outline" as const,
       desc: "View past payouts & sessions",
       color: "#FFC850",
-      onPress: () => {},
+      onPress: () => router.push("/(host)/earnings-history"),
     },
     {
       label: "Notifications",
       icon: "notifications-outline" as const,
       desc: "Manage alerts & reminders",
       color: "#FFC850",
-      onPress: () => {},
+      onPress: () => router.push("/(host)/host-notifications"),
     },
     {
       label: "Help & Support",
       icon: "help-circle-outline" as const,
       desc: "FAQs, contact & feedback",
       color: "rgba(255,255,255,0.5)",
-      onPress: () => {},
+      onPress: () => router.push("/(host)/host-help"),
+    },
+    {
+      label: "Switch to Client",
+      icon: "car-sport-outline" as const,
+      desc: "Find chargers to use",
+      color: "#5ECFDA",
+      onPress: async () => {
+        await AsyncStorage.setItem("userRole", "client");
+        router.replace("/home");
+      },
     },
     {
       label: "Log Out",

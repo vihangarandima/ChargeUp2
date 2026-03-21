@@ -240,21 +240,21 @@ export default function ProfileScreen() {
       icon: "car-sport-outline" as const,
       desc: "Manage your EV details",
       color: "#5ECFDA",
-      onPress: () => {},
+      onPress: () => router.push("/(client)/my-vehicle"),
     },
     {
       label: "Charging History",
       icon: "time-outline" as const,
       desc: "View past sessions & receipts",
       color: "#5ECFDA",
-      onPress: () => {},
+      onPress: () => router.push("/(client)/charging-history"),
     },
     {
       label: "Notifications",
       icon: "notifications-outline" as const,
       desc: "Manage alerts & reminders",
       color: "#5ECFDA",
-      onPress: () => {},
+      onPress: () => router.push("/(client)/notifications"),
     },
     {
       label: isHost ? "My Charger Listings" : "Become a Lender",
@@ -263,14 +263,21 @@ export default function ProfileScreen() {
         ? "View and manage your stations"
         : "Share your charger & earn money",
       color: "#FFC850",
-      onPress: () => {},
+      onPress: async () => {
+        if (!isHost) {
+          await AsyncStorage.setItem("userRole", "host");
+          router.replace("/(host)/host-home");
+        } else {
+          router.push("/(host)/manage-charger");
+        }
+      },
     },
     {
       label: "Help & Support",
       icon: "help-circle-outline" as const,
       desc: "FAQs, contact & feedback",
       color: "rgba(255,255,255,0.5)",
-      onPress: () => {},
+      onPress: () => router.push("/(client)/help-support"),
     },
     {
       label: "Log Out",

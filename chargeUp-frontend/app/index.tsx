@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Animated,
   Dimensions,
@@ -34,6 +35,34 @@ const AnimatedView = Animated.createAnimatedComponent(View);
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        const role = await AsyncStorage.getItem("userRole");
+        const userId = await AsyncStorage.getItem("userId");
+
+        if ((token || userId) && role) {
+          if (role === "client") {
+            router.replace("/home");
+          } else if (role === "host") {
+            router.replace("/(host)/host-home");
+          } else {
+            router.replace("/home");
+          }
+        } else {
+          setIsCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error("Auth check failed", error);
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   // Entrance
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -146,6 +175,15 @@ export default function WelcomeScreen() {
       Animated.spring(btnScale, { toValue: 1, tension: 200, friction: 10, useNativeDriver: true }),
     ]).start(() => router.push("/role-select"));
   };
+
+  if (isCheckingAuth) {
+    return (
+      <View style={[styles.container, { backgroundColor: "#060E14", justifyContent: 'center', alignItems: 'center' }]}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <Ionicons name="flash" size={48} color="#5ECFDA" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
