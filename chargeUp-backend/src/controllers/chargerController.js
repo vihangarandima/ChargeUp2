@@ -54,4 +54,18 @@ const getLatestCharger = async (req, res) => {
   }
 };
 
-module.exports = { createCharger, getAllChargers, getLatestCharger };
+// 🌟 NEW: Fetch one specific charger by its MongoDB _id
+const getChargerById = async (req, res) => {
+  try {
+    const charger = await Charger.findById(req.params.id);
+    if (!charger) {
+      return res.status(404).json({ message: "Charger not found." });
+    }
+    res.status(200).json(charger);
+  } catch (error) {
+    console.error("❌ Error fetching charger by ID:", error);
+    res.status(500).json({ message: "Failed to fetch charger", error: error.message });
+  }
+};
+
+module.exports = { createCharger, getAllChargers, getLatestCharger, getChargerById };

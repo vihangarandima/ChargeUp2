@@ -17,6 +17,12 @@ import { useRouter } from "expo-router";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../Config/firebaseConfig";
+
+WebBrowser.maybeCompleteAuthSession();
 
 /**
  * InputField Component
@@ -98,6 +104,38 @@ export default function LoginScreen() {
   const btnScale = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // ✅ Google Auth Setup
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: "71813664146-XXXXXXXX.apps.googleusercontent.com", // ⚠️ replace with your Web Client ID from Google Cloud Console
+    androidClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com", // ⚠️ replace with Android Client ID
+    iosClientId: "71813664146-XXXXXXXX.apps.googleusercontent.com", // ⚠️ replace with iOS Client ID
+  });
+
+  // ✅ Handle Google response automatically when it comes back
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      handleFirebaseGoogle(id_token);
+    }
+  }, [response]);
+
+  const handleFirebaseGoogle = async (idToken: string) => {
+    try {
+      const credential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, credential);
+      const user = userCredential.user;
+
+      await AsyncStorage.setItem("userName", user.displayName || "");
+      await AsyncStorage.setItem("userId", user.uid);
+      await AsyncStorage.setItem("userRole", "client");
+
+      router.replace("/home");
+    } catch (error) {
+      console.error("Firebase Google error:", error);
+      Alert.alert("Error", "Google sign-in failed. Try again.");
+    }
+  };
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -178,7 +216,6 @@ export default function LoginScreen() {
         if (data.user?.name)
           await AsyncStorage.setItem("userName", data.user.name);
 
-        // Use backend role if present, otherwise check AsyncStorage
         const role =
           data.user?.role || (await AsyncStorage.getItem("userRole"));
 
@@ -201,8 +238,15 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = () =>
-    Alert.alert("Coming Soon", "Google Sign-in integrated soon.");
+  // ✅ Google button now triggers the real flow
+  const handleGoogleLogin = async () => {
+    try {
+      await promptAsync();
+    } catch (error) {
+      console.error("Google prompt error:", error);
+      Alert.alert("Error", "Could not open Google sign-in.");
+    }
+  };
 
   return (
     <LinearGradient
@@ -236,7 +280,6 @@ export default function LoginScreen() {
                   <Ionicons name="flash" size={14} color="#0E1F26" />
                 </View>
                 <Text style={styles.brandName}>ChargeUp</Text>
-                {/* Fixed: Replaced <div> with <View> */}
                 <View style={styles.badgePill}>
                   <View style={styles.badgeDot} />
                   <Text style={styles.badgeText}>EV Network</Text>
@@ -331,6 +374,7 @@ export default function LoginScreen() {
                   </Pressable>
                   <Pressable
                     onPress={handleGoogleLogin}
+                    disabled={!request}
                     style={[styles.socialBtn, styles.googleBtn]}
                   >
                     <FontAwesome5 name="google" size={17} color="#EA4335" />
@@ -376,241 +420,51 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   scroll: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 32 },
-  topAccent: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: "#5ECFDA",
-    opacity: 0.65,
-  },
-  blob1: {
-    position: "absolute",
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: "rgba(94,207,218,0.055)",
-    top: -100,
-    right: -80,
-  },
-  blob2: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: "rgba(94,207,218,0.03)",
-    bottom: 100,
-    left: -70,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 28,
-  },
-  logoChip: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: "#5ECFDA",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  brandName: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "700",
-    letterSpacing: 0.4,
-    flex: 1,
-  },
-  badgePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(94,207,218,0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.22)",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    gap: 5,
-  },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#5ECFDA",
-  },
-  badgeText: {
-    color: "#5ECFDA",
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.4,
-  },
+  topAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 2, backgroundColor: "#5ECFDA", opacity: 0.65 },
+  blob1: { position: "absolute", width: 300, height: 300, borderRadius: 150, backgroundColor: "rgba(94,207,218,0.055)", top: -100, right: -80 },
+  blob2: { position: "absolute", width: 220, height: 220, borderRadius: 110, backgroundColor: "rgba(94,207,218,0.03)", bottom: 100, left: -70 },
+  topBar: { flexDirection: "row", alignItems: "center", marginTop: 10, marginBottom: 28 },
+  logoChip: { width: 28, height: 28, borderRadius: 8, backgroundColor: "#5ECFDA", alignItems: "center", justifyContent: "center", marginRight: 8 },
+  brandName: { color: "white", fontSize: 20, fontWeight: "700", letterSpacing: 0.4, flex: 1 },
+  badgePill: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(94,207,218,0.1)", borderWidth: 1, borderColor: "rgba(94,207,218,0.22)", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, gap: 5 },
+  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#5ECFDA" },
+  badgeText: { color: "#5ECFDA", fontSize: 11, fontWeight: "600", letterSpacing: 0.4 },
   hero: { alignItems: "center", marginBottom: 24 },
   iconOuter: { width: 92, height: 92, borderRadius: 46, marginBottom: 16 },
-  iconGradient: {
-    flex: 1,
-    borderRadius: 46,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconInner: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(94,207,218,0.1)",
-    borderWidth: 1.5,
-    borderColor: "rgba(94,207,218,0.4)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroTitle: {
-    color: "white",
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: -0.8,
-    marginBottom: 5,
-  },
-  heroSub: {
-    color: "rgba(255,255,255,0.38)",
-    fontSize: 13,
-    letterSpacing: 0.2,
-  },
-  card: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    padding: 18,
-    marginBottom: 16,
-  },
+  iconGradient: { flex: 1, borderRadius: 46, alignItems: "center", justifyContent: "center" },
+  iconInner: { width: 72, height: 72, borderRadius: 36, backgroundColor: "rgba(94,207,218,0.1)", borderWidth: 1.5, borderColor: "rgba(94,207,218,0.4)", alignItems: "center", justifyContent: "center" },
+  heroTitle: { color: "white", fontSize: 28, fontWeight: "800", letterSpacing: -0.8, marginBottom: 5 },
+  heroSub: { color: "rgba(255,255,255,0.38)", fontSize: 13, letterSpacing: 0.2 },
+  card: { backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 24, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", padding: 18, marginBottom: 16 },
   form: { gap: 10, marginBottom: 10 },
-  inputWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    gap: 10,
-  },
-  inputWrapFocused: {
-    backgroundColor: "rgba(94,207,218,0.07)",
-    borderColor: "rgba(94,207,218,0.4)",
-  },
+  inputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 13, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", paddingHorizontal: 14, paddingVertical: 13, gap: 10 },
+  inputWrapFocused: { backgroundColor: "rgba(94,207,218,0.07)", borderColor: "rgba(94,207,218,0.4)" },
   inputIconBox: { width: 20, alignItems: "center" },
   inputBody: { flex: 1, justifyContent: "center" },
-  floatLabel: {
-    color: "rgba(255,255,255,0.3)",
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 2,
-  },
+  floatLabel: { color: "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 },
   floatLabelActive: { color: "#5ECFDA" },
   textInput: { color: "white", fontSize: 15, paddingVertical: 0 },
   eyeBtn: { padding: 4 },
-  forgotRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    marginBottom: 18,
-    marginTop: 4,
-  },
+  forgotRow: { flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginBottom: 18, marginTop: 4 },
   forgotText: { color: "rgba(255,255,255,0.35)", fontSize: 12 },
   forgotLink: { color: "#5ECFDA", fontSize: 12, fontWeight: "600" },
   ctaBtn: { borderRadius: 15, overflow: "hidden", marginBottom: 18 },
-  ctaGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 15,
-    gap: 10,
-  },
-  ctaText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-  ctaArrow: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.85)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-    gap: 10,
-  },
+  ctaGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 15, gap: 10 },
+  ctaText: { color: "white", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+  ctaArrow: { width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.85)", alignItems: "center", justifyContent: "center" },
+  divider: { flexDirection: "row", alignItems: "center", marginBottom: 14, gap: 10 },
   divLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.08)" },
-  divLabel: {
-    color: "rgba(255,255,255,0.28)",
-    fontSize: 12,
-    letterSpacing: 0.4,
-  },
+  divLabel: { color: "rgba(255,255,255,0.28)", fontSize: 12, letterSpacing: 0.4 },
   socialRow: { flexDirection: "row", gap: 12 },
-  socialBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-    paddingVertical: 13,
-    borderRadius: 13,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.09)",
-  },
-  googleBtn: {
-    backgroundColor: "rgba(234,67,53,0.05)",
-    borderColor: "rgba(234,67,53,0.18)",
-  },
+  socialBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, paddingVertical: 13, borderRadius: 13, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
+  googleBtn: { backgroundColor: "rgba(234,67,53,0.05)", borderColor: "rgba(234,67,53,0.18)" },
   socialText: { color: "white", fontSize: 14, fontWeight: "600" },
-  statsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(94,207,218,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.12)",
-    borderRadius: 16,
-    paddingVertical: 14,
-    marginBottom: 18,
-  },
+  statsRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(94,207,218,0.06)", borderWidth: 1, borderColor: "rgba(94,207,218,0.12)", borderRadius: 16, paddingVertical: 14, marginBottom: 18 },
   statItem: { flex: 1, alignItems: "center" },
-  statNumber: {
-    color: "#5ECFDA",
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: -0.4,
-    marginBottom: 2,
-  },
-  statLabel: {
-    color: "rgba(255,255,255,0.38)",
-    fontSize: 11,
-    fontWeight: "500",
-    letterSpacing: 0.3,
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: "rgba(255,255,255,0.08)",
-  },
-  signupRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  statNumber: { color: "#5ECFDA", fontSize: 16, fontWeight: "800", letterSpacing: -0.4, marginBottom: 2 },
+  statLabel: { color: "rgba(255,255,255,0.38)", fontSize: 11, fontWeight: "500", letterSpacing: 0.3 },
+  statDivider: { width: 1, height: 32, backgroundColor: "rgba(255,255,255,0.08)" },
+  signupRow: { flexDirection: "row", justifyContent: "center", alignItems: "center" },
   signupText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
   signupLink: { color: "#5ECFDA", fontSize: 14, fontWeight: "700" },
 });

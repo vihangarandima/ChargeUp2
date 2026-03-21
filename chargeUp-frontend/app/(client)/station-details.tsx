@@ -1,24 +1,60 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView, Platform } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { BlurView } from "expo-blur";
+import { Ionicons } from "@expo/vector-icons";
+import MapView, { Marker } from "react-native-maps";
+
+// 🔧 Change this to your computer's current Wi-Fi IP address
+const API_BASE = "http://10.126.159.178:5000";
 
 export default function StationDetails() {
-  // 🌟 RETRIEVING THE EXACT DETAILS FROM THE MAP SCREEN!
-  const { stationName, lat, lng, distance, address, phone, chargerType } = useLocalSearchParams();
+  const { chargerId, stationName, lat, lng } = useLocalSearchParams();
   const router = useRouter();
 
   const latitude = lat ? parseFloat(lat as string) : 6.9067;
   const longitude = lng ? parseFloat(lng as string) : 79.8707;
 
-  // Use the chargerType directly from the database or show a default
-  const dynamicChargerType = chargerType ? (chargerType as string) : 'Type 2 / Unknown';
+  // 🌟 State for the real charger fetched from the backend
+  const [charger, setCharger] = useState<any>(null);
+  const [isLoading, setLoading] = useState(true);
 
-  const connectors = [
-    { id: '1', type: dynamicChargerType, status: 'available' },
-  ];
+  // ── FETCH the real charger by its MongoDB _id ────────────────────────────────
+  useEffect(() => {
+    const fetchCharger = async () => {
+      if (!chargerId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE}/api/chargers/${chargerId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCharger(data);
+        }
+      } catch (error) {
+        console.log("Error fetching charger:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCharger();
+  }, [chargerId]);
+
+  // ── STATUS colour helper ─────────────────────────────────────────────────────
+  const statusColor = (status: string) => {
+    if (status === "available") return "#2ECC71";
+    if (status === "in-use") return "#F39C12";
+    return "#E74C3C"; // unavailable
+  };
 
   return (
     <View style={styles.container}>
@@ -39,97 +75,125 @@ export default function StationDetails() {
         </Marker>
       </MapView>
 
-      {/* Top Navigation */}
-      <SafeAreaView style={styles.topNav}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.heartBtn}>
-          <Ionicons name="heart-outline" size={24} color="white" />
-        </TouchableOpacity>
-      </SafeAreaView>
+      {/* ChargeUp Header over map */}
+      <View style={styles.topHeader}>
+        <Text style={styles.brandTitle}>ChargeUp</Text>
+      </View>
 
-      {/* Bottom Sheet Details */}
+      {/* Bottom Sheet */}
       <View style={styles.bottomSheet}>
         <BlurView intensity={80} tint="dark" style={styles.blurContent}>
           <View style={styles.handle} />
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-            {/* Dynamic Station Name */}
-            <Text style={styles.mainTitle}>{stationName || "EV Charging Station"}</Text>
+          {/* Station name — uses real fullName once loaded */}
+          <Text style={styles.mainTitle}>
+            {charger?.fullName || stationName || "Charging Station"}
+          </Text>
 
-            {/* 🌟 DYNAMIC STATION INFO CARDS FROM DATABASE */}
-            <View style={styles.card}>
-              <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
-                <Text style={styles.infoText}>{address || "No exact address provided"}</Text>
-              </View>
-              <View style={styles.divider} />
-              
-              <View style={styles.infoRow}>
-                <Ionicons name="call-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
-                <Text style={styles.infoText}>{phone || "No phone number provided"}</Text>
-              </View>
-              <View style={styles.divider} />
+          {isLoading ? (
+            // ── LOADING STATE ─────────────────────────────────────────────────
+            <ActivityIndicator color="#00D1FF" style={{ marginTop: 30 }} />
+          ) : (
+            // ── REAL DATA ─────────────────────────────────────────────────────
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 40 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {charger ? (
+                <>
+                  {/* ── CHARGER TYPE CARD — tappable to book ── */}
+                  <TouchableOpacity
+                    style={styles.card}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/charger-booking",
+                        params: {
+                          stationName: charger.fullName,
+                          connectorType: charger.chargerType,
+                          lat: String(latitude),
+                          lng: String(longitude),
+                        },
+                      })
+                    }
+                  >
+                    <Text style={styles.cardType}>{charger.chargerType}</Text>
 
-              <View style={styles.infoRow}>
-                <Ionicons name="navigate-outline" size={20} color="#00D1FF" style={{ width: 25 }} />
-                <Text style={styles.infoText}>{distance ? `${distance} km away from your location` : "Distance unknown"}</Text>
-              </View>
-            </View>
+                    <View style={styles.footer}>
+                      {/* Availability badge — driven by real status from the database */}
+                      <View
+                        style={[
+                          styles.badge,
+                          {
+                            borderColor: statusColor(
+                              charger.status || "available",
+                            ),
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.badgeText,
+                            {
+                              color: statusColor(charger.status || "available"),
+                            },
+                          ]}
+                        >
+                          {charger.status || "available"}
+                        </Text>
+                      </View>
 
-            {/* Available Connectors */}
-            <Text style={styles.sectionTitle}>Available Connectors</Text>
-            {connectors.map((item) => (
-              <View key={item.id} style={styles.connectorCard}>
-                <View style={styles.connectorLeft}>
-                  <Ionicons name="flash" size={24} color="#00D1FF" />
-                  <View style={{ marginLeft: 15 }}>
-                    <Text style={styles.connectorType}>{item.type}</Text>
-                    <Text style={styles.connectorPower}>Max 50 kW</Text>
+                      <View style={styles.infoButton}>
+                        <Text style={styles.infoText}>Info</Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* ── ADDRESS CARD ── */}
+                  <View
+                    style={[
+                      styles.card,
+                      { flexDirection: "row", alignItems: "center" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="location-outline"
+                      size={18}
+                      color="#00D1FF"
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text style={[styles.cardType, { marginBottom: 0 }]}>
+                      {charger.address}
+                    </Text>
                   </View>
-                </View>
-                <View style={[styles.statusBadge, item.status === 'unavailable' && styles.statusUnavailable]}>
-                  <Text style={styles.statusText}>
-                    {item.status.toUpperCase()}
+
+                  {/* ── HOST CARD ── */}
+                  <View
+                    style={[
+                      styles.card,
+                      { flexDirection: "row", alignItems: "center" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color="#00D1FF"
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text style={[styles.cardType, { marginBottom: 0 }]}>
+                      Host: {charger.fullName}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                // ── NO DATA FALLBACK ──────────────────────────────────────────
+                <View style={styles.card}>
+                  <Text style={styles.cardType}>
+                    Could not load charger details.
                   </Text>
                 </View>
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* Action Buttons */}
-          <View style={styles.actionRow}>
-            <TouchableOpacity 
-              style={styles.routeBtn}
-              onPress={() => router.push({
-                pathname: "/map",
-                params: {
-                  mode: 'route',
-                  destLat: String(latitude),
-                  destLng: String(longitude),
-                  stationName: stationName as string,
-                }
-              })}
-            >
-              <Ionicons name="navigate" size={20} color="white" />
-              <Text style={styles.routeBtnText}>Route</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.bookBtn}
-              onPress={() => router.push({
-                pathname: "/charger-booking",
-                params: {
-                  stationName: stationName as string,
-                  lat: String(latitude),
-                  lng: String(longitude),
-                }
-              })}
-            >
-              <Text style={styles.bookBtnText}>Book Charger</Text>
-            </TouchableOpacity>
-          </View>
+              )}
+            </ScrollView>
+          )}
         </BlurView>
       </View>
     </View>
@@ -137,46 +201,31 @@ export default function StationDetails() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E1E',
+  container: { flex: 1, backgroundColor: "#0B1D21" },
+  map: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  topHeader: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
   },
-  map: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  topNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: Platform.OS === 'android' ? 40 : 10,
-  },
-  backBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  heartBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  brandTitle: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "bold",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   bottomSheet: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: '60%',
+    height: "55%",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   blurContent: {
     flex: 1,
@@ -186,132 +235,56 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: "rgba(255,255,255,0.3)",
     borderRadius: 2,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 15,
   },
   mainTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 20,
   },
   markerDot: {
-    backgroundColor: '#E74C3C',
+    backgroundColor: "#E74C3C",
     width: 30,
     height: 30,
     borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
   },
   card: {
-    backgroundColor: 'rgba(28, 46, 51, 0.85)',
-    borderRadius: 15,
-    padding: 18,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    flex: 1,
-    marginLeft: 5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginVertical: 12,
-  },
-  sectionTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  connectorCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(28, 46, 51, 0.85)",
     borderRadius: 15,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  connectorLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cardType: { color: "white", fontSize: 15, marginBottom: 15 },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  connectorType: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
+  badge: {
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
-  connectorPower: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 12,
-  },
-  statusBadge: {
-    backgroundColor: 'rgba(46, 204, 113, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  badgeText: { fontSize: 11, fontWeight: "bold" },
+  infoButton: {
+    backgroundColor: "rgba(58, 75, 78, 0.8)",
+    paddingHorizontal: 25,
+    paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(46, 204, 113, 0.5)',
+    borderColor: "rgba(255,255,255,0.3)",
   },
-  statusUnavailable: {
-    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-    borderColor: 'rgba(231, 76, 60, 0.5)',
-  },
-  statusText: {
-    color: '#2ECC71',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 15,
-    marginTop: 10,
-  },
-  routeBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: '#00D1FF',
-    height: 50,
-    borderRadius: 25,
-    gap: 8,
-  },
-  routeBtnText: {
-    color: '#00D1FF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  bookBtn: {
-    flex: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#00D1FF',
-    height: 50,
-    borderRadius: 25,
-  },
-  bookBtnText: {
-    color: '#1E1E1E',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  infoText: { color: "white", fontSize: 12 },
 });

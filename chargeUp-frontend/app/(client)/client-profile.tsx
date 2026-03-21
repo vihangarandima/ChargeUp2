@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const API_BASE = "http://10.184.109.178:5000";
+const API_BASE = "http://10.126.159.178:5000";
 const { width, height } = Dimensions.get("window");
 
 export default function ProfileScreen() {

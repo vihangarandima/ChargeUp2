@@ -53,7 +53,7 @@ export default function ChargingSession() {
     setIsCharging(false); 
 
     try {
-      await fetch("http://10.129.159.178:5000/api/stop-charging", {
+      await fetch("http://10.126.159.178:5000/api/stop-charging", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: currentSessionId }),

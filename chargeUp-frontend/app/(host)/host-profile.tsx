@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const API_BASE = "http://10.184.109.178:5000";
+const API_BASE = "http://10.126.159.178:5000";
 const { width, height } = Dimensions.get("window");
 
 export default function HostProfileScreen() {
@@ -179,7 +179,7 @@ export default function HostProfileScreen() {
       icon: "person-outline" as const,
       desc: "Update your name, photo & info",
       color: "#FFC850",
-      onPress: () => router.push("/(host)/host-edit-profile"),  // ✅ navigate to host edit page
+      onPress: () => router.push("/edit-profile"),  // ✅ navigate to host edit page
     },
     {
       label: "My Charger Listings",

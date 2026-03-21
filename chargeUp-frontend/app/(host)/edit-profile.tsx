@@ -21,9 +21,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const API_BASE = "http://10.126.159.178:5000";
+const API_BASE = "http://10.184.109.178:5000";
 
-export default function EditProfileScreen() {
+export default function HostEditProfileScreen() {
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -62,12 +62,14 @@ export default function EditProfileScreen() {
     ]).start();
   }, []);
 
-  // Fetch real profile data from backend
+  // ── Fetch real profile data ────────────────────────────────────────────────
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const storedName = await AsyncStorage.getItem("userName");
         if (storedName) setName(storedName);
+        const storedPhoto = await AsyncStorage.getItem("userPhoto");
+        if (storedPhoto) setPhotoUri(storedPhoto);
 
         const token = await AsyncStorage.getItem("userToken");
         if (!token) {
@@ -99,7 +101,7 @@ export default function EditProfileScreen() {
     loadProfile();
   }, []);
 
-  // Pick from gallery
+  // ── Pick from gallery ──────────────────────────────────────────────────────
   const handlePickPhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -116,11 +118,13 @@ export default function EditProfileScreen() {
       quality: 0.7,
     });
     if (!result.canceled && result.assets.length > 0) {
-      setPhotoUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setPhotoUri(uri);
+      await AsyncStorage.setItem("userPhoto", uri);
     }
   };
 
-  // Take with camera
+  // ── Take with camera ───────────────────────────────────────────────────────
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -133,7 +137,9 @@ export default function EditProfileScreen() {
       quality: 0.7,
     });
     if (!result.canceled && result.assets.length > 0) {
-      setPhotoUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setPhotoUri(uri);
+      await AsyncStorage.setItem("userPhoto", uri);
     }
   };
 
@@ -145,12 +151,13 @@ export default function EditProfileScreen() {
     ]);
   };
 
-  // Save changes to backend
+  // ── Save to backend ────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert("Missing Info", "Name cannot be empty.");
       return;
     }
+
     Animated.sequence([
       Animated.timing(btnScale, {
         toValue: 0.96,
@@ -199,6 +206,7 @@ export default function EditProfileScreen() {
 
       if (response.ok) {
         await AsyncStorage.setItem("userName", name.trim());
+        if (photoUri) await AsyncStorage.setItem("userPhoto", photoUri);
         Alert.alert("Saved!", "Your profile has been updated.", [
           { text: "OK", onPress: () => router.back() },
         ]);
@@ -220,6 +228,7 @@ export default function EditProfileScreen() {
     return n[0].toUpperCase();
   };
 
+  // ── Field component ────────────────────────────────────────────────────────
   const Field = ({
     label,
     icon,
@@ -237,7 +246,7 @@ export default function EditProfileScreen() {
           <Ionicons
             name={icon}
             size={17}
-            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+            color={isFocused ? "#FFC850" : "rgba(255,255,255,0.3)"}
           />
         </View>
         <View style={styles.inputBody}>
@@ -258,7 +267,7 @@ export default function EditProfileScreen() {
             autoCapitalize={autoCapitalize || "sentences"}
             onFocus={() => setFocusedField(fieldKey)}
             onBlur={() => setFocusedField(null)}
-            selectionColor="#5ECFDA"
+            selectionColor="#FFC850"
           />
         </View>
       </View>
@@ -272,7 +281,7 @@ export default function EditProfileScreen() {
           colors={["#101922", "#15252E", "#193038", "#0E4548"]}
           style={StyleSheet.absoluteFillObject}
         />
-        <ActivityIndicator size="large" color="#5ECFDA" />
+        <ActivityIndicator size="large" color="#FFC850" />
         <Text style={styles.loadingText}>Loading your profile...</Text>
       </View>
     );
@@ -292,6 +301,7 @@ export default function EditProfileScreen() {
       />
       <View style={styles.blob1} />
       <View style={styles.blob2} />
+      {/* Gold accent for host */}
       <View style={styles.topAccent} />
 
       <SafeAreaView style={styles.safeArea}>
@@ -310,7 +320,7 @@ export default function EditProfileScreen() {
                 transform: [{ translateY: slideAnim }],
               }}
             >
-              {/* Header */}
+              {/* ── HEADER ── */}
               <View style={styles.header}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
                   <Ionicons name="chevron-back" size={22} color="white" />
@@ -319,7 +329,7 @@ export default function EditProfileScreen() {
                 <View style={{ width: 40 }} />
               </View>
 
-              {/* Avatar */}
+              {/* ── AVATAR ── */}
               <Animated.View
                 style={[
                   styles.avatarSection,
@@ -332,7 +342,7 @@ export default function EditProfileScreen() {
                 >
                   <View style={styles.avatarRing}>
                     <LinearGradient
-                      colors={["#3ABFCC", "#1A9BAA", "#0E7080"]}
+                      colors={["#D4A017", "#FFC850", "#C8860A"]}
                       style={styles.avatarGradient}
                     >
                       {photoUri ? (
@@ -354,12 +364,13 @@ export default function EditProfileScreen() {
 
                 <Text style={styles.avatarHint}>Tap photo to update</Text>
 
+                {/* Photo action buttons */}
                 <View style={styles.photoActions}>
                   <Pressable
                     onPress={handlePickPhoto}
                     style={styles.photoActionBtn}
                   >
-                    <Ionicons name="images-outline" size={15} color="#5ECFDA" />
+                    <Ionicons name="images-outline" size={15} color="#FFC850" />
                     <Text style={styles.photoActionText}>Gallery</Text>
                   </Pressable>
                   <View style={styles.photoActionSep} />
@@ -367,16 +378,16 @@ export default function EditProfileScreen() {
                     onPress={handleTakePhoto}
                     style={styles.photoActionBtn}
                   >
-                    <Ionicons name="camera-outline" size={15} color="#5ECFDA" />
+                    <Ionicons name="camera-outline" size={15} color="#FFC850" />
                     <Text style={styles.photoActionText}>Camera</Text>
                   </Pressable>
                 </View>
               </Animated.View>
 
-              {/* Form */}
+              {/* ── FORM ── */}
               <View style={styles.card}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="person-outline" size={14} color="#5ECFDA" />
+                  <Ionicons name="person-outline" size={14} color="#FFC850" />
                   <Text style={styles.sectionTitle}>Personal Information</Text>
                 </View>
                 <View style={styles.form}>
@@ -411,7 +422,7 @@ export default function EditProfileScreen() {
                   <Ionicons
                     name="information-circle-outline"
                     size={13}
-                    color="#5ECFDA"
+                    color="#FFC850"
                     style={{ marginRight: 7 }}
                   />
                   <Text style={styles.infoNoteText}>
@@ -421,7 +432,7 @@ export default function EditProfileScreen() {
                 </View>
               </View>
 
-              {/* Save */}
+              {/* ── SAVE ── */}
               <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                 <Pressable
                   onPress={handleSave}
@@ -429,19 +440,19 @@ export default function EditProfileScreen() {
                   style={styles.saveBtn}
                 >
                   <LinearGradient
-                    colors={["#3ABFCC", "#1E9BAA"]}
+                    colors={["#D4A017", "#FFC850"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.saveBtnGradient}
                   >
                     {isSaving ? (
-                      <ActivityIndicator size="small" color="white" />
+                      <ActivityIndicator size="small" color="#3A2000" />
                     ) : (
                       <>
                         <Ionicons
                           name="checkmark-circle-outline"
                           size={20}
-                          color="white"
+                          color="#3A2000"
                         />
                         <Text style={styles.saveBtnText}>Save Changes</Text>
                       </>
@@ -471,15 +482,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 14,
   },
-  loadingText: { color: "#5ECFDA", fontSize: 14 },
+  loadingText: { color: "#FFC850", fontSize: 14 },
+
+  // Gold accent for host
   topAccent: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: "#5ECFDA",
-    opacity: 0.65,
+    backgroundColor: "#FFC850",
+    opacity: 0.7,
     zIndex: 10,
   },
   blob1: {
@@ -487,7 +500,7 @@ const styles = StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: "rgba(94,207,218,0.055)",
+    backgroundColor: "rgba(255,200,80,0.05)",
     top: -80,
     right: -80,
   },
@@ -496,10 +509,11 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "rgba(94,207,218,0.03)",
+    backgroundColor: "rgba(255,200,80,0.03)",
     bottom: 100,
     left: -60,
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -518,6 +532,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: { color: "white", fontSize: 18, fontWeight: "700" },
+
   avatarSection: { alignItems: "center", marginBottom: 28 },
   avatarPressable: { position: "relative", marginBottom: 12 },
   avatarRing: {
@@ -525,9 +540,9 @@ const styles = StyleSheet.create({
     height: 130,
     borderRadius: 65,
     borderWidth: 3,
-    borderColor: "rgba(94,207,218,0.5)",
+    borderColor: "rgba(255,200,80,0.5)",
     padding: 3,
-    shadowColor: "#5ECFDA",
+    shadowColor: "#FFC850",
     shadowOpacity: 0.4,
     shadowRadius: 16,
     elevation: 12,
@@ -548,27 +563,23 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "#1D3B42",
+    backgroundColor: "#C8860A",
     borderWidth: 2.5,
-    borderColor: "#5ECFDA",
+    borderColor: "rgba(6,14,20,0.9)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#5ECFDA",
+    shadowColor: "#FFC850",
     shadowOpacity: 0.6,
     shadowRadius: 8,
     elevation: 8,
   },
-  avatarHint: {
-    color: "rgba(255,255,255,0.35)",
-    fontSize: 12,
-    marginBottom: 14,
-  },
+  avatarHint: { color: "rgba(255,200,80,0.5)", fontSize: 12, marginBottom: 14 },
   photoActions: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(94,207,218,0.07)",
+    backgroundColor: "rgba(255,200,80,0.07)",
     borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.18)",
+    borderColor: "rgba(255,200,80,0.2)",
     borderRadius: 22,
     overflow: "hidden",
   },
@@ -579,12 +590,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
-  photoActionText: { color: "#5ECFDA", fontSize: 13, fontWeight: "600" },
+  photoActionText: { color: "#FFC850", fontSize: 13, fontWeight: "600" },
   photoActionSep: {
     width: 1,
     height: 20,
-    backgroundColor: "rgba(94,207,218,0.2)",
+    backgroundColor: "rgba(255,200,80,0.2)",
   },
+
   card: {
     backgroundColor: "rgba(255,255,255,0.04)",
     borderRadius: 24,
@@ -619,8 +631,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   inputWrapFocused: {
-    backgroundColor: "rgba(94,207,218,0.07)",
-    borderColor: "rgba(94,207,218,0.4)",
+    backgroundColor: "rgba(255,200,80,0.07)",
+    borderColor: "rgba(255,200,80,0.4)",
   },
   inputIconBox: { width: 20, alignItems: "center" },
   inputBody: { flex: 1 },
@@ -632,14 +644,15 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 2,
   },
-  floatLabelActive: { color: "#5ECFDA" },
+  floatLabelActive: { color: "#FFC850" },
   textInput: { color: "white", fontSize: 15, paddingVertical: 0 },
+
   infoNote: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "rgba(94,207,218,0.05)",
+    backgroundColor: "rgba(255,200,80,0.05)",
     borderWidth: 1,
-    borderColor: "rgba(94,207,218,0.12)",
+    borderColor: "rgba(255,200,80,0.12)",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 9,
@@ -650,6 +663,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
   },
+
   saveBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 14 },
   saveBtnGradient: {
     flexDirection: "row",
@@ -658,7 +672,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 10,
   },
-  saveBtnText: { color: "white", fontSize: 16, fontWeight: "700" },
+  saveBtnText: { color: "#3A2000", fontSize: 16, fontWeight: "800" },
+
   cancelBtn: { alignItems: "center", paddingVertical: 12 },
   cancelText: { color: "rgba(255,255,255,0.35)", fontSize: 14 },
 });
