@@ -205,6 +205,12 @@ export default function RegisterScreen() {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (emailRegex.test(name)) {
+      Alert.alert("Invalid Name", "Please enter your actual name, not an email address.");
+      return;
+    }
+
     if (!emailRegex.test(email)) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
