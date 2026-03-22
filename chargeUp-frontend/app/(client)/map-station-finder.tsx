@@ -57,10 +57,12 @@ export default function MapScreen() {
   useEffect(() => {
     const fetchStationsAndLocation = async () => {
       try {
-        // 1. Get stations from your backend
+        // 1. Get stations from your backend with more robust handling
         const response = await fetch("https://chargeup2.onrender.com/api/chargers");
+        if (!response.ok) throw new Error("API call failed");
+        
         const data = await response.json();
-        const dbStations: any[] = data.chargers || data;
+        const dbStations: any[] = Array.isArray(data) ? data : (data.chargers || []);
 
         // 2. Get User GPS
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -72,9 +74,17 @@ export default function MapScreen() {
           return;
         }
 
-        let location = await Location.getCurrentPositionAsync({});
-        const currentLat = location.coords.latitude;
-        const currentLng = location.coords.longitude;
+        let location = null;
+        try {
+          location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+        } catch (e) {
+          console.warn("Could not get current location, using default", e);
+        }
+
+        const currentLat = location?.coords?.latitude ?? 6.9271;
+        const currentLng = location?.coords?.longitude ?? 79.8612;
         setUserLocation({ latitude: currentLat, longitude: currentLng });
 
         // 3. Calculate distance for ALL valid stations
@@ -319,8 +329,8 @@ export default function MapScreen() {
           <Marker
             key={station._id}
             coordinate={{
-              latitude: station.location.latitude,
-              longitude: station.location.longitude,
+              latitude: Number(station.location?.latitude) || 0,
+              longitude: Number(station.location?.longitude) || 0,
             }}
             title={station.fullName}
             description={station.distance ? `${station.distance.toFixed(1)} km away` : ""}
