@@ -7,20 +7,14 @@
 import "@testing-library/jest-native/extend-expect";
 
 // ─── Mock AsyncStorage ──────────────────────────────────────────────────────
-jest.mock("@react-native-async-storage/async-storage", () => ({
-  __esModule: true,
-  default: {
-    getItem: jest.fn().mockResolvedValue(null),
-    setItem: jest.fn().mockResolvedValue(null),
-    removeItem: jest.fn().mockResolvedValue(null),
-    clear: jest.fn().mockResolvedValue(null),
-    getAllKeys: jest.fn().mockResolvedValue([]),
-    multiGet: jest.fn().mockResolvedValue([]),
-    multiSet: jest.fn().mockResolvedValue(null),
-  },
-}));
+jest.mock("@react-native-async-storage/async-storage", () =>
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock")
+);
 
-// ─── Mock expo-font ──────────────────────────────────────────────────────────
+// ─── Mock React Native Animated (avoids NativeAnimatedHelper crash on Windows)
+jest.mock("react-native/Libraries/Animated/NativeAnimatedHelper");
+
+// ─── Mock expo-font (avoids font loading crash on Windows) ──────────────────
 jest.mock("expo-font", () => ({
   loadAsync: jest.fn(),
   isLoaded: jest.fn(() => true),

@@ -23,7 +23,7 @@ import { Alert } from "react-native";
 
 const mockReplace = jest.fn();
 const mockPush    = jest.fn();
-const mockGetItem = jest.fn().mockResolvedValue(null);
+const mockGetItem = jest.fn();
 const mockSetItem = jest.fn().mockResolvedValue(null);
 
 jest.mock("expo-router", () => ({
@@ -31,12 +31,8 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
-  __esModule: true,
-  default: {
-    getItem: (...args: any[]) => mockGetItem(...args),
-    setItem: (...args: any[]) => mockSetItem(...args),
-    removeItem: jest.fn().mockResolvedValue(null),
-  },
+  getItem: mockGetItem,
+  setItem: mockSetItem,
 }));
 
 jest.mock("../../../chargeUp-frontend/app/Config/firebaseConfig", () => ({
@@ -88,8 +84,6 @@ function mockFetch(status: number, body: object) {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockGetItem.mockResolvedValue(null);
-  mockSetItem.mockResolvedValue(null);
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
 });
 

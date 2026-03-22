@@ -1,123 +1,126 @@
-import React from "react";
-import { View, Text, Pressable, StyleSheet, SafeAreaView } from "react-native";
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Animated,
+  Dimensions,
+  StatusBar,
+} from "react-native";
 import { useRouter } from "expo-router";
-import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
 
 export default function RoleSelectScreen() {
   const router = useRouter();
 
-  // 2. CREATE A FUNCTION FOR EV OWNERS (CLIENTS)
-  const handleSelectOwner = async () => {
-    console.log("👆 BUTTON TAPPED: Saving 'client' to memory...");
-    await AsyncStorage.setItem("userRole", "client");
-    router.push("/(auth)/register"); // <- Note: I changed this to go straight to register!
-  };
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideTitle = useRef(new Animated.Value(35)).current;
+  const slideCard1 = useRef(new Animated.Value(50)).current;
+  const slideCard2 = useRef(new Animated.Value(50)).current;
+  const scale1 = useRef(new Animated.Value(1)).current;
+  const scale2 = useRef(new Animated.Value(1)).current;
 
-  // 3. CREATE A FUNCTION FOR LENDERS (HOSTS)
-  const handleSelectLender = async () => {
-    console.log("👆 BUTTON TAPPED: Saving 'host' to memory...");
-    await AsyncStorage.setItem("userRole", "host");
-    router.push("/(auth)/register"); // <- Note: I changed this to go straight to register!
+  useEffect(() => {
+    Animated.stagger(100, [
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideTitle, { toValue: 0, tension: 50, useNativeDriver: true }),
+      Animated.spring(slideCard1, { toValue: 0, tension: 40, useNativeDriver: true }),
+      Animated.spring(slideCard2, { toValue: 0, tension: 40, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const handleSelectRole = async (role: "client" | "host") => {
+    const anim = role === "client" ? scale1 : scale2;
+    Animated.sequence([
+      Animated.timing(anim, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.spring(anim, { toValue: 1, useNativeDriver: true }),
+    ]).start(async () => {
+      await AsyncStorage.setItem("userRole", role);
+      router.push("/(auth)/register");
+    });
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.brandHeader}>ChargeUp</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={["#101922", "#15252E", "#1D3B42"]}
+        style={StyleSheet.absoluteFillObject}
+      />
 
-      <View style={styles.content}>
-        <Text style={styles.welcomeTitle}>Welcome to ChargeUp</Text>
-        <Text style={styles.subtitle}>Choose your role to get started</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <Animated.View style={[styles.mainContent, { opacity: fadeAnim }]}>
+          
+          <View style={styles.header}>
+            <Animated.View style={{ transform: [{ translateY: slideTitle }] }}>
+              <Text style={styles.eyebrow}>GET STARTED</Text>
+              <Text style={styles.title}>Choose Your Role</Text>
+              <View style={styles.underline} />
+            </Animated.View>
+          </View>
 
-        {/* EV Owner Option */}
-        <Pressable style={styles.roleCard} onPress={handleSelectOwner}>
-          <View style={styles.iconCircle}>
-            <MaterialCommunityIcons
-              name="car-electric"
-              size={30}
-              color="white"
-            />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.roleTitle}>EV Owner</Text>
-            <Text style={styles.roleDesc}>
-              Find, book and pay for charging.
-            </Text>
-          </View>
-          <Entypo name="chevron-right" size={24} color="#888" />
-        </Pressable>
+          <View style={styles.cardsContainer}>
+            {/* Driver Card */}
+            <Animated.View style={{ transform: [{ translateY: slideCard1 }, { scale: scale1 }] }}>
+              <Pressable style={styles.card} onPress={() => handleSelectRole("client")}>
+                <LinearGradient colors={["rgba(94,207,218,0.15)", "rgba(94,207,218,0.05)"]} style={styles.cardGradient}>
+                  <View style={styles.iconCircle}>
+                    <Ionicons name="car-sport" size={32} color="#5ECFDA" />
+                  </View>
+                  <View style={styles.cardText}>
+                    <Text style={styles.roleTitle}>Driver</Text>
+                    <Text style={styles.roleDesc}>I want to find and book charging stations.</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color="#5ECFDA" />
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
 
-        {/* Lender Option */}
-        <Pressable style={styles.roleCard} onPress={handleSelectLender}>
-          <View style={styles.iconCircle}>
-            <MaterialCommunityIcons name="ev-station" size={30} color="white" />
+            {/* Lender Card */}
+            <Animated.View style={{ transform: [{ translateY: slideCard2 }, { scale: scale2 }] }}>
+              <Pressable style={[styles.card, styles.cardGold]} onPress={() => handleSelectRole("host")}>
+                <LinearGradient colors={["rgba(255,200,80,0.15)", "rgba(255,200,80,0.05)"]} style={styles.cardGradient}>
+                  <View style={[styles.iconCircle, styles.iconCircleGold]}>
+                    <MaterialCommunityIcons name="ev-station" size={32} color="#FFC850" />
+                  </View>
+                  <View style={styles.cardText}>
+                    <Text style={styles.roleTitle}>Lender</Text>
+                    <Text style={styles.roleDesc}>I want to share my charger and earn money.</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color="#FFC850" />
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
           </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.roleTitle}>Lender</Text>
-            <Text style={styles.roleDesc}>Share your charger and earn.</Text>
-          </View>
-          <Entypo name="chevron-right" size={24} color="#888" />
-        </Pressable>
-      </View>
 
-      <Text style={styles.legalFooter}>
-        By continuing, you are agree to our{" "}
-        <Text style={styles.underline}>Terms and conditions</Text> and{" "}
-        <Text style={styles.underline}>Privacy Policy</Text>.
-      </Text>
-    </SafeAreaView>
+        </Animated.View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0B1D21", paddingHorizontal: 25 },
-  brandHeader: {
-    color: "white",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 20,
-  },
-  content: { flex: 1, justifyContent: "center" },
-  welcomeTitle: {
-    color: "white",
-    fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  subtitle: {
-    color: "white",
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 40,
-  },
-  roleCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1A2E33",
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    marginBottom: 15,
-  },
-  iconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  textContainer: { flex: 1, marginLeft: 15 },
-  roleTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
-  roleDesc: { color: "#AAA", fontSize: 12 },
-  legalFooter: {
-    color: "white",
-    fontSize: 11,
-    textAlign: "center",
-    marginBottom: 20,
-    opacity: 0.8,
-  },
-  underline: { textDecorationLine: "underline" },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  mainContent: { flex: 1, paddingHorizontal: 24, justifyContent: 'center' },
+  header: { marginBottom: 40 },
+  eyebrow: { color: "#5ECFDA", fontSize: 12, fontWeight: "800", letterSpacing: 1.5, marginBottom: 8 },
+  title: { color: "white", fontSize: 32, fontWeight: "900" },
+  underline: { width: 50, height: 4, backgroundColor: "#5ECFDA", marginTop: 12, borderRadius: 2 },
+  cardsContainer: { gap: 20 },
+  card: { borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: "rgba(94,207,218,0.3)", backgroundColor: "rgba(255,255,255,0.03)" },
+  cardGold: { borderColor: "rgba(255,200,80,0.3)" },
+  cardGradient: { flexDirection: 'row', alignItems: 'center', padding: 20 },
+  iconCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: "rgba(94,207,218,0.1)", alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  iconCircleGold: { backgroundColor: "rgba(255,200,80,0.1)" },
+  cardText: { flex: 1 },
+  roleTitle: { color: "white", fontSize: 20, fontWeight: "700", marginBottom: 4 },
+  roleDesc: { color: "rgba(255,255,255,0.5)", fontSize: 14, lineHeight: 20 },
 });

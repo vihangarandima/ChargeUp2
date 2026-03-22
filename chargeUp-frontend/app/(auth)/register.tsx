@@ -1,5 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,278 +7,603 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Animated,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-// 1. Import the Gradient component
 import { LinearGradient } from "expo-linear-gradient";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../Config/firebaseConfig";
 
+WebBrowser.maybeCompleteAuthSession();
+
+// --- REUSABLE INPUT COMPONENT ---
+const InputField = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  keyboardType,
+  autoCapitalize,
+  isPassword,
+  fieldKey,
+  focusedField,
+  setFocusedField,
+}: any) => {
+  const isFocused = focusedField === fieldKey;
+  const hasValue = value && value.length > 0;
+  const [localShowPassword, setLocalShowPassword] = useState(false);
+
+  return (
+    <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+      <View style={styles.inputIconBox}>
+        <Ionicons
+          name={icon}
+          size={17}
+          color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+        />
+      </View>
+
+      <View style={styles.inputBody}>
+        {(isFocused || hasValue) && (
+          <Text
+            pointerEvents="none"
+            style={[styles.floatLabel, isFocused && styles.floatLabelActive]}
+          >
+            {placeholder}
+          </Text>
+        )}
+        <TextInput
+          style={styles.textInput}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={!isFocused && !hasValue ? placeholder : ""}
+          placeholderTextColor="rgba(255,255,255,0.28)"
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize || "none"}
+          secureTextEntry={isPassword && !localShowPassword}
+          onFocus={() => setFocusedField(fieldKey)}
+          onBlur={() => setFocusedField(null)}
+          selectionColor="#5ECFDA"
+        />
+      </View>
+
+      {isPassword && (
+        <Pressable
+          onPress={() => setLocalShowPassword(!localShowPassword)}
+          style={styles.eyeBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons
+            name={localShowPassword ? "eye-outline" : "eye-off-outline"}
+            size={18}
+            color={isFocused ? "#5ECFDA" : "rgba(255,255,255,0.3)"}
+          />
+        </Pressable>
+      )}
+    </View>
+  );
+};
+
+// --- MAIN SCREEN ---
 export default function RegisterScreen() {
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const iconAnim = useRef(new Animated.Value(0.6)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // ✅ Google Auth Setup — same as login
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
+    androidClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com", // same ID, both lines
+    iosClientId: "71813664146-q1slepsb41dr9f0da3715i6phhj7p11i.apps.googleusercontent.com",
+  });
+
+  // ✅ Handle Google response automatically
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      handleFirebaseGoogle(id_token);
+    }
+  }, [response]);
+
+  const handleFirebaseGoogle = async (idToken: string) => {
+    try {
+      const credential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, credential);
+      const user = userCredential.user;
+
+      const role = (await AsyncStorage.getItem("userRole")) || "client";
+
+      await AsyncStorage.setItem("userName", user.displayName || "");
+      await AsyncStorage.setItem("userId", user.uid);
+      await AsyncStorage.setItem("userRole", role);
+
+      router.replace(
+        role === "host" ? "/host-charger-details" : "/vehicle-details",
+      );
+    } catch (error) {
+      console.error("Firebase Google error:", error);
+      Alert.alert("Error", "Google sign-up failed. Try again.");
+    }
+  };
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 70,
+        friction: 11,
+        useNativeDriver: true,
+      }),
+      Animated.spring(iconAnim, {
+        toValue: 1,
+        tension: 90,
+        friction: 7,
+        delay: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
+
+  const animateBtn = () => {
+    Animated.sequence([
+      Animated.timing(btnScale, {
+        toValue: 0.96,
+        duration: 70,
+        useNativeDriver: true,
+      }),
+      Animated.spring(btnScale, {
+        toValue: 1,
+        tension: 200,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const handleRegister = async () => {
+    animateBtn();
+
     if (!name || !email || !password) {
-      Alert.alert("Missing Info", "Please fill in all fields to sign up.");
+      Alert.alert("Missing Info", "Please fill in all fields.");
       return;
     }
-    try {
-      // 2. Ask memory what role they picked on the very first screen
-      // If it forgets, we default them to a "client" just in case.
-      const role = (await AsyncStorage.getItem("userRole")) || "client";
-      console.log("🚦 THE ROLE IN MEMORY IS:", role);
 
-      // 3. Send the new user's info to your Node.js backend
-      // (Again, make sure this IP matches your current Wi-Fi IP!)
+    try {
+      const role = (await AsyncStorage.getItem("userRole")) || "client";
+
       const response = await fetch(
-        "http://10.90.28.178:5000/api/auth/register",
+        "https://chargeup2.onrender.com/api/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, role }),
-        }
+        },
       );
 
       const data = await response.json();
 
-      // 4. If the backend says "User created successfully!"
       if (response.ok) {
-        // Save the VIP token so they are logged in automatically
-        if (data.token) {
-          await AsyncStorage.setItem("userToken", data.token);
-        }
+        if (data.token) await AsyncStorage.setItem("userToken", data.token);
+        await AsyncStorage.setItem("userName", name);
 
         Alert.alert("Welcome!", "Account created successfully.");
 
-        if (role === "host") {
-          router.replace("/host-charger-details");
-        } else {
-          router.replace("/vehicle-details");
-        }
+        router.replace(
+          role === "host" ? "/host-charger-details" : "/vehicle-details",
+        );
       } else {
-        // If the email is already taken or password is too short
         Alert.alert(
           "Signup Failed",
-          data.message || "Could not create account."
+          data.message || "Could not create account.",
         );
       }
     } catch (error) {
-      console.error("Network error:", error);
       Alert.alert(
         "Connection Error",
-        "Could not reach the server. Make sure your Node.js backend is running and the IP address is correct!"
+        "Could not reach the server. Make sure your backend is running.",
       );
+      console.error(error);
+    }
+  };
+
+  // ✅ Google button now triggers real flow
+  const handleGoogleSignup = async () => {
+    try {
+      await promptAsync();
+    } catch (error) {
+      console.error("Google prompt error:", error);
+      Alert.alert("Error", "Could not open Google sign-in.");
     }
   };
 
   return (
-    // 2. Wrap the whole screen in the LinearGradient
     <LinearGradient
       colors={["#101922", "#15252E", "#193038", "#1D3B42", "#0E4548"]}
-      locations={[0.13, 0.35, 0.55, 0.74, 1.0]}
       style={styles.container}
     >
+      <StatusBar barStyle="light-content" />
+      <View style={styles.blob1} />
+      <View style={styles.blob2} />
+
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
+              {/* TOP BAR */}
+              <View style={styles.topBar}>
+                <View style={styles.logoChip}>
+                  <Ionicons name="flash" size={14} color="#0E1F26" />
+                </View>
+                <Text style={styles.brandName}>ChargeUp</Text>
+                <View style={styles.badgePill}>
+                  <View style={styles.badgeDot} />
+                  <Text style={styles.badgeText}>EV Network</Text>
+                </View>
+              </View>
 
-        <View style={styles.content}>
-          {/* Brand Header */}
-          <Text style={styles.headerTitle}>ChargeUp</Text>
+              {/* HERO */}
+              <View style={styles.hero}>
+                <Animated.View
+                  style={[
+                    styles.iconOuter,
+                    { transform: [{ scale: pulseAnim }] },
+                  ]}
+                >
+                  <LinearGradient
+                    colors={["rgba(94,207,218,0.18)", "rgba(94,207,218,0.04)"]}
+                    style={styles.iconGradient}
+                  >
+                    <Animated.View
+                      style={[
+                        styles.iconInner,
+                        { transform: [{ scale: iconAnim }] },
+                      ]}
+                    >
+                      <Ionicons name="flash" size={38} color="white" />
+                    </Animated.View>
+                  </LinearGradient>
+                </Animated.View>
+                <Text style={styles.heroTitle}>Get Started</Text>
+                <Text style={styles.heroSub}>
+                  Create your free ChargeUp account
+                </Text>
+              </View>
 
-          {/* Hero Branding */}
-          <View style={styles.brandHero}>
-            <Ionicons name="flash" size={80} color="white" />
-            <Text style={styles.tagline}>Find, book and pay</Text>
-          </View>
+              {/* CARD */}
+              <View style={styles.card}>
+                <View style={styles.form}>
+                  <InputField
+                    icon="person-outline"
+                    placeholder="Full Name"
+                    value={name}
+                    onChangeText={setName}
+                    fieldKey="name"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
+                  />
+                  <InputField
+                    icon="mail-outline"
+                    placeholder="Email Address"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    fieldKey="email"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
+                  />
+                  <InputField
+                    icon="lock-closed-outline"
+                    placeholder="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    isPassword
+                    fieldKey="password"
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
+                  />
+                </View>
 
-          {/* Signup Form */}
-          <View style={styles.form}>
-            <TextInput
-              placeholder="Full Name"
-              placeholderTextColor="#889"
-              style={styles.inputUnderline}
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              placeholder="Email address"
-              placeholderTextColor="#889"
-              style={styles.inputUnderline}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
+                {/* SIGNUP BUTTON */}
+                <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+                  <Pressable onPress={handleRegister} style={styles.ctaBtn}>
+                    <LinearGradient
+                      colors={["#3ABFCC", "#1E9BAA"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.ctaGradient}
+                    >
+                      <Text style={styles.ctaText}>Create Account</Text>
+                      <View style={styles.ctaArrow}>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="#0E4548"
+                        />
+                      </View>
+                    </LinearGradient>
+                  </Pressable>
+                </Animated.View>
 
-            <View style={styles.passwordWrapper}>
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="#889"
-                secureTextEntry
-                style={[styles.inputUnderline, { flex: 1 }]}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <Ionicons
-                name="eye-off-outline"
-                size={20}
-                color="white"
-                style={styles.eyeIcon}
-              />
-            </View>
-          </View>
+                {/* DIVIDER */}
+                <View style={styles.divider}>
+                  <View style={styles.divLine} />
+                  <Text style={styles.divLabel}>or continue with</Text>
+                  <View style={styles.divLine} />
+                </View>
 
-          {/* Main Action Button */}
-          <Pressable style={styles.signupBtn} onPress={handleRegister}>
-            <Text style={styles.signupBtnText}>Signup</Text>
-          </Pressable>
+                {/* SOCIAL */}
+                <View style={styles.socialRow}>
+                  <Pressable style={styles.socialBtn}>
+                    <FontAwesome5 name="apple" size={20} color="white" />
+                    <Text style={styles.socialText}>Apple</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.socialBtn, styles.googleBtn]}
+                    onPress={handleGoogleSignup}
+                    disabled={!request}
+                  >
+                    <FontAwesome5 name="google" size={17} color="#EA4335" />
+                    <Text style={[styles.socialText, { color: "#EA4335" }]}>
+                      Google
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
 
-          <Text style={styles.orText}>or</Text>
+              {/* FOOTER */}
+              <View style={styles.loginRow}>
+                <Text style={styles.loginText}>Already have an account?</Text>
+                <Pressable onPress={() => router.push("/(auth)/login")}>
+                  <Text style={styles.loginLink}> Sign In →</Text>
+                </Pressable>
+              </View>
 
-          {/* Social Options */}
-          <View style={styles.socialDivider}>
-            <View style={styles.line} />
-            <Text style={styles.socialLabel}>Signup with</Text>
-            <View style={styles.line} />
-          </View>
-
-          <View style={styles.socialRow}>
-            <FontAwesome name="apple" size={45} color="white" />
-            <FontAwesome name="google" size={42} color="#EA4335" />
-          </View>
-
-          {/* Footer Toggle */}
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Already have an Account? </Text>
-            <Pressable onPress={() => router.push("/(auth)/login")}>
-              <Text style={styles.loginLink}>Login</Text>
-            </Pressable>
-          </View>
-
-          {/* Legal Disclaimer */}
-          <Text style={styles.legalNotice}>
-            By continuing, you agree to our{" "}
-            <Text style={styles.legalLink}>Terms and conditions</Text> and{" "}
-            <Text style={styles.legalLink}>Privacy Policy</Text>.
-          </Text>
-        </View>
+              <View style={styles.legalBox}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={14}
+                  color="#5ECFDA"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.legalText}>
+                  By signing up you agree to our{" "}
+                  <Text style={styles.legalLink}>Terms</Text> and{" "}
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </Text>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 40,
-    alignItems: "center",
-  },
-  headerTitle: {
-    alignSelf: "flex-start",
-    color: "white",
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 30,
-  },
-  brandHero: {
-    alignItems: "center",
-    marginBottom: 50,
-  },
-  tagline: {
-    color: "white",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  form: {
-    width: "100%",
-    marginBottom: 40,
-  },
-  inputUnderline: {
-    borderBottomWidth: 1,
-    borderBottomColor: "white",
-    color: "white",
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 25,
-  },
-  passwordWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  eyeIcon: {
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  scroll: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
+  blob1: {
     position: "absolute",
-    right: 0,
-    bottom: 35,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "rgba(94,207,218,0.06)",
+    top: -100,
+    right: -80,
   },
-  signupBtn: {
-    borderWidth: 1,
-    borderColor: "white",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 50,
-    marginBottom: 15,
+  blob2: {
+    position: "absolute",
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: "rgba(94,207,218,0.03)",
+    bottom: 100,
+    left: -70,
   },
-  signupBtnText: {
-    color: "white",
-    fontSize: 18,
+  topBar: { flexDirection: "row", alignItems: "center", marginBottom: 30 },
+  logoChip: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: "#5ECFDA",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
   },
-  orText: {
-    color: "white",
-    marginBottom: 15,
-  },
-  socialDivider: {
+  brandName: { color: "white", fontSize: 20, fontWeight: "700", flex: 1 },
+  badgePill: {
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    marginBottom: 30,
+    backgroundColor: "rgba(94,207,218,0.1)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 5,
   },
-  line: {
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#5ECFDA",
+  },
+  badgeText: { color: "#5ECFDA", fontSize: 11, fontWeight: "600" },
+  hero: { alignItems: "center", marginBottom: 25 },
+  iconOuter: { width: 92, height: 92, borderRadius: 46 },
+  iconGradient: {
     flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.3)",
-  },
-  socialLabel: {
-    color: "white",
-    marginHorizontal: 10,
-    fontSize: 14,
-  },
-  socialRow: {
-    flexDirection: "row",
-    gap: 40,
+    borderRadius: 46,
     alignItems: "center",
-    marginBottom: 40,
+    justifyContent: "center",
   },
-  footerRow: {
-    flexDirection: "row",
-    marginBottom: 30,
+  iconInner: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(94,207,218,0.1)",
+    borderWidth: 1.5,
+    borderColor: "rgba(94,207,218,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  footerText: {
+  heroTitle: {
     color: "white",
-    fontSize: 14,
+    fontSize: 28,
+    fontWeight: "800",
+    marginBottom: 5,
   },
-  loginLink: {
-    color: "#7BB1BA",
-    fontSize: 14,
-    fontWeight: "bold",
+  heroSub: { color: "rgba(255,255,255,0.38)", fontSize: 13 },
+  card: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    padding: 18,
+    marginBottom: 20,
   },
-  legalNotice: {
-    color: "rgba(255,255,255,0.6)",
+  form: { gap: 12, marginBottom: 20 },
+  inputWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  inputWrapFocused: {
+    backgroundColor: "rgba(94,207,218,0.08)",
+    borderColor: "rgba(94,207,218,0.4)",
+  },
+  inputIconBox: { width: 24 },
+  inputBody: { flex: 1, minHeight: 45, justifyContent: "center" },
+  floatLabel: {
+    color: "rgba(255,255,255,0.3)",
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  floatLabelActive: { color: "#5ECFDA" },
+  textInput: { color: "white", fontSize: 16, paddingVertical: 5 },
+  eyeBtn: { padding: 5 },
+  ctaBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 20 },
+  ctaGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    gap: 10,
+  },
+  ctaText: { color: "white", fontSize: 16, fontWeight: "700" },
+  ctaArrow: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 10,
+  },
+  divLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.1)" },
+  divLabel: { color: "rgba(255,255,255,0.3)", fontSize: 12 },
+  socialRow: { flexDirection: "row", gap: 12 },
+  socialBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  googleBtn: {
+    backgroundColor: "rgba(234,67,53,0.06)",
+    borderColor: "rgba(234,67,53,0.2)",
+  },
+  socialText: { color: "white", fontSize: 14, fontWeight: "600" },
+  loginRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  loginText: { color: "rgba(255,255,255,0.45)" },
+  loginLink: { color: "#5ECFDA", fontWeight: "700" },
+  legalBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(94,207,218,0.05)",
+    borderRadius: 12,
+    padding: 12,
+  },
+  legalText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.5)",
     fontSize: 11,
-    textAlign: "center",
-    lineHeight: 18,
+    lineHeight: 16,
   },
   legalLink: {
+    color: "#5ECFDA",
+    fontWeight: "600",
     textDecorationLine: "underline",
   },
 });

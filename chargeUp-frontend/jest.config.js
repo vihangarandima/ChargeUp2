@@ -17,9 +17,6 @@ module.exports = {
     path.resolve(__dirname, "node_modules")
   ],
   moduleNameMapper: {
-    // Redirect ../../../chargeUp-frontend/... → the actual project root
-    "^\\.\\./\\.\\./\\.\\./chargeUp-frontend/(.*)$": path.resolve(__dirname, "$1"),
-    // Existing mappers
     "^expo-router$": path.resolve(__dirname, "node_modules/expo-router"),
     "\\.(jpg|jpeg|png|gif|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$":
       path.resolve(__dirname, "__mocks__/fileMock.js"),

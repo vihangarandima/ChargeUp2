@@ -14,8 +14,8 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handleGetStarted = () => {
-    // 🚀 Sends the user straight to the Login/Register flow!
-    router.push("/(tab)/home");
+    // 🚀 Sends the user straight to the role selection / Login flow!
+    router.push("/role-select");
   };
 
   return (

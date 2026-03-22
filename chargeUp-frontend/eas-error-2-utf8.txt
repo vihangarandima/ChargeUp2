@@ -1,0 +1,35 @@
+﻿node.exe : 
+(node:40196) [DEP0040] 
+DeprecationWarning: 
+The `punycode` module 
+is deprecated. Please 
+use a userland 
+alternative instead.
+At C:\Users\USER\AppDat
+a\Roaming\npm\eas.ps1:2
+4 char:5
++     & "node$exe"  "$b
+asedir/node_modules/eas
+-cli/bin/run" $args
++     ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ((node:40196)    
+ [D...native instea    
+d.:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+(Use `node 
+--trace-deprecation 
+...` to show where the 
+warning was created)
+[32mΓ£ö[39m Using 
+Keystore from 
+configuration: Build 
+Credentials jvPUidM5xi 
+(default)

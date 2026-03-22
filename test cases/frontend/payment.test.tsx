@@ -1,16 +1,30 @@
 /**
  * PAYMENT SCREEN TESTS — app/(client)/payment.tsx
+ *
+ * Covers:
+ *   - Screen renders amount and Confirm & Pay button
+ *   - Confirm & Pay opens the PayHere WebView modal
+ *   - Success redirect calls /api/complete-charging-session
+ *   - Request body contains totalAmount, hostId and status paid
+ *   - Navigates to /payment-success after backend call completes
+ *   - Does not crash when backend call fails with a network error
+ *
+ * Compatible: Windows, Mac, Linux
+ *
+ * Run from chargeUp-frontend/:
+ *   npm test
  */
 
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 
+// ─── Mocks ──────────────────────────────────────────────────────────────────
+
 const mockReplace = jest.fn();
 const mockBack    = jest.fn();
-const mockPush    = jest.fn();
 
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ replace: mockReplace, back: mockBack, push: mockPush }),
+  useRouter: () => ({ replace: mockReplace, back: mockBack }),
   useLocalSearchParams: () => ({
     amount:    "200.00",
     sessionId: "SESSION_12345",
@@ -63,8 +77,10 @@ jest.mock("react-native-safe-area-context", () => {
 
 jest.mock("md5", () => (str: string) => `mock_hash_${str.length}`);
 
+// ─── Component ───────────────────────────────────────────────────────────────
 import PaymentPage from "../../../chargeUp-frontend/app/(client)/payment";
 
+// ─── Helper ──────────────────────────────────────────────────────────────────
 function mockFetch(status = 200, body: object = { success: true }) {
   (global as any).fetch = jest.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
@@ -78,22 +94,24 @@ beforeEach(() => {
   mockFetch();
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
 describe("PaymentPage — rendering", () => {
   test("renders the amount passed via route params", () => {
     const { getByText } = render(<PaymentPage />);
     expect(getByText(/200\.00/)).toBeTruthy();
   });
 
-  test("renders the Pay here button", () => {
+  test("renders the Confirm and Pay button", () => {
     const { getByText } = render(<PaymentPage />);
-    expect(getByText(/Pay here/i)).toBeTruthy();
+    expect(getByText(/Confirm & Pay/i)).toBeTruthy();
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
 describe("PaymentPage — PayHere modal", () => {
-  test("shows the WebView modal when Pay here is pressed", async () => {
+  test("shows the WebView modal when Confirm and Pay is pressed", async () => {
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
 
     await waitFor(() => {
       expect(getByTestId("webview")).toBeTruthy();
@@ -101,10 +119,11 @@ describe("PaymentPage — PayHere modal", () => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
 describe("PaymentPage — payment success flow", () => {
   test("calls /api/complete-charging-session when redirected to success URL", async () => {
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
     await waitFor(() => getByTestId("webview"));
 
     await act(async () => {
@@ -121,7 +140,7 @@ describe("PaymentPage — payment success flow", () => {
 
   test("sends totalAmount of 200.00 in the request body", async () => {
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
     await waitFor(() => getByTestId("webview"));
 
     await act(async () => {
@@ -137,7 +156,7 @@ describe("PaymentPage — payment success flow", () => {
 
   test("sends chargerId as hostId in the request body", async () => {
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
     await waitFor(() => getByTestId("webview"));
 
     await act(async () => {
@@ -153,7 +172,7 @@ describe("PaymentPage — payment success flow", () => {
 
   test("sends status paid in the request body", async () => {
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
     await waitFor(() => getByTestId("webview"));
 
     await act(async () => {
@@ -169,7 +188,7 @@ describe("PaymentPage — payment success flow", () => {
 
   test("navigates to payment-success after the backend call completes", async () => {
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
     await waitFor(() => getByTestId("webview"));
 
     await act(async () => {
@@ -177,10 +196,8 @@ describe("PaymentPage — payment success flow", () => {
     });
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.objectContaining({
-          pathname: expect.stringContaining("payment-success"),
-        }),
+      expect(mockReplace).toHaveBeenCalledWith(
+        expect.stringContaining("payment-success"),
       );
     });
   });
@@ -189,7 +206,7 @@ describe("PaymentPage — payment success flow", () => {
     (global as any).fetch = jest.fn().mockRejectedValue(new Error("Network error"));
 
     const { getByText, getByTestId } = render(<PaymentPage />);
-    fireEvent.press(getByText(/Pay here/i));
+    fireEvent.press(getByText(/Confirm & Pay/i));
     await waitFor(() => getByTestId("webview"));
 
     await expect(

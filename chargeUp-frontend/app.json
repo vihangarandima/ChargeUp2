@@ -24,7 +24,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.chargeupfrontend"
+      "package": "com.anonymous.chargeupfrontend",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBcuk_Bawpwi5IL3pYdH4kptJiDalxoj9c"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -40,10 +45,17 @@
           "backgroundColor": "#0D1F23"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a29ddbbe-589e-46f6-899d-e9189202269a"
+      }
     }
   }
 }

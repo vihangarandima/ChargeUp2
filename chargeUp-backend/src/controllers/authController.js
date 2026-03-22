@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password,role } = req.body;
 
     // Check if this user already exists
     let user = await User.findOne({ email });
@@ -20,6 +20,7 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: role || "client", // default to client if no roleprovided
     });
 
     // Save it to the database!
@@ -51,7 +52,7 @@ const login = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful!",
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email,role: user.role },
     });
   } catch (error) {
     console.error(error);
@@ -59,4 +60,49 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const Charger = require("../models/Charger");
+
+const getProfile = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+    
+    const user = await User.findById(token).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+    
+    const { name, email, phone } = req.body;
+    let user = await User.findById(token);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
+
+    // Handle uploaded file from Multer
+    if (req.file) {
+      user.profileImage = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+    
+    const updatedUser = await User.findById(token).select("-password");
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error during update" });
+  }
+};
+
+module.exports = { register, login, getProfile, updateProfile };

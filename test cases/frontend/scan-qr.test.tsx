@@ -93,9 +93,9 @@ describe("ScanQRScreen — rendering", () => {
     expect(getByText("QUICK CONNECT")).toBeTruthy();
   });
 
-  test("renders the Tap to Scan QR button", () => {
+  test("renders the START SCANNING button", () => {
     const { getByText } = render(<ScanQRScreen />);
-    expect(getByText(/Tap to Scan QR/i)).toBeTruthy();
+    expect(getByText(/START SCANNING/i)).toBeTruthy();
   });
 });
 
@@ -116,7 +116,7 @@ describe("ScanQRScreen — QUICK CONNECT", () => {
 describe("ScanQRScreen — QR scanning", () => {
   test("navigates with the correct charger id on a valid CHARGEUP_ scan", async () => {
     const { getByText, getByTestId } = render(<ScanQRScreen />);
-    fireEvent.press(getByText(/Tap to Scan QR/i));
+    fireEvent.press(getByText(/START SCANNING/i));
 
     await act(async () => {
       fireEvent.press(getByTestId("trigger-valid-scan"));
@@ -130,7 +130,7 @@ describe("ScanQRScreen — QR scanning", () => {
 
   test("navigates with chargerId latest when QR data is CHARGEUP_LATEST", async () => {
     const { getByText, getByTestId } = render(<ScanQRScreen />);
-    fireEvent.press(getByText(/Tap to Scan QR/i));
+    fireEvent.press(getByText(/START SCANNING/i));
 
     await act(async () => {
       fireEvent.press(getByTestId("trigger-latest-scan"));
@@ -144,7 +144,7 @@ describe("ScanQRScreen — QR scanning", () => {
 
   test("shows Invalid Charger alert when QR code does not start with CHARGEUP_", async () => {
     const { getByText, getByTestId } = render(<ScanQRScreen />);
-    fireEvent.press(getByText(/Tap to Scan QR/i));
+    fireEvent.press(getByText(/START SCANNING/i));
 
     await act(async () => {
       fireEvent.press(getByTestId("trigger-invalid-scan"));
@@ -160,7 +160,7 @@ describe("ScanQRScreen — QR scanning", () => {
 
   test("does not navigate when an invalid QR code is scanned", async () => {
     const { getByText, getByTestId } = render(<ScanQRScreen />);
-    fireEvent.press(getByText(/Tap to Scan QR/i));
+    fireEvent.press(getByText(/START SCANNING/i));
 
     await act(async () => {
       fireEvent.press(getByTestId("trigger-invalid-scan"));
