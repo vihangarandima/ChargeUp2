@@ -19,8 +19,8 @@ export default function StationDetails() {
   const { chargerId, stationName, lat, lng } = useLocalSearchParams();
   const router = useRouter();
 
-  const latitude = lat ? parseFloat(lat as string) : 6.9067;
-  const longitude = lng ? parseFloat(lng as string) : 79.8707;
+  const latitude = Number(lat) || 6.9067;
+  const longitude = Number(lng) || 79.8707;
 
   // 🌟 State for the real charger fetched from the backend
   const [charger, setCharger] = useState<any>(null);
@@ -62,8 +62,8 @@ export default function StationDetails() {
       <MapView
         style={styles.map}
         initialRegion={{
-          latitude,
-          longitude,
+          latitude: latitude || 6.9067,
+          longitude: longitude || 79.8707,
           latitudeDelta: 0.015,
           longitudeDelta: 0.015,
         }}
