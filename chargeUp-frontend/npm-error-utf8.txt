@@ -1,0 +1,153 @@
+﻿node.exe : npm error 
+code ERESOLVE
+At C:\Program Files\nod
+ejs\npm.ps1:29 char:3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (npm error cod   
+ e ERESOLVE:String)    
+ [], RemoteExcepti    
+on
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+npm error ERESOLVE 
+could not resolve
+npm error
+npm error While 
+resolving: react-test-r
+enderer@19.2.0
+npm error Found: 
+react@19.1.0
+npm error 
+node_modules/react
+npm error   
+react@"19.1.0" from 
+the root project
+npm error   
+peerOptional react@"*" 
+from 
+@expo/devtools@0.1.8
+npm error   node_module
+s/@expo/devtools
+npm error     
+@expo/devtools@"0.1.8" 
+from expo@54.0.33
+npm error     
+node_modules/expo
+npm error       
+expo@"~54.0.33" from 
+the root project
+npm error       35 
+more 
+(@expo/metro-config, 
+@expo/metro-runtime, 
+...)
+npm error   71 more 
+(@expo/metro-runtime, 
+@expo/vector-icons, 
+...)
+npm error
+npm error Could not 
+resolve dependency:
+npm error peer 
+react@"^19.2.0" from re
+act-test-renderer@19.2.
+0
+npm error node_modules/
+react-test-renderer
+npm error   peer react-
+test-renderer@">=16.0.0
+" from @testing-library
+/jest-native@5.4.3
+npm error   node_module
+s/@testing-library/jest
+-native
+npm error     dev @test
+ing-library/jest-native
+@"^5.4.3" from the 
+root project
+npm error   peer react-
+test-renderer@">=18.2.0
+" from @testing-library
+/react-native@13.3.3
+npm error   node_module
+s/@testing-library/reac
+t-native
+npm error     dev @test
+ing-library/react-nativ
+e@"^13.3.3" from the 
+root project
+npm error     1 more 
+(expo-router)
+npm error   1 more 
+(jest-expo)
+npm error
+npm error Conflicting 
+peer dependency: 
+react@19.2.4
+npm error 
+node_modules/react
+npm error   peer 
+react@"^19.2.0" from re
+act-test-renderer@19.2.
+0
+npm error   node_module
+s/react-test-renderer
+npm error     peer reac
+t-test-renderer@">=16.0
+.0" from @testing-libra
+ry/jest-native@5.4.3
+npm error     node_modu
+les/@testing-library/je
+st-native
+npm error       dev @te
+sting-library/jest-nati
+ve@"^5.4.3" from the 
+root project
+npm error     peer reac
+t-test-renderer@">=18.2
+.0" from @testing-libra
+ry/react-native@13.3.3
+npm error     node_modu
+les/@testing-library/re
+act-native
+npm error       dev @te
+sting-library/react-nat
+ive@"^13.3.3" from the 
+root project
+npm error       1 more 
+(expo-router)
+npm error     1 more 
+(jest-expo)
+npm error
+npm error Fix the 
+upstream dependency 
+conflict, or retry
+npm error this command 
+with --force or 
+--legacy-peer-deps
+npm error to accept an 
+incorrect (and 
+potentially broken) 
+dependency resolution.
+npm error
+npm error
+npm error For a full 
+report see:
+npm error C:\Users\USER
+\AppData\Local\npm-cach
+e\_logs\2026-03-22T09_4
+4_56_415Z-eresolve-repo
+rt.txt
+npm error A complete 
+log of this run can be 
+found in: C:\Users\USER
+\AppData\Local\npm-cach
+e\_logs\2026-03-22T09_4
+4_56_415Z-debug-0.log
