@@ -57,17 +57,5 @@
         "projectId": "a29ddbbe-589e-46f6-899d-e9189202269a"
       }
     }
-
-    {
-      "expo": {
-        "android": {
-          "config": {
-            "googleMaps": {
-              "apiKey": "AIzaSyBcuk_Bawpwi5IL3pYdH4kptJiDalxoj9c"
-            }
-          }
-        }
-      }
-    }
   }
 }
