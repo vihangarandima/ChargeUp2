@@ -11,8 +11,9 @@
  */
 
 module.exports = {
+  roots: ["<rootDir>", "<rootDir>/../test cases/backend"],
   testEnvironment: "node",
-  testMatch: ["**/test cases/backend/**/*.test.js"],
+  testMatch: ["<rootDir>/../test cases/backend/**/*.test.js"],
   forceExit: true,
   clearMocks: true,
   testTimeout: 30000,

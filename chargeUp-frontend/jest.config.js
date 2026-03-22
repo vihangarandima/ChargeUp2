@@ -12,8 +12,9 @@
 
 module.exports = {
   preset: "jest-expo",
+  roots: ["<rootDir>", "<rootDir>/../test cases/frontend"],
   testEnvironment: "node",
-  testMatch: ["**/test cases/frontend/**/*.test.tsx", "**/test cases/frontend/**/*.test.ts"],
+  testMatch: ["<rootDir>/../test cases/frontend/**/*.test.tsx", "<rootDir>/../test cases/frontend/**/*.test.ts"],
   setupFilesAfterFramework: ["./jest.setup.js"],
   forceExit: true,
   clearMocks: true,
