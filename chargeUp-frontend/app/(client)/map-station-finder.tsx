@@ -34,7 +34,8 @@ const calculateDistance = (
     Math.cos(lat2 * (Math.PI / 180)) *
     Math.sin(dLon / 2) *
     Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  // 🌟 FIX: Clamp 'a' to [0, 1] to prevent NaN from precision errors in Math.sqrt(1-a)
+  const c = 2 * Math.atan2(Math.sqrt(Math.max(0, Math.min(1, a))), Math.sqrt(1 - Math.max(0, Math.min(1, a))));
   return R * c;
 };
 
@@ -88,15 +89,25 @@ export default function MapScreen() {
         setUserLocation({ latitude: currentLat, longitude: currentLng });
 
         // 3. Calculate distance for ALL valid stations
-        const validStations = dbStations.filter((s: any) => s.location && s.location.latitude && s.location.longitude);
+        const validStations = dbStations.filter((s: any) => 
+          s && s.location && 
+          typeof s.location.latitude === 'number' && 
+          typeof s.location.longitude === 'number'
+        );
+        
         const stationsWithDistance = validStations.map((station: any) => {
-          const distance = calculateDistance(
-            currentLat,
-            currentLng,
-            station.location.latitude,
-            station.location.longitude,
-          );
-          return { ...station, distance };
+          try {
+            const distance = calculateDistance(
+              currentLat,
+              currentLng,
+              station.location.latitude,
+              station.location.longitude,
+            );
+            return { ...station, distance: isNaN(distance) ? 0 : distance };
+          } catch (err) {
+            console.warn("Distance calculation failed for", station.fullName);
+            return { ...station, distance: 0 };
+          }
         });
 
         // 4. Set ALL stations for the map markers
@@ -104,8 +115,8 @@ export default function MapScreen() {
 
         // 5. Filter nearest 15km ONLY for the bottom cards
         const nearbyStations = stationsWithDistance
-          .filter((station: any) => station.distance <= 15)
-          .sort((a: any, b: any) => a.distance - b.distance);
+          .filter((station: any) => (station.distance || 0) <= 15)
+          .sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
 
         setDisplayedCards(nearbyStations);
 
@@ -325,16 +336,16 @@ export default function MapScreen() {
         }}
       >
         {/* Render ALL stations on the map */}
-        {allStations.map((station) => (
+        {allStations.map((station, index) => (
           <Marker
-            key={station._id}
+            key={station._id || `marker-${index}`}
             coordinate={{
               latitude: Number(station.location?.latitude) || 0,
               longitude: Number(station.location?.longitude) || 0,
             }}
-            title={station.fullName}
-            description={station.distance ? `${station.distance.toFixed(1)} km away` : ""}
-            onPress={() => handleMarkerPress(station)} // 🌟 Added OnPress Event
+            title={station.fullName || "Charging Station"}
+            description={station.distance ? `${station.distance.toFixed(1)} km away` : "Nearby"}
+            onPress={() => handleMarkerPress(station)}
           >
             <View style={styles.stationMarker}>
               <Ionicons name="flash" size={14} color="white" />
@@ -347,17 +358,17 @@ export default function MapScreen() {
       <View style={styles.cardWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {/* Render ONLY displayed stations in the cards */}
-          {displayedCards.map((station) => (
+          {displayedCards.map((station, index) => (
             <TouchableOpacity
-              key={station._id}
+              key={station._id || `card-${index}`}
               style={styles.stationCard}
               onPress={() =>
                 router.push({
                   pathname: "/charger-booking",
                   params: {
-                    stationName: station.fullName,
-                    lat: String(station.location?.latitude),
-                    lng: String(station.location?.longitude),
+                    stationName: station.fullName || "Charging Station",
+                    lat: String(station.location?.latitude || 0),
+                    lng: String(station.location?.longitude || 0),
                   },
                 })
               }

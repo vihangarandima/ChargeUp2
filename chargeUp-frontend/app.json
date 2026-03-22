@@ -27,7 +27,7 @@
       "package": "com.anonymous.chargeupfrontend",
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+          "apiKey": "AIzaSyBcuk_Bawpwi5IL3pYdH4kptJiDalxoj9c"
         }
       }
     },
@@ -55,6 +55,18 @@
       "router": {},
       "eas": {
         "projectId": "a29ddbbe-589e-46f6-899d-e9189202269a"
+      }
+    }
+
+    {
+      "expo": {
+        "android": {
+          "config": {
+            "googleMaps": {
+              "apiKey": "AIzaSyBcuk_Bawpwi5IL3pYdH4kptJiDalxoj9c"
+            }
+          }
+        }
       }
     }
   }
